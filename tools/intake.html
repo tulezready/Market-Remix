@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SME Intake — Division of Commerce &amp; Industry, ENBPA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  .icon{width:1em;height:1em;display:inline-block;vertical-align:-0.15em;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+  :root{
+    --red:#7E0F12; --red-lt:#A81B1F; --red-dp:#560A0C;
+    --green:#00702F; --green-br:#12A94B; --green-gl:#1FD066;
+    --amber:#9C6B0B; --amber-lt:#C98A12;
+    --ink:#0C0B0A; --ink-2:#1A1815;
+    --bone:#FBF8F1; --bone-2:#F2ECDF; --bone-3:#E5DDCC;
+    --muted:#79715F;
+    --hair:rgba(12,11,10,0.13); --hair-2:rgba(12,11,10,0.06);
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+  body{margin:0;background:var(--bone-2);color:var(--ink);
+    font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;}
+  h1,h2,h3{margin:0;font-weight:400;}
+  .bod{font-family:'Bodoni Moda',serif;font-weight:500;}
+  .mono{font-family:'Space Mono',monospace;}
+  button,input,select,textarea{font-family:inherit;font-size:inherit;}
+  button{cursor:pointer;}
+  a{color:var(--red);}
+  :focus-visible{outline:2px solid var(--green-br);outline-offset:2px;}
+
+  /* layout */
+  .app{display:grid;grid-template-columns:236px 1fr;min-height:100vh;}
+  .side{background:var(--ink);color:var(--bone);display:flex;flex-direction:column;
+    position:sticky;top:0;height:100vh;}
+  .side-top{padding:20px 18px;border-bottom:1px solid rgba(251,248,241,0.12);
+    display:flex;align-items:center;gap:11px;}
+  .side-top .t{font-family:'Bodoni Moda',serif;font-size:19px;line-height:1.1;}
+  .side-top .s{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.16em;
+    text-transform:uppercase;color:var(--green-gl);margin-top:6px;}
+  .nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+  .nav button{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:11px 13px;border-radius:8px;font-size:13.5px;font-weight:600;
+    color:rgba(251,248,241,0.68);background:none;border:none;text-align:left;width:100%;transition:.18s;}
+  .nav button:hover{background:rgba(251,248,241,0.07);color:var(--bone);}
+  .nav button.on{background:var(--red);color:#fff;}
+  .nav .pipcount{font-family:'Space Mono',monospace;font-size:10px;opacity:.75;}
+  .side-bot{padding:14px 18px 18px;border-top:1px solid rgba(251,248,241,0.12);
+    font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.08em;color:rgba(251,248,241,0.4);line-height:1.7;}
+
+  main{min-width:0;}
+  .top{background:var(--bone);border-bottom:1px solid var(--hair);padding:18px 28px;
+    display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+    position:sticky;top:0;z-index:20;}
+  .top h1{font-family:'Bodoni Moda',serif;font-size:24px;}
+  .top .sub{font-size:12px;color:var(--muted);margin-top:3px;}
+  .content{padding:24px 28px 70px;}
+
+  /* banner */
+  .banner{padding:11px 18px;font-size:12.5px;display:flex;gap:9px;align-items:flex-start;}
+  .banner.warn{background:#FDF3DC;color:#6B4A05;border-bottom:1px solid #E8D08A;}
+  .banner.ok{background:#E6F5EC;color:#0B5228;border-bottom:1px solid #A9DCBF;}
+  .banner b{font-weight:800;}
+
+  /* buttons */
+  .btn{background:var(--red);color:#fff;border:none;padding:10px 18px;border-radius:100px;
+    font-weight:700;font-size:13px;transition:.2s;}
+  .btn:hover{background:var(--red-dp);}
+  .btn.g{background:var(--green);}
+  .btn.g:hover{background:#005423;}
+  .btn.dark{background:var(--ink);}
+  .btn.dark:hover{background:var(--ink-2);}
+  .btn-o{background:none;border:1.5px solid var(--ink);color:var(--ink);padding:9px 17px;
+    border-radius:100px;font-weight:700;font-size:13px;transition:.2s;}
+  .btn-o:hover{background:var(--ink);color:var(--bone);}
+  .btn-sm{padding:6px 12px;font-size:11.5px;}
+  .btn-danger{background:none;border:1px solid var(--hair);color:var(--red);
+    padding:6px 12px;border-radius:100px;font-size:11.5px;font-weight:700;}
+  .btn-danger:hover{background:var(--red);color:#fff;border-color:var(--red);}
+
+  /* cards */
+  .panel{background:var(--bone);border:1px solid var(--hair-2);border-radius:14px;margin-bottom:20px;overflow:hidden;}
+  .panel-hd{padding:16px 20px;border-bottom:1px solid var(--hair-2);
+    display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;}
+  .panel-hd h2{font-family:'Bodoni Moda',serif;font-size:19px;}
+  .panel-hd .n{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
+  .panel-bd{padding:20px;}
+
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+  .stat{background:var(--bone);border:1px solid var(--hair-2);border-radius:14px;padding:18px;}
+  .stat .n{font-family:'Bodoni Moda',serif;font-size:32px;line-height:1;color:var(--red);}
+  .stat .n.ok{color:var(--green);}
+  .stat .l{font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.45;}
+
+  /* progress rows */
+  .prow{display:grid;grid-template-columns:190px 1fr 62px;gap:14px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--hair-2);}
+  .prow:first-child{border-top:none;}
+  .prow .lbl{font-size:13px;font-weight:600;}
+  .prow .lbl small{display:block;font-weight:400;color:var(--muted);font-size:11px;}
+  .track{height:8px;background:var(--bone-3);border-radius:100px;overflow:hidden;}
+  .fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--red),var(--red-lt));transition:width .5s;}
+  .fill.done{background:linear-gradient(90deg,var(--green),var(--green-br));}
+  .prow .val{font-family:'Space Mono',monospace;font-size:12px;text-align:right;color:var(--muted);}
+
+  /* table */
+  .tbl-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;min-width:660px;}
+  th{text-align:left;font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;
+    letter-spacing:0.13em;color:var(--muted);padding:0 12px 11px;font-weight:700;border-bottom:1px solid var(--hair);}
+  td{padding:13px 12px;border-bottom:1px solid var(--hair-2);font-size:13px;vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#fff;}
+  .nm{font-weight:700;}
+  .sub2{font-size:11px;color:var(--muted);margin-top:2px;}
+  .tag{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.09em;
+    text-transform:uppercase;padding:4px 9px;border-radius:100px;background:var(--bone-3);color:var(--ink-2);}
+  .tag.g{background:#DFF1E6;color:var(--green);}
+  .tag.r{background:#FBE4E4;color:var(--red);}
+  .tag.a{background:#FBF0D8;color:var(--amber);}
+  .empty{padding:56px 20px;text-align:center;color:var(--muted);font-size:13.5px;line-height:1.8;}
+
+  /* form */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .fr{margin-bottom:15px;}
+  .fr.full{grid-column:1/-1;}
+  .fr label{display:block;font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;
+    letter-spacing:0.14em;color:var(--muted);margin-bottom:6px;font-weight:700;}
+  .fr label .req{color:var(--red);}
+  .fr input,.fr select,.fr textarea{width:100%;padding:11px 13px;border:1px solid var(--hair);
+    border-radius:9px;background:#fff;outline:none;transition:.18s;}
+  .fr textarea{resize:vertical;min-height:82px;}
+  .fr input:focus,.fr select:focus,.fr textarea:focus{border-color:var(--green);box-shadow:0 0 0 4px rgba(0,112,47,.09);}
+  .fr input.bad,.fr select.bad{border-color:var(--red);box-shadow:0 0 0 4px rgba(126,15,18,.08);}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.5;}
+  .chk{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border:1px solid var(--hair);
+    border-radius:9px;background:#fff;}
+  .chk input{width:auto;margin-top:2px;flex-shrink:0;}
+  .chk span{font-size:12.5px;line-height:1.5;}
+  .form-act{display:flex;gap:10px;justify-content:flex-end;padding-top:16px;
+    border-top:1px solid var(--hair-2);margin-top:6px;flex-wrap:wrap;}
+  .err{background:#FBE4E4;color:var(--red-dp);border-radius:9px;padding:11px 14px;
+    font-size:12.5px;margin-bottom:16px;display:none;}
+  .err.show{display:block;}
+
+  /* filters */
+  .filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+  .filters input,.filters select{padding:9px 13px;border:1px solid var(--hair);border-radius:100px;
+    background:#fff;outline:none;font-size:12.5px;}
+  .filters input{min-width:210px;}
+
+  /* export */
+  .exp{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .exp-card{background:var(--bone);border:1px solid var(--hair-2);border-radius:14px;padding:20px;
+    display:flex;flex-direction:column;gap:9px;}
+  .exp-card h3{font-family:'Bodoni Moda',serif;font-size:18px;}
+  .exp-card p{font-size:12.5px;color:var(--muted);line-height:1.6;margin:0;flex:1;}
+  .exp-card .btn,.exp-card .btn-o{align-self:flex-start;margin-top:6px;}
+  pre{background:var(--ink);color:#D9F5E3;padding:16px;border-radius:11px;overflow-x:auto;
+    font-family:'Space Mono',monospace;font-size:11px;line-height:1.65;max-height:340px;}
+
+  /* ---------- photo capture ---------- */
+  .shots{margin-top:6px;}
+  .shot-btns{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:11px;}
+  .cam{
+    background:var(--ink);color:#fff;border:none;border-radius:100px;
+    padding:11px 19px;font-weight:700;font-size:12.5px;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .cam:hover{background:var(--ink-2);}
+  .cam.alt{background:none;border:1.5px solid var(--ink);color:var(--ink);}
+  .cam.alt:hover{background:var(--ink);color:#fff;}
+  .shot-grid{display:flex;gap:9px;flex-wrap:wrap;}
+  .shot{
+    width:88px;height:88px;border-radius:9px;overflow:hidden;position:relative;
+    background:var(--bone-3);border:1px solid var(--hair);flex-shrink:0;
+  }
+  .shot img{width:100%;height:100%;object-fit:cover;display:block;}
+  .shot .del{
+    position:absolute;top:4px;right:4px;width:21px;height:21px;border-radius:50%;
+    background:rgba(12,11,10,.72);color:#fff;border:none;font-size:12px;line-height:1;
+    display:flex;align-items:center;justify-content:center;padding:0;
+  }
+  .shot .del:hover{background:var(--red);}
+  .shot .tagl{
+    position:absolute;left:0;right:0;bottom:0;background:rgba(12,11,10,.74);color:#fff;
+    font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:.05em;
+    text-align:center;padding:3px 2px;text-transform:uppercase;
+  }
+  .shot.hero{border-color:var(--green);box-shadow:0 0 0 2px rgba(0,112,47,.25);}
+  .shot-empty{
+    border:2px dashed var(--hair);border-radius:9px;padding:18px;text-align:center;
+    color:var(--muted);font-size:12px;line-height:1.6;background:var(--bone-2);
+  }
+  .shot-note{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.55;}
+  .busy{font-size:11.5px;color:var(--green);margin-top:7px;display:none;font-weight:700;}
+  .busy.on{display:block;}
+
+  /* ==========================================================
+     RESPONSIVE
+     Tuned for tablets, since this is used at a conference desk
+     and on district visits rather than at a workstation.
+     ========================================================== */
+
+  @media (max-width:1200px){
+    .app{grid-template-columns:214px 1fr;}
+    .stats{gap:11px;}
+    .stat{padding:15px;}
+    .stat .n{font-size:28px;}
+  }
+
+  /* ---------- tablet ---------- */
+  @media (max-width:1000px){
+    .app{grid-template-columns:1fr;}
+    .side{position:sticky;top:0;height:auto;z-index:30;flex-direction:row;
+      align-items:center;gap:8px;padding-right:10px;}
+    .side-top{border-bottom:none;border-right:1px solid rgba(251,248,241,.12);
+      padding:12px 15px;flex-shrink:0;}
+    .side-top .t{font-size:15px;}
+    .side-top .s{display:none;}
+    .nav{flex-direction:row;overflow-x:auto;padding:9px 4px;gap:4px;scrollbar-width:none;}
+    .nav::-webkit-scrollbar{display:none;}
+    .nav button{white-space:nowrap;padding:10px 15px;}
+    .side-bot{display:none;}
+    .grid2,.exp{grid-template-columns:1fr 1fr;}
+    /* two columns still work on a tablet in landscape */
+  }
+
+  /* ---------- phone ---------- */
+  @media (max-width:680px){
+    .side-top .t{display:none;}
+    .side-top{padding:10px 12px;}
+    .nav button{font-size:12.5px;}
+    .content{padding:16px 14px 60px;}
+    .top{padding:14px;}
+    .top h1{font-size:20px;}
+
+    .stats{grid-template-columns:1fr 1fr;gap:10px;}
+    .stat{padding:14px;border-radius:11px;}
+    .stat .n{font-size:25px;}
+    .stat .l{font-size:11px;}
+
+    .panel{border-radius:11px;}
+    .panel-hd{padding:13px 15px;}
+    .panel-hd h2{font-size:17px;}
+    .panel-bd{padding:15px;}
+
+    .grid2,.exp{grid-template-columns:1fr;}
+
+    .filters{gap:7px;}
+    .filters input{min-width:0;flex:1 1 100%;}
+    .filters select{flex:1 1 auto;}
+
+    /* --- tables become stacked cards --- */
+    .tbl-wrap{overflow-x:visible;}
+    table{min-width:0;display:block;}
+    thead{display:none;}
+    tbody,tr,td{display:block;width:100%;}
+    tr{background:#fff;border:1px solid var(--hair-2);border-radius:12px;
+      padding:13px 15px;margin-bottom:10px;}
+    tbody tr:hover{background:#fff;}
+    td{border:none;padding:5px 0;font-size:13px;}
+    td:first-child{padding-top:0;}
+    td:last-child{padding-bottom:0;padding-top:11px;
+      border-top:1px solid var(--hair-2);margin-top:7px;
+      display:flex;gap:8px;}
+    td:last-child .btn-o,td:last-child .btn-danger{flex:1;text-align:center;}
+    td:empty{display:none;}
+
+    #smeRows  td:nth-child(2)::before{content:"District: ";color:var(--muted);font-size:11.5px;}
+    #smeRows  td:nth-child(4)::before{content:"Contact: ";color:var(--muted);font-size:11.5px;}
+    #prodRows td:nth-child(2)::before{content:"Business: ";color:var(--muted);font-size:11.5px;}
+    #prodRows td:nth-child(4)::before{content:"Price: ";color:var(--muted);font-size:11.5px;}
+    #prodRows td:nth-child(5)::before{content:"Stock: ";color:var(--muted);font-size:11.5px;}
+
+    .prow{grid-template-columns:1fr;gap:7px;}
+    .prow .val{text-align:left;}
+
+    .form-act{flex-direction:column-reverse;}
+    .form-act .btn,.form-act .btn-o{width:100%;}
+    .upload-zone{padding:24px 16px;}
+
+    /* iOS zooms a focused field below 16px — this is a data-entry
+       tool, so that would be constant */
+    .fr input,.fr select,.fr textarea,
+    .filters input,.filters select{font-size:16px;}
+
+    pre{font-size:10px;padding:13px;}
+  }
+
+  @media (max-width:400px){
+    .stats{grid-template-columns:1fr;}
+    .content{padding:14px 11px 56px;}
+    .top{padding:12px 11px;}
+    tr{padding:12px;}
+  }
+
+  /* ---------- touch: larger targets for field use ---------- */
+  @media (hover:none){
+    .nav button{padding:12px 16px;}
+    .btn,.btn-o{padding:12px 20px;}
+    .btn-sm{padding:10px 16px;}
+    .btn-danger{padding:9px 15px;}
+    .fr input,.fr select,.fr textarea{padding:13px 14px;}
+    .chk{padding:14px 15px;}
+    tbody tr:hover{background:#fff;}
+  }
+</style>
+</head>
+<body>
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
+  <symbol id="ic-warning" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17.2" r="0.9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="ic-photo" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.7"/><path d="M4 18l5-5.5a1.2 1.2 0 0 1 1.7 0L14 16l2.5-3a1.2 1.2 0 0 1 1.7 0L20 16"/></symbol>
+  <symbol id="ic-camera" viewBox="0 0 24 24"><path d="M3 8a1 1 0 0 1 1-1h2.2l1-1.6a1 1 0 0 1 .86-.4h7.88a1 1 0 0 1 .86.4L17.8 7H20a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8Z"/><circle cx="12" cy="13" r="3.6"/></symbol>
+  <symbol id="ic-check" viewBox="0 0 24 24"><path d="M4 12.5l5 5.5L20 6"/></symbol>
+</svg>
+
+
+<div class="app">
+  <aside class="side">
+    <div class="side-top">
+      <img src="../logo.svg" alt="" style="width:34px;height:34px;border-radius:50%;background:#fff;padding:1.5px;flex-shrink:0;">
+      <div>
+        <div class="t">SME Intake</div>
+        <div class="s">Commerce &amp; Industry · ENBPA</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="on" data-v="dash">Dashboard</button>
+      <button data-v="smes">Businesses <span class="pipcount" id="cSme">0</span></button>
+      <button data-v="sme-form">+ Add business</button>
+      <button data-v="products">Products <span class="pipcount" id="cProd">0</span></button>
+      <button data-v="prod-form">+ Add product</button>
+      <button data-v="export">Export &amp; backup</button>
+    </nav>
+    <div class="side-bot">
+      TARGET: 35 BUSINESSES<br>5 PER INDUSTRY × 7<br>ACROSS 4 DISTRICTS
+    </div>
+  </aside>
+
+  <main>
+    <div id="storeBanner"></div>
+    <div class="top">
+      <div>
+        <h1 id="pTitle">Dashboard</h1>
+        <div class="sub" id="pSub">Collection progress against the launch target.</div>
+      </div>
+      <div style="display:flex;gap:9px;">
+        <a class="btn-o btn-sm" href="../admin.html" style="text-decoration:none;">← Division panel</a>
+        <button class="btn-o btn-sm" onclick="doBackup()">Save backup</button>
+        <button class="btn dark btn-sm" onclick="show('export')">Export</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <section class="view" id="v-dash">
+        <div class="stats">
+          <div class="stat"><div class="n" id="sBiz">0</div><div class="l">Businesses recorded <span id="sBizOf" class="mono" style="font-size:10px;"></span></div></div>
+          <div class="stat"><div class="n" id="sProd">0</div><div class="l">Products recorded</div></div>
+          <div class="stat"><div class="n" id="sPhoto">0</div><div class="l">Records still missing a photo reference</div></div>
+          <div class="stat"><div class="n" id="sIncomplete">0</div><div class="l">Records missing required fields</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><h2>By industry</h2><span class="n">TARGET 5 EACH</span></div>
+          <div class="panel-bd" id="progIndustry"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><h2>By district</h2><span class="n">ALL FOUR REQUIRED</span></div>
+          <div class="panel-bd" id="progDistrict"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><h2>Needs attention</h2></div>
+          <div class="panel-bd" id="attention"></div>
+        </div>
+      </section>
+
+      <!-- BUSINESSES -->
+      <section class="view" id="v-smes" style="display:none;">
+        <div class="filters">
+          <input type="text" id="fSmeQ" placeholder="Search business or contact…" oninput="renderSmes()">
+          <select id="fSmeD" onchange="renderSmes()"><option value="">All districts</option></select>
+          <select id="fSmeI" onchange="renderSmes()"><option value="">All industries</option></select>
+          <button class="btn btn-sm" onclick="newSme()">+ Add business</button>
+        </div>
+        <div class="panel"><div class="tbl-wrap"><table>
+          <thead><tr><th>Business</th><th>District</th><th>Industry</th><th>Contact</th><th>Status</th><th></th></tr></thead>
+          <tbody id="smeRows"></tbody>
+        </table></div></div>
+      </section>
+
+      <!-- BUSINESS FORM -->
+      <section class="view" id="v-sme-form" style="display:none;">
+        <div class="err" id="smeErr"></div>
+        <div class="panel">
+          <div class="panel-hd"><h2 id="smeFormTitle">New business</h2></div>
+          <div class="panel-bd">
+            <div class="grid2">
+              <div class="fr full"><label>Registered business name <span class="req">*</span></label>
+                <input id="f_registeredName" placeholder="Exactly as on the IPA certificate">
+                <div class="hint">If not yet registered, record the name they trade under.</div></div>
+              <div class="fr"><label>Trading name</label><input id="f_tradingName" placeholder="If different"></div>
+              <div class="fr"><label>District <span class="req">*</span></label><select id="f_district"></select></div>
+              <div class="fr"><label>LLG / ward / village</label><input id="f_llg" placeholder="e.g. Bitapaka LLG, Vunamami"></div>
+              <div class="fr"><label>Primary industry <span class="req">*</span></label><select id="f_primaryIndustry"></select></div>
+              <div class="fr"><label>Secondary industry</label><select id="f_secondaryIndustry"></select></div>
+              <div class="fr"><label>IPA registration status</label><select id="f_ipaStatus">
+                <option>Registered</option><option>In progress</option><option>Not registered</option></select></div>
+              <div class="fr"><label>IPA number</label><input id="f_ipaNumber" placeholder="If registered"></div>
+              <div class="fr"><label>IRC TIN</label><input id="f_tin" placeholder="If obtained"></div>
+              <div class="fr"><label>Contact person <span class="req">*</span></label><input id="f_contactName" placeholder="Owner or manager"></div>
+              <div class="fr"><label>Phone <span class="req">*</span></label><input id="f_phone" placeholder="+675 7XX XXXXX"></div>
+              <div class="fr"><label>Email</label><input id="f_email" placeholder="If they have one"></div>
+              <div class="fr"><label>Bank</label><select id="f_bankName">
+                <option value=""></option><option>BSP</option><option>Kina Bank</option>
+                <option>ENBSL</option><option>KPML</option><option>Other</option><option>None yet</option></select></div>
+              <div class="fr"><label>Account name</label><input id="f_accountName" placeholder="Must match the business"></div>
+              <div class="fr"><label>Account number</label><input id="f_accountNumber" placeholder="For payout settlement"></div>
+              <div class="fr full">
+                <label>Photographs of the business</label>
+                <div class="shots">
+                  <div class="shot-btns">
+                    <button type="button" class="cam" onclick="pick('sme','main')"><svg class="icon" aria-hidden="true"><use href="#ic-camera"/></svg> Take / choose photo</button>
+                    <button type="button" class="cam alt" onclick="pick('sme','hero')"><svg class="icon" aria-hidden="true"><use href="#ic-photo"/></svg> Add front-page photo</button>
+                  </div>
+                  <div id="smeShots"></div>
+                  <div class="busy" id="smeBusy">Saving photo…</div>
+                  <div class="shot-note">
+                    One of the owner at their stall or workshop. The <b>front-page photo</b> should be
+                    landscape with empty space on the left — the website headline sits there.
+                  </div>
+                </div>
+              </div>
+              <div class="fr full"><div class="chk">
+                <input type="checkbox" id="f_featured">
+                <span><b>Feature on the homepage slideshow.</b> Tick for around six to twelve businesses across different industries and districts.</span>
+              </div></div>
+              <div class="fr full"><label>Stall description</label>
+                <textarea id="f_description" placeholder="40–60 words, shown to buyers on their stall page."></textarea>
+                <div class="hint" id="descCount">0 words</div></div>
+              <div class="fr full"><div class="chk">
+                <input type="checkbox" id="f_consent">
+                <span>The business has agreed in writing to appear on a public website, with its name, district and products shown to buyers.</span>
+              </div></div>
+              <div class="fr full"><label>Field notes</label><textarea id="f_notes" placeholder="Anything the Division should know — access, seasonality, capacity."></textarea></div>
+            </div>
+            <div class="form-act">
+              <button class="btn-o" onclick="show('smes')">Cancel</button>
+              <button class="btn g" onclick="saveSme()">Save business</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PRODUCTS -->
+      <section class="view" id="v-products" style="display:none;">
+        <div class="filters">
+          <input type="text" id="fProdQ" placeholder="Search product…" oninput="renderProds()">
+          <select id="fProdS" onchange="renderProds()"><option value="">All businesses</option></select>
+          <select id="fProdI" onchange="renderProds()"><option value="">All industries</option></select>
+          <button class="btn btn-sm" onclick="newProd()">+ Add product</button>
+        </div>
+        <div class="panel"><div class="tbl-wrap"><table>
+          <thead><tr><th>Product</th><th>Business</th><th>Industry</th><th>Price</th><th>Stock</th><th>Status</th><th></th></tr></thead>
+          <tbody id="prodRows"></tbody>
+        </table></div></div>
+      </section>
+
+      <!-- PRODUCT FORM -->
+      <section class="view" id="v-prod-form" style="display:none;">
+        <div class="err" id="prodErr"></div>
+        <div class="panel">
+          <div class="panel-hd"><h2 id="prodFormTitle">New product</h2></div>
+          <div class="panel-bd">
+            <div class="grid2">
+              <div class="fr full"><label>Business <span class="req">*</span></label><select id="p_smeId"></select>
+                <div class="hint">Add the business first if it isn't listed.</div></div>
+              <div class="fr full"><label>Product name <span class="req">*</span></label>
+                <input id="p_name" placeholder="As a buyer would search for it"></div>
+              <div class="fr"><label>Industry <span class="req">*</span></label><select id="p_category"></select></div>
+              <div class="fr"><label>Price in Kina <span class="req">*</span></label><input id="p_price" placeholder="0.00" inputmode="decimal"></div>
+              <div class="fr"><label>Unit <span class="req">*</span></label><input id="p_unit" placeholder="per kg · per bundle · each · per bottle"></div>
+              <div class="fr"><label>Stock available</label><input id="p_stock" placeholder="Starting quantity" inputmode="numeric"></div>
+              <div class="fr full"><label>Description</label>
+                <textarea id="p_description" placeholder="30–50 words. How it's grown or made, and where."></textarea></div>
+              <div class="fr full">
+                <label>Photographs of this product</label>
+                <div class="shots">
+                  <div class="shot-btns">
+                    <button type="button" class="cam" onclick="pick('prod','p')"><svg class="icon" aria-hidden="true"><use href="#ic-camera"/></svg> Take / choose photos</button>
+                  </div>
+                  <div id="prodShots"></div>
+                  <div class="busy" id="prodBusy">Saving photo…</div>
+                  <div class="shot-note">
+                    Daylight, plain background, product filling the frame. Up to six.
+                    The first one is what buyers see in the listing.
+                  </div>
+                </div>
+              </div>
+              <div class="fr"><div class="chk"><input type="checkbox" id="p_perishable">
+                <span>Perishable — limits which delivery options can be offered</span></div></div>
+              <div class="fr"><div class="chk"><input type="checkbox" id="p_shippable" checked>
+                <span>Can be shipped outside the district</span></div></div>
+            </div>
+            <div class="form-act">
+              <button class="btn-o" onclick="show('products')">Cancel</button>
+              <button class="btn g" onclick="saveProd()">Save product</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXPORT -->
+      <section class="view" id="v-export" style="display:none;">
+        <div class="exp">
+          <div class="exp-card">
+            <h3>Website data</h3>
+            <p>Produces <span class="mono">data.json</span> with the photographs <b>inside it</b>. Drop it beside the site's <span class="mono">index.html</span> and the marketplace shows real businesses and real photos. Nothing else to copy.</p>
+            <button class="btn" onclick="dl('website')">Download data.json</button>
+          </div>
+          <div class="exp-card">
+            <h3>Supabase SQL</h3>
+            <p>INSERT statements for the <span class="mono">smes</span> and <span class="mono">products</span> tables, ready to run once the database is created.</p>
+            <button class="btn g" onclick="dl('sql')">Download SQL</button>
+          </div>
+          <div class="exp-card">
+            <h3>Spreadsheets</h3>
+            <p>CSV files for Excel — for sharing with district offices or checking data by hand.</p>
+            <div style="display:flex;gap:9px;flex-wrap:wrap;">
+              <button class="btn-o btn-sm" onclick="dl('csv-sme')">Businesses CSV</button>
+              <button class="btn-o btn-sm" onclick="dl('csv-prod')">Products CSV</button>
+            </div>
+          </div>
+          <div class="exp-card">
+            <h3>Backup &amp; restore</h3>
+            <p>Everything entered, photographs included. Take one after every visit — it is the only copy if this device is lost. Also how you merge work from other devices.</p>
+            <div style="display:flex;gap:9px;flex-wrap:wrap;">
+              <button class="btn dark btn-sm" onclick="doBackup()">Download backup</button>
+              <button class="btn-o btn-sm" onclick="document.getElementById('imp').click()">Restore / merge</button>
+              <input type="file" id="imp" accept=".json" style="display:none" onchange="doRestore(event)">
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:20px;">
+          <div class="panel-hd"><h2>Website data preview</h2><span class="n" id="previewN"></span></div>
+          <div class="panel-bd"><pre id="preview">—</pre></div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   REFERENCE LISTS — from the bi-annual conference SME listing
+   ============================================================ */
+const DISTRICTS = ["Gazelle","Kokopo","Rabaul","Pomio"];
+const INDUSTRIES = [
+  {key:"retail",     label:"Retail"},
+  {key:"wholesale",  label:"Wholesale"},
+  {key:"tailoring",  label:"Tailoring"},
+  {key:"crafts",     label:"Arts & Crafts"},
+  {key:"processing", label:"Small Scale Downstream Processing"},
+  {key:"produce",    label:"Fresh Produce"},
+  {key:"foodcrops",  label:"Food Crops — Rice & Spices"},
+];
+const TARGET_PER_INDUSTRY = 5;
+const TARGET_TOTAL = 35;
+
+const SME_REQ  = ["registeredName","district","primaryIndustry","contactName","phone"];
+const PROD_REQ = ["smeId","name","category","price","unit"];
+
+/* ============================================================
+   STORAGE — localStorage where available, memory otherwise
+   ============================================================ */
+const KEY = "enb_sme_intake_v1";
+let store = { smes:[], products:[] };
+let persistent = false;
+
+(function initStore(){
+  try{
+    const raw = window.localStorage.getItem(KEY);
+    window.localStorage.setItem(KEY+"_probe","1");
+    window.localStorage.removeItem(KEY+"_probe");
+    persistent = true;
+    if(raw) store = JSON.parse(raw);
+  }catch(e){ persistent = false; }
+
+  const b = document.getElementById('storeBanner');
+  b.className = "banner " + (persistent ? "ok" : "warn");
+  b.innerHTML = persistent
+    ? '<svg class="icon" aria-hidden="true"><use href="#ic-check"/></svg><span>Saving to this device automatically. Still download a backup at the end of each session.</span>'
+    : '<svg class="icon" aria-hidden="true"><use href="#ic-warning"/></svg><span><b>Auto-save unavailable in this preview.</b> Your entries stay only while this page is open — download a backup before closing. Auto-save works normally once the tool is deployed to a real web address.</span>';
+})();
+
+function persist(){
+  if(!persistent) return;
+  try{ window.localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){}
+}
+
+const uid = p => p + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+
+/* ============================================================
+   PHOTOS
+   ------------------------------------------------------------
+   Photographs are taken straight into the tool, shrunk in the
+   browser, and held in IndexedDB — which allows far more room
+   than localStorage and keeps the text data small.
+
+   Each photo is keyed:
+       sme:<id>:main      the business / owner at work
+       sme:<id>:hero      wide shot for the website front page
+       prod:<id>:<n>      product photographs, 0 first
+
+   On export they are embedded into data.json as data URLs, so
+   the website shows real photographs with nothing else to set up.
+   ============================================================ */
+/* Photographs are sized for how they are actually shown.
+   A product photo appears in a card a few hundred pixels wide;
+   a front-page photo fills the width of the screen. */
+const PHOTO_MAX   = { product: 1000, business: 1200, hero: 1600 };
+const PHOTO_Q     = 0.82;
+const PROD_MAX_N  = 6;
+
+let photoDB = null, photoReady = false;
+
+function openPhotoDB(){
+  return new Promise(res=>{
+    try{
+      const rq = indexedDB.open('enb_intake_photos', 1);
+      rq.onupgradeneeded = () => {
+        const db = rq.result;
+        if(!db.objectStoreNames.contains('photos')) db.createObjectStore('photos');
+      };
+      rq.onsuccess = () => { photoDB = rq.result; photoReady = true; res(true); };
+      rq.onerror   = () => { photoReady = false; res(false); };
+    }catch(e){ photoReady = false; res(false); }
+  });
+}
+
+function pTx(mode){
+  return photoDB.transaction('photos', mode).objectStore('photos');
+}
+function photoPut(key, dataUrl){
+  return new Promise((res,rej)=>{
+    if(!photoReady) return rej(new Error('no photo storage'));
+    const r = pTx('readwrite').put(dataUrl, key);
+    r.onsuccess = ()=>res(true); r.onerror = ()=>rej(r.error);
+  });
+}
+function photoGet(key){
+  return new Promise(res=>{
+    if(!photoReady) return res(null);
+    const r = pTx('readonly').get(key);
+    r.onsuccess = ()=>res(r.result || null); r.onerror = ()=>res(null);
+  });
+}
+function photoDel(key){
+  return new Promise(res=>{
+    if(!photoReady) return res();
+    const r = pTx('readwrite').delete(key);
+    r.onsuccess = ()=>res(); r.onerror = ()=>res();
+  });
+}
+function photoKeys(){
+  return new Promise(res=>{
+    if(!photoReady) return res([]);
+    const r = pTx('readonly').getAllKeys();
+    r.onsuccess = ()=>res(r.result || []); r.onerror = ()=>res([]);
+  });
+}
+
+/* shrink in the browser: a 4MB phone photo becomes ~120KB */
+function shrink(file, maxEdge){
+  return new Promise((res,rej)=>{
+    const fr = new FileReader();
+    fr.onerror = ()=>rej(new Error('could not read that file'));
+    fr.onload = () => {
+      const img = new Image();
+      img.onerror = ()=>rej(new Error('that file is not an image'));
+      img.onload = () => {
+        let {width:w, height:h} = img;
+        const scale = Math.min(1, maxEdge / Math.max(w,h));
+        w = Math.round(w*scale); h = Math.round(h*scale);
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        const ctx = cv.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+        ctx.drawImage(img, 0, 0, w, h);
+        res(cv.toDataURL('image/jpeg', PHOTO_Q));
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+/* hidden input, reused for every capture */
+const photoInput = document.createElement('input');
+photoInput.type = 'file';
+photoInput.accept = 'image/*';
+photoInput.style.display = 'none';
+document.body.appendChild(photoInput);
+
+let pickTarget = null;
+
+function pick(kind, slot){
+  if(!photoReady){
+    alert("Photo storage is not available here.\n\nOpen this tool from a real web address (for example GitHub Pages) rather than a preview, and photographs will save normally.");
+    return;
+  }
+  if(kind === 'sme' && !editingSme && slot){
+    // allow photos on a new record: it gets an id on save, so hold a temp one
+    if(!tempSmeId) tempSmeId = uid('sme');
+  }
+  if(kind === 'prod' && !editingProd){
+    if(!tempProdId) tempProdId = uid('prd');
+  }
+  pickTarget = {kind, slot};
+  photoInput.multiple = (kind === 'prod');
+  photoInput.value = '';
+  photoInput.click();
+}
+
+photoInput.addEventListener('change', async e => {
+  const files = [...e.target.files];
+  if(!files.length || !pickTarget) return;
+  const {kind, slot} = pickTarget;
+  const busy = document.getElementById(kind === 'sme' ? 'smeBusy' : 'prodBusy');
+  busy.classList.add('on');
+
+  try{
+    if(kind === 'sme'){
+      const id = editingSme || tempSmeId;
+      const url = await shrink(files[0], slot==='hero' ? PHOTO_MAX.hero : PHOTO_MAX.business);
+      await photoPut('sme:'+id+':'+slot, url);
+      await drawSmeShots();
+    } else {
+      const id = editingProd || tempProdId;
+      const existing = await prodPhotoKeys(id);
+      let n = existing.length;
+      for(const f of files){
+        if(n >= PROD_MAX_N){ alert('Six photographs is the maximum for one product.'); break; }
+        const url = await shrink(f, PHOTO_MAX.product);
+        await photoPut('prod:'+id+':'+n, url);
+        n++;
+      }
+      await drawProdShots();
+    }
+  }catch(err){
+    alert("That photograph could not be saved: " + err.message);
+  }
+  busy.classList.remove('on');
+  pickTarget = null;
+});
+
+async function prodPhotoKeys(id){
+  const all = await photoKeys();
+  return all.filter(k => k.startsWith('prod:'+id+':'))
+            .sort((a,b)=> (+a.split(':')[2]) - (+b.split(':')[2]));
+}
+
+async function drawSmeShots(){
+  const id = editingSme || tempSmeId;
+  const el = document.getElementById('smeShots');
+  if(!id || !photoReady){ el.innerHTML = emptyShots(); return; }
+  const main = await photoGet('sme:'+id+':main');
+  const hero = await photoGet('sme:'+id+':hero');
+  const bits = [];
+  if(main) bits.push(shotHTML(main, 'Business', `delSmeShot('main')`));
+  if(hero) bits.push(shotHTML(hero, 'Front page', `delSmeShot('hero')`, true));
+  el.innerHTML = bits.length ? '<div class="shot-grid">'+bits.join('')+'</div>' : emptyShots();
+}
+
+async function drawProdShots(){
+  const id = editingProd || tempProdId;
+  const el = document.getElementById('prodShots');
+  if(!id || !photoReady){ el.innerHTML = emptyShots(); return; }
+  const keys = await prodPhotoKeys(id);
+  const bits = [];
+  for(let i=0;i<keys.length;i++){
+    const url = await photoGet(keys[i]);
+    bits.push(shotHTML(url, i===0 ? 'Main' : String(i+1), `delProdShot(${i})`));
+  }
+  el.innerHTML = bits.length ? '<div class="shot-grid">'+bits.join('')+'</div>' : emptyShots();
+}
+
+const emptyShots = () =>
+  `<div class="shot-empty">No photographs yet.<br>Tap the button above to use the camera.</div>`;
+
+const shotHTML = (url, tag, onDel, hero) =>
+  `<div class="shot${hero?' hero':''}">
+     <img src="${url}" alt="">
+     <button type="button" class="del" onclick="${onDel}" aria-label="Remove">×</button>
+     <span class="tagl">${tag}</span>
+   </div>`;
+
+async function delSmeShot(slot){
+  const id = editingSme || tempSmeId;
+  await photoDel('sme:'+id+':'+slot);
+  await drawSmeShots();
+}
+async function delProdShot(i){
+  const id = editingProd || tempProdId;
+  const keys = await prodPhotoKeys(id);
+  // pull the rest down so numbering stays contiguous
+  const urls = [];
+  for(const k of keys) urls.push(await photoGet(k));
+  urls.splice(i,1);
+  for(const k of keys) await photoDel(k);
+  for(let n=0;n<urls.length;n++) await photoPut('prod:'+id+':'+n, urls[n]);
+  await drawProdShots();
+}
+
+async function countPhotos(prefix){
+  const all = await photoKeys();
+  return all.filter(k=>k.startsWith(prefix)).length;
+}
+async function deleteAllPhotos(prefix){
+  const all = await photoKeys();
+  for(const k of all) if(k.startsWith(prefix)) await photoDel(k);
+}
+
+let tempSmeId = null, tempProdId = null;
+
+/* A small cache of how many photographs each record has, so the
+   lists and dashboard can show it without hitting IndexedDB per row. */
+const photoCount = new Map();
+async function refreshPhotoCounts(){
+  photoCount.clear();
+  if(!photoReady) return;
+  for(const k of await photoKeys()){
+    const [kind, id] = k.split(':');
+    const key = kind + ':' + id;
+    photoCount.set(key, (photoCount.get(key)||0) + 1);
+  }
+}
+
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const indLabel = k => (INDUSTRIES.find(i=>i.key===k)||{}).label || "—";
+const smeById  = id => store.smes.find(s=>s.id===id);
+const wordCount = t => (t||"").trim() ? (t||"").trim().split(/\s+/).length : 0;
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+const TITLES = {
+  dash:       ["Dashboard","Collection progress against the launch target."],
+  smes:       ["Businesses","Every SME recorded so far."],
+  "sme-form": ["Business record","Fields marked with an asterisk are required."],
+  products:   ["Products","Every product recorded, grouped by business."],
+  "prod-form":["Product record","Fields marked with an asterisk are required."],
+  export:     ["Export & backup","Turn collected data into website and database files."],
+};
+let editingSme = null, editingProd = null;
+
+async function show(v){
+  await refreshPhotoCounts();
+  document.querySelectorAll('.view').forEach(e=>e.style.display='none');
+  document.getElementById('v-'+v).style.display='block';
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on', b.dataset.v===v));
+  document.getElementById('pTitle').textContent = TITLES[v][0];
+  document.getElementById('pSub').textContent  = TITLES[v][1];
+  if(v==='dash') renderDash();
+  if(v==='smes') renderSmes();
+  if(v==='products') renderProds();
+  if(v==='export') renderPreview();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.getElementById('nav').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  if(b.dataset.v==='sme-form') return newSme();
+  if(b.dataset.v==='prod-form') return newProd();
+  show(b.dataset.v);
+});
+
+/* ============================================================
+   SELECT POPULATION
+   ============================================================ */
+function fillSelects(){
+  const dOpts = DISTRICTS.map(d=>`<option value="${d}">${d}</option>`).join('');
+  const iOpts = INDUSTRIES.map(i=>`<option value="${i.key}">${esc(i.label)}</option>`).join('');
+  document.getElementById('f_district').innerHTML = '<option value="">Select…</option>'+dOpts;
+  document.getElementById('f_primaryIndustry').innerHTML = '<option value="">Select…</option>'+iOpts;
+  document.getElementById('f_secondaryIndustry').innerHTML = '<option value="">None</option>'+iOpts;
+  document.getElementById('p_category').innerHTML = '<option value="">Select…</option>'+iOpts;
+  document.getElementById('fSmeD').innerHTML = '<option value="">All districts</option>'+dOpts;
+  document.getElementById('fSmeI').innerHTML = '<option value="">All industries</option>'+iOpts;
+  document.getElementById('fProdI').innerHTML = '<option value="">All industries</option>'+iOpts;
+}
+function fillSmeSelects(){
+  const opts = store.smes.map(s=>`<option value="${s.id}">${esc(s.registeredName)} — ${esc(s.district)}</option>`).join('');
+  document.getElementById('p_smeId').innerHTML = '<option value="">Select…</option>'+opts;
+  document.getElementById('fProdS').innerHTML = '<option value="">All businesses</option>'+opts;
+}
+
+/* ============================================================
+   BUSINESS FORM
+   ============================================================ */
+const SME_FIELDS = ["registeredName","tradingName","district","llg","primaryIndustry","secondaryIndustry",
+  "ipaStatus","ipaNumber","tin","contactName","phone","email","bankName","accountName","accountNumber",
+  "description","notes"];
+
+function newSme(){
+  editingSme = null; tempSmeId = null;
+  SME_FIELDS.forEach(f=>{ const el=document.getElementById('f_'+f); if(el) el.value=""; });
+  document.getElementById('f_ipaStatus').value = "Registered";
+  document.getElementById('f_consent').checked = false;
+  document.getElementById('f_featured').checked = false;
+  document.getElementById('smeFormTitle').textContent = "New business";
+  clearBad(); hideErr('smeErr'); updateDescCount();
+  drawSmeShots();
+  show('sme-form');
+}
+function editSme(id){
+  const s = smeById(id); if(!s) return;
+  editingSme = id;
+  SME_FIELDS.forEach(f=>{ const el=document.getElementById('f_'+f); if(el) el.value = s[f]||""; });
+  document.getElementById('f_consent').checked = !!s.consent;
+  document.getElementById('f_featured').checked = !!s.featured;
+  document.getElementById('smeFormTitle').textContent = "Edit business";
+  clearBad(); hideErr('smeErr'); updateDescCount();
+  drawSmeShots();
+  show('sme-form');
+}
+function saveSme(){
+  const rec = {};
+  SME_FIELDS.forEach(f=>{ const el=document.getElementById('f_'+f); rec[f] = el ? el.value.trim() : ""; });
+  rec.consent = document.getElementById('f_consent').checked;
+  rec.featured = document.getElementById('f_featured').checked;
+
+  clearBad();
+  const missing = SME_REQ.filter(f=>!rec[f]);
+  if(missing.length){
+    missing.forEach(f=>{ const el=document.getElementById('f_'+f); if(el) el.classList.add('bad'); });
+    return showErr('smeErr', "Please complete: " + missing.map(labelOf).join(", "));
+  }
+  const dup = store.smes.find(s =>
+    s.registeredName.toLowerCase() === rec.registeredName.toLowerCase() && s.id !== editingSme);
+  if(dup) return showErr('smeErr', "A business with this name is already recorded (" + esc(dup.district) + " District).");
+
+  if(editingSme){
+    const i = store.smes.findIndex(s=>s.id===editingSme);
+    store.smes[i] = Object.assign({}, store.smes[i], rec);
+  } else {
+    rec.id = uid('sme'); rec.created = new Date().toISOString();
+    store.smes.push(rec);
+    // photographs were taken before the record had an id — move them across
+    if(tempSmeId && photoReady){
+      Promise.all(['main','hero'].map(async slot=>{
+        const url = await photoGet('sme:'+tempSmeId+':'+slot);
+        if(url){ await photoPut('sme:'+rec.id+':'+slot, url); await photoDel('sme:'+tempSmeId+':'+slot); }
+      })).then(()=>{ tempSmeId = null; renderSmes(); });
+    }
+  }
+  persist(); fillSmeSelects(); show('smes');
+}
+function delSme(id){
+  const n = store.products.filter(p=>p.smeId===id).length;
+  const s = smeById(id);
+  if(!confirm(`Delete "${s.registeredName}"?` + (n ? `\n\nThis will also delete its ${n} product record(s).` : ""))) return;
+  const kill = store.products.filter(p=>p.smeId===id).map(p=>p.id);
+  store.smes = store.smes.filter(x=>x.id!==id);
+  store.products = store.products.filter(p=>p.smeId!==id);
+  deleteAllPhotos('sme:'+id+':');
+  kill.forEach(pid=>deleteAllPhotos('prod:'+pid+':'));
+  persist(); fillSmeSelects(); renderSmes();
+}
+
+/* ============================================================
+   PRODUCT FORM
+   ============================================================ */
+const PROD_FIELDS = ["smeId","name","category","price","unit","stock","description"];
+
+function newProd(){
+  if(!store.smes.length){ alert("Add at least one business first — products must belong to a business."); return show('sme-form'); }
+  editingProd = null; tempProdId = null;
+  PROD_FIELDS.forEach(f=>{ const el=document.getElementById('p_'+f); if(el) el.value=""; });
+  document.getElementById('p_perishable').checked = false;
+  document.getElementById('p_shippable').checked = true;
+  document.getElementById('prodFormTitle').textContent = "New product";
+  clearBad(); hideErr('prodErr');
+  drawProdShots();
+  show('prod-form');
+}
+function editProd(id){
+  const p = store.products.find(x=>x.id===id); if(!p) return;
+  editingProd = id;
+  PROD_FIELDS.forEach(f=>{ const el=document.getElementById('p_'+f); if(el) el.value = p[f]||""; });
+  document.getElementById('p_perishable').checked = !!p.perishable;
+  document.getElementById('p_shippable').checked  = !!p.shippable;
+  document.getElementById('prodFormTitle').textContent = "Edit product";
+  clearBad(); hideErr('prodErr');
+  drawProdShots();
+  show('prod-form');
+}
+function saveProd(){
+  const rec = {};
+  PROD_FIELDS.forEach(f=>{ const el=document.getElementById('p_'+f); rec[f] = el ? el.value.trim() : ""; });
+  rec.perishable = document.getElementById('p_perishable').checked;
+  rec.shippable  = document.getElementById('p_shippable').checked;
+
+  clearBad();
+  const missing = PROD_REQ.filter(f=>!rec[f]);
+  if(missing.length){
+    missing.forEach(f=>{ const el=document.getElementById('p_'+f); if(el) el.classList.add('bad'); });
+    return showErr('prodErr', "Please complete: " + missing.map(labelOf).join(", "));
+  }
+  const price = parseFloat(rec.price);
+  if(isNaN(price) || price < 0){
+    document.getElementById('p_price').classList.add('bad');
+    return showErr('prodErr', "Price must be a number in Kina, for example 52 or 52.50");
+  }
+  rec.price = price.toFixed(2);
+
+  if(editingProd){
+    const i = store.products.findIndex(x=>x.id===editingProd);
+    store.products[i] = Object.assign({}, store.products[i], rec);
+  } else {
+    rec.id = uid('prd'); rec.created = new Date().toISOString();
+    store.products.push(rec);
+    if(tempProdId && photoReady){
+      prodPhotoKeys(tempProdId).then(async keys=>{
+        for(let n=0;n<keys.length;n++){
+          const url = await photoGet(keys[n]);
+          if(url){ await photoPut('prod:'+rec.id+':'+n, url); await photoDel(keys[n]); }
+        }
+        tempProdId = null; renderProds();
+      });
+    }
+  }
+  persist(); show('products');
+}
+function delProd(id){
+  const p = store.products.find(x=>x.id===id);
+  if(!confirm(`Delete "${p.name}"?`)) return;
+  store.products = store.products.filter(x=>x.id!==id);
+  deleteAllPhotos('prod:'+id+':');
+  persist(); renderProds();
+}
+
+/* ---------- form helpers ---------- */
+const LABELS = {registeredName:"Registered business name",district:"District",primaryIndustry:"Primary industry",
+  contactName:"Contact person",phone:"Phone",smeId:"Business",name:"Product name",category:"Industry",
+  price:"Price",unit:"Unit"};
+const labelOf = f => LABELS[f] || f;
+function showErr(id,msg){ const e=document.getElementById(id); e.innerHTML=msg; e.classList.add('show'); window.scrollTo({top:0,behavior:'smooth'}); }
+function hideErr(id){ document.getElementById(id).classList.remove('show'); }
+function clearBad(){ document.querySelectorAll('.bad').forEach(e=>e.classList.remove('bad')); }
+function updateDescCount(){
+  const n = wordCount(document.getElementById('f_description').value);
+  const el = document.getElementById('descCount');
+  el.textContent = n + " words" + (n && (n<40||n>60) ? " — aim for 40–60" : "");
+  el.style.color = (n && (n<40||n>60)) ? "var(--amber)" : "var(--muted)";
+}
+document.getElementById('f_description').addEventListener('input', updateDescCount);
+
+/* ============================================================
+   RENDERING
+   ============================================================ */
+function smeComplete(s){ return SME_REQ.every(f=>s[f]); }
+function prodComplete(p){ return PROD_REQ.every(p2=>p[p2]); }
+
+function renderCounts(){
+  document.getElementById('cSme').textContent = store.smes.length;
+  document.getElementById('cProd').textContent = store.products.length;
+}
+
+function renderSmes(){
+  renderCounts();
+  const q = (document.getElementById('fSmeQ').value||"").toLowerCase().trim();
+  const d = document.getElementById('fSmeD').value;
+  const i = document.getElementById('fSmeI').value;
+  const rows = store.smes.filter(s=>{
+    if(d && s.district!==d) return false;
+    if(i && s.primaryIndustry!==i && s.secondaryIndustry!==i) return false;
+    if(q && !((s.registeredName+" "+(s.tradingName||"")+" "+(s.contactName||"")).toLowerCase().includes(q))) return false;
+    return true;
+  });
+  const tb = document.getElementById('smeRows');
+  if(!rows.length){
+    tb.innerHTML = `<tr><td colspan="6"><div class="empty">${store.smes.length
+      ? "No businesses match those filters."
+      : "No businesses recorded yet.<br>Start by adding the first one."}</div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = rows.map(s=>{
+    const n = store.products.filter(p=>p.smeId===s.id).length;
+    const ok = smeComplete(s);
+    return `<tr>
+      <td><div class="nm">${esc(s.registeredName)}</div>
+          <div class="sub2">${n} product${n===1?"":"s"}<span data-photo-sme="${s.id}"></span></div></td>
+      <td>${esc(s.district)}</td>
+      <td><span class="tag">${esc(indLabel(s.primaryIndustry))}</span></td>
+      <td><div>${esc(s.contactName)}</div><div class="sub2">${esc(s.phone)}</div></td>
+      <td>${ok ? '<span class="tag g">Complete</span>' : '<span class="tag r">Incomplete</span>'}
+          ${s.consent ? '' : ' <span class="tag a">No consent</span>'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn-o btn-sm" onclick="editSme('${s.id}')">Edit</button>
+        <button class="btn-danger" onclick="delSme('${s.id}')">Delete</button></td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('[data-photo-sme]').forEach(el=>{
+    const n = photoCount.get('sme:'+el.dataset.photoSme) || 0;
+    el.textContent = n ? ' · ' + n + ' photo' + (n===1?'':'s') : ' · no photos';
+    if(!n) el.style.color = 'var(--amber)';
+  });
+}
+
+function renderProds(){
+  renderCounts();
+  const q = (document.getElementById('fProdQ').value||"").toLowerCase().trim();
+  const sId = document.getElementById('fProdS').value;
+  const i = document.getElementById('fProdI').value;
+  const rows = store.products.filter(p=>{
+    if(sId && p.smeId!==sId) return false;
+    if(i && p.category!==i) return false;
+    if(q && !p.name.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const tb = document.getElementById('prodRows');
+  if(!rows.length){
+    tb.innerHTML = `<tr><td colspan="7"><div class="empty">${store.products.length
+      ? "No products match those filters."
+      : "No products recorded yet."}</div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = rows.map(p=>{
+    const s = smeById(p.smeId);
+    const hasPhoto = photoCount.has('prod:'+p.id);
+    return `<tr>
+      <td><div class="nm">${esc(p.name)}</div>
+          <div class="sub2">${hasPhoto ? photoCount.get('prod:'+p.id)+' photo'+(photoCount.get('prod:'+p.id)===1?'':'s') : "no photos"}</div></td>
+      <td>${s ? esc(s.registeredName) : '<span class="tag r">missing</span>'}</td>
+      <td><span class="tag">${esc(indLabel(p.category))}</span></td>
+      <td class="mono">K${esc(p.price)}</td>
+      <td>${esc(p.stock||"—")}</td>
+      <td>${prodComplete(p) ? '<span class="tag g">Complete</span>' : '<span class="tag r">Incomplete</span>'}
+          ${hasPhoto ? '' : ' <span class="tag a">No photo</span>'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn-o btn-sm" onclick="editProd('${p.id}')">Edit</button>
+        <button class="btn-danger" onclick="delProd('${p.id}')">Delete</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderDash(){
+  renderCounts();
+  const noPhotoS = store.smes.filter(s=>!photoCount.has('sme:'+s.id)).length;
+  const noPhotoP = store.products.filter(p=>!photoCount.has('prod:'+p.id)).length;
+  const incomplete = store.smes.filter(s=>!smeComplete(s)).length
+                   + store.products.filter(p=>!prodComplete(p)).length;
+
+  document.getElementById('sBiz').textContent = store.smes.length;
+  document.getElementById('sBiz').className = "n" + (store.smes.length>=TARGET_TOTAL ? " ok" : "");
+  document.getElementById('sBizOf').textContent = "of " + TARGET_TOTAL;
+  document.getElementById('sProd').textContent = store.products.length;
+  document.getElementById('sPhoto').textContent = noPhotoS + noPhotoP;
+  document.getElementById('sPhoto').className = "n" + ((noPhotoS+noPhotoP)===0 ? " ok" : "");
+  document.getElementById('sIncomplete').textContent = incomplete;
+  document.getElementById('sIncomplete').className = "n" + (incomplete===0 ? " ok" : "");
+
+  document.getElementById('progIndustry').innerHTML = INDUSTRIES.map(ind=>{
+    const n = store.smes.filter(s=>s.primaryIndustry===ind.key).length;
+    const pct = Math.min(100, (n/TARGET_PER_INDUSTRY)*100);
+    return `<div class="prow">
+      <div class="lbl">${esc(ind.label)}<small>${n} of ${TARGET_PER_INDUSTRY} businesses</small></div>
+      <div class="track"><div class="fill${n>=TARGET_PER_INDUSTRY?' done':''}" style="width:${pct}%"></div></div>
+      <div class="val">${n}/${TARGET_PER_INDUSTRY}</div></div>`;
+  }).join('');
+
+  const maxD = Math.max(1, ...DISTRICTS.map(d=>store.smes.filter(s=>s.district===d).length));
+  document.getElementById('progDistrict').innerHTML = DISTRICTS.map(d=>{
+    const n = store.smes.filter(s=>s.district===d).length;
+    const prods = store.products.filter(p=>{const s=smeById(p.smeId);return s&&s.district===d;}).length;
+    return `<div class="prow">
+      <div class="lbl">${d}<small>${prods} product${prods===1?"":"s"}</small></div>
+      <div class="track"><div class="fill${n>0?' done':''}" style="width:${(n/maxD)*100}%"></div></div>
+      <div class="val">${n}</div></div>`;
+  }).join('');
+
+  const issues = [];
+  INDUSTRIES.forEach(ind=>{
+    const n = store.smes.filter(s=>s.primaryIndustry===ind.key).length;
+    if(n < TARGET_PER_INDUSTRY) issues.push(`<b>${esc(ind.label)}</b> — ${TARGET_PER_INDUSTRY-n} more business${TARGET_PER_INDUSTRY-n===1?"":"es"} needed`);
+  });
+  DISTRICTS.forEach(d=>{ if(!store.smes.some(s=>s.district===d)) issues.push(`<b>${d} District</b> — no businesses recorded yet`); });
+  store.smes.forEach(s=>{ if(!store.products.some(p=>p.smeId===s.id)) issues.push(`<b>${esc(s.registeredName)}</b> — no products recorded`); });
+  if(noPhotoS) issues.push(`<b>${noPhotoS}</b> business record${noPhotoS===1?"":"s"} without a photo reference`);
+  if(noPhotoP) issues.push(`<b>${noPhotoP}</b> product record${noPhotoP===1?"":"s"} without a photo reference`);
+  const noConsent = store.smes.filter(s=>!s.consent).length;
+  if(noConsent) issues.push(`<b>${noConsent}</b> business${noConsent===1?"":"es"} without recorded consent to publish`);
+
+  document.getElementById('attention').innerHTML = issues.length
+    ? issues.map(t=>`<div class="prow" style="grid-template-columns:1fr;"><div style="font-size:13px;">${t}</div></div>`).join('')
+    : `<div class="empty" style="padding:26px;">Nothing outstanding. Data is ready to feed the website.</div>`;
+}
+
+/* ============================================================
+   EXPORT
+   ============================================================ */
+async function buildWebsiteJSON(){
+  const photo = async k => (await photoGet(k)) || null;
+
+  const smes = store.smes.map(s=>({
+    id: slug(s.registeredName),
+    n: s.tradingName || s.registeredName,
+    d: s.district,
+    f: [indLabel(s.primaryIndustry), s.secondaryIndustry ? indLabel(s.secondaryIndustry) : null].filter(Boolean).join(" · "),
+    c: store.products.filter(p=>p.smeId===s.id).length,
+    about: s.description || "",
+    llg: s.llg || ""
+  }));
+
+  const products = [];
+  for(const p of store.products){
+    const s = smeById(p.smeId);
+    const keys = await prodPhotoKeys(p.id);
+    const first = keys.length ? await photoGet(keys[0]) : null;
+    products.push({
+      n: p.name,
+      s: s ? slug(s.registeredName) : "",
+      p: parseFloat(p.price)||0,
+      c: p.category,
+      b: null,
+      ph: first,
+      u: p.unit || "",
+      about: p.description || "",
+      stock: p.stock ? (parseInt(p.stock,10)||0) : null,
+      ship: !!p.shippable,
+      fresh: !!p.perishable
+    });
+  }
+
+  const slides = [];
+  for(const s of store.smes){
+    if(!s.featured) continue;
+    const img = (await photo('sme:'+s.id+':hero')) || (await photo('sme:'+s.id+':main'));
+    if(!img) continue;
+    slides.push({
+      img,
+      ind: indLabel(s.primaryIndustry),
+      biz: s.tradingName || s.registeredName,
+      loc: s.district + " District"
+    });
+  }
+
+  return {
+    meta: {
+      generated: new Date().toISOString(),
+      businesses: smes.length,
+      products: products.length,
+      slides: slides.length,
+      photosEmbedded: products.filter(p=>p.ph).length + slides.length
+    },
+    config: { photoBase: "photos/", slideMs: 7000 },
+    SLIDES: slides,
+    SMES: smes,
+    P: products
+  };
+}
+function slug(t){
+  return String(t||"").toLowerCase().replace(/[^a-z0-9]+/g,"").slice(0,16) || "sme";
+}
+async function renderPreview(){
+  if(!store.smes.length){
+    document.getElementById('previewN').textContent = "";
+    document.getElementById('preview').textContent = "No data recorded yet.";
+    return;
+  }
+  document.getElementById('preview').textContent = "Building…";
+  const d = await buildWebsiteJSON();
+  document.getElementById('previewN').textContent =
+    d.SMES.length + " BUSINESSES · " + d.P.length + " PRODUCTS · " +
+    d.SLIDES.length + " SLIDES · " + d.meta.photosEmbedded + " PHOTOS";
+  // photographs are long base64 strings; show them shortened
+  const shown = JSON.parse(JSON.stringify(d));
+  shown.SLIDES.forEach(x=>{ if(x.img) x.img = x.img.slice(0,44) + "…  [photo embedded]"; });
+  shown.P.forEach(x=>{ if(x.ph) x.ph = x.ph.slice(0,44) + "…  [photo embedded]"; });
+  document.getElementById('preview').textContent = JSON.stringify(shown, null, 2).slice(0, 4000);
+}
+
+function csvCell(v){ const s = String(v==null?"":v); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
+function toCSV(rows, cols){
+  return [cols.join(","), ...rows.map(r=>cols.map(c=>csvCell(r[c])).join(","))].join("\n");
+}
+function sqlStr(v){ return v===null||v===undefined||v==="" ? "NULL" : "'"+String(v).replace(/'/g,"''")+"'"; }
+
+function buildSQL(){
+  let out = "-- MaketPles ENB — generated by the SME Intake tool\n";
+  out += "-- Run after the smes and products tables exist.\n\n";
+  store.smes.forEach(s=>{
+    out += `INSERT INTO smes (slug, registered_name, trading_name, district, llg, primary_industry, secondary_industry, ipa_status, ipa_number, tin, contact_name, phone, email, bank_name, account_name, account_number, description, featured, consent) VALUES (`;
+    out += [slug(s.registeredName),s.registeredName,s.tradingName,s.district,s.llg,s.primaryIndustry,
+            s.secondaryIndustry,s.ipaStatus,s.ipaNumber,s.tin,s.contactName,s.phone,s.email,
+            s.bankName,s.accountName,s.accountNumber,s.description].map(sqlStr).join(", ");
+    out += `, ${s.featured?"true":"false"}, ${s.consent?"true":"false"});\n`;
+  });
+  out += "\n";
+  store.products.forEach(p=>{
+    const s = smeById(p.smeId);
+    out += `INSERT INTO products (sme_slug, name, category, price, unit, stock, description, perishable, shippable) VALUES (`;
+    out += [s?slug(s.registeredName):null,p.name,p.category].map(sqlStr).join(", ");
+    out += `, ${parseFloat(p.price)||0}, ${sqlStr(p.unit)}, ${p.stock?parseInt(p.stock,10)||0:0}, `;
+    out += `${sqlStr(p.description)}, ${p.perishable?"true":"false"}, ${p.shippable?"true":"false"});\n`;
+  });
+  return out;
+}
+
+function download(name, text, type){
+  const blob = new Blob([text], {type: type||"text/plain;charset=utf-8"});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 400);
+}
+const stamp = () => new Date().toISOString().slice(0,10);
+
+async function dl(kind){
+  if(!store.smes.length && kind!=='backup') return alert("Nothing to export yet — add at least one business first.");
+  if(kind==='website'){
+    const d = await buildWebsiteJSON();
+    const txt = JSON.stringify(d, null, 2);
+    const mb = (txt.length/1048576).toFixed(1);
+    download(`data.json`, txt, "application/json");
+    setTimeout(()=>alert(
+      `data.json downloaded — ${d.meta.photosEmbedded} photograph(s) included, ${mb} MB.\n\n` +
+      `Put it beside index.html in the website folder. The photographs are inside the file, ` +
+      `so there is nothing else to copy across.` +
+      (mb > 12 ? `\n\nNOTE: this file is getting large for a website to load in one go. ` +
+                 `That is fine for a demonstration, but before launch the photographs should be ` +
+                 `stored as separate files rather than inside data.json.` : ``)), 350);
+    return;
+  }
+  if(kind==='sql')     download(`maketples-insert-${stamp()}.sql`, buildSQL(), "application/sql");
+  if(kind==='csv-sme') download(`enb-businesses-${stamp()}.csv`, toCSV(store.smes,
+    ["registeredName","tradingName","district","llg","primaryIndustry","secondaryIndustry","ipaStatus",
+     "ipaNumber","tin","contactName","phone","email","bankName","accountName","accountNumber",
+     "description","featured","consent","notes"]), "text/csv");
+  if(kind==='csv-prod') download(`enb-products-${stamp()}.csv`, toCSV(
+    store.products.map(p=>{ const s=smeById(p.smeId);
+      return Object.assign({}, p, {business: s?s.registeredName:"", district: s?s.district:""}); }),
+    ["business","district","name","category","price","unit","stock","description","perishable","shippable"]),
+    "text/csv");
+}
+
+async function doBackup(){
+  const photos = {};
+  if(photoReady){
+    for(const k of await photoKeys()) photos[k] = await photoGet(k);
+  }
+  const payload = {version:2, exported:new Date().toISOString(),
+                   smes:store.smes, products:store.products, photos};
+  const txt = JSON.stringify(payload);
+  const mb = (txt.length/1048576).toFixed(1);
+  download(`enb-intake-backup-${stamp()}.json`, txt, "application/json");
+  setTimeout(()=>alert(
+    `Backup downloaded — ${store.smes.length} business(es), ${store.products.length} product(s), ` +
+    `${Object.keys(photos).length} photograph(s), ${mb} MB.\n\n` +
+    `Keep this file. It is the only copy if this device is lost.`), 350);
+}
+
+async function doRestore(ev){
+  const f = ev.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = async () => {
+    try{
+      const d = JSON.parse(r.result);
+      if(!Array.isArray(d.smes)) throw new Error("not an intake backup");
+      const nPhotos = d.photos ? Object.keys(d.photos).length : 0;
+      const merge = confirm(
+        `This file holds ${d.smes.length} business(es), ${(d.products||[]).length} product(s)` +
+        (nPhotos ? ` and ${nPhotos} photograph(s)` : ``) + `.\n\n` +
+        `OK  — MERGE into what is already here\n` +
+        `Cancel — REPLACE everything currently entered`);
+
+      if(merge){
+        const have = new Set(store.smes.map(s=>s.id));
+        d.smes.forEach(s=>{ if(!have.has(s.id)) store.smes.push(s); });
+        const havePr = new Set(store.products.map(p=>p.id));
+        (d.products||[]).forEach(p=>{ if(!havePr.has(p.id)) store.products.push(p); });
+      } else {
+        store = {smes:d.smes, products:d.products||[]};
+        if(photoReady) for(const k of await photoKeys()) await photoDel(k);
+      }
+
+      if(d.photos && photoReady){
+        for(const [k,v] of Object.entries(d.photos)){
+          if(merge && await photoGet(k)) continue;
+          await photoPut(k, v);
+        }
+      }
+
+      persist(); fillSmeSelects(); await refreshPhotoCounts(); show('dash');
+      alert("Restored. " + store.smes.length + " business(es), " +
+            store.products.length + " product(s), " + nPhotos + " photograph(s).");
+    }catch(e){ alert("That file could not be read as an intake backup."); }
+    ev.target.value = "";
+  };
+  r.readAsText(f);
+}
+
+/* ============================================================
+   START
+   ============================================================ */
+fillSelects();
+fillSmeSelects();
+openPhotoDB().then(async ok=>{
+  if(!ok){
+    const b = document.getElementById('storeBanner');
+    b.className = "banner warn";
+    b.innerHTML = '<svg class="icon" aria-hidden="true"><use href="#ic-warning"/></svg><span><b>Photo storage unavailable in this preview.</b> ' +
+      'Text entry works, but photographs cannot be saved. Open this tool from a real web address ' +
+      '(GitHub Pages, or a local server) and the camera will work normally.</span>';
+  }
+  await refreshPhotoCounts();
+  show('dash');
+});
+window.addEventListener('beforeunload', e=>{
+  if(!persistent && (store.smes.length || store.products.length)){
+    e.preventDefault(); e.returnValue = "";
+  }
+});
+</script>
+</body>
+</html>
