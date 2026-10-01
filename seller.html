@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seller Portal — MaketPles ENB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  .icon{width:1em;height:1em;display:inline-block;vertical-align:-0.15em;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+  :root{
+    --red:#7E0F12; --red-lt:#A81B1F; --red-dp:#560A0C;
+    --green:#00702F; --green-br:#12A94B; --green-gl:#1FD066;
+    --amber:#9C6B0B; --amber-lt:#D99A2B;
+    --ink:#0C0B0A; --ink-2:#1A1815;
+    --bone:#FBF8F1; --bone-2:#F2ECDF; --bone-3:#E5DDCC;
+    --muted:#79715F;
+    --hair:rgba(12,11,10,0.13); --hair-2:rgba(12,11,10,0.06);
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+  body{margin:0;background:var(--bone-2);color:var(--ink);
+    font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;}
+  h1,h2,h3{margin:0;font-weight:400;}
+  .bod{font-family:'Bodoni Moda',serif;font-weight:500;}
+  .mono{font-family:'Space Mono',monospace;}
+  button,input,select,textarea{font-family:inherit;font-size:inherit;}
+  button{cursor:pointer;}
+  a{color:var(--red);}
+  :focus-visible{outline:2px solid var(--green-br);outline-offset:2px;}
+
+  .ribbon{height:5px;background:repeating-linear-gradient(115deg,
+    var(--red) 0 20px, transparent 20px 23px, var(--green) 23px 43px,
+    transparent 43px 46px, var(--ink) 46px 66px, transparent 66px 69px);
+    background-color:var(--bone-2);}
+
+  /* ---------- LOGIN ---------- */
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+    background:var(--ink);position:relative;overflow:hidden;}
+  .login-wrap::before{content:"";position:absolute;inset:0;
+    background:radial-gradient(60% 80% at 78% 12%, rgba(18,169,75,.16), transparent 62%),
+               radial-gradient(50% 70% at 12% 88%, rgba(168,27,31,.2), transparent 60%);}
+  .login{position:relative;z-index:2;background:var(--bone);border-radius:20px;
+    width:420px;max-width:100%;padding:34px;border-top:3px solid var(--green-br);}
+  .login .brand{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+  .login .brand img{width:44px;height:44px;border-radius:50%;background:#fff;padding:2px;
+    box-shadow:0 0 0 1.5px var(--red);}
+  .login .brand .nm{font-family:'Bodoni Moda',serif;font-size:21px;line-height:1;}
+  .login .brand .dv{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--green);margin-top:4px;}
+  .login h1{font-family:'Bodoni Moda',serif;font-size:27px;margin-bottom:7px;}
+  .login .lead{font-size:13.5px;color:var(--muted);margin-bottom:22px;line-height:1.6;}
+  .login .fr{margin-bottom:15px;}
+  .login label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;}
+  .login input{width:100%;padding:12px 14px;border:1px solid var(--hair);border-radius:10px;
+    background:#fff;outline:none;transition:.18s;}
+  .login input:focus{border-color:var(--green);box-shadow:0 0 0 4px rgba(0,112,47,.09);}
+  .login .btn{width:100%;margin-top:8px;}
+  .login .alt{text-align:center;font-size:12.5px;color:var(--muted);margin-top:20px;
+    padding-top:18px;border-top:1px solid var(--hair-2);line-height:1.7;}
+  .demo-hint{background:#FBF0D8;border-left:3px solid var(--amber);border-radius:8px;
+    padding:11px 13px;font-size:12px;color:#6B4A05;line-height:1.55;margin-bottom:20px;}
+
+  /* ---------- APP ---------- */
+  .app{display:none;grid-template-columns:238px 1fr;min-height:100vh;}
+  .app.on{display:grid;}
+  .side{background:var(--ink);color:var(--bone);display:flex;flex-direction:column;
+    position:sticky;top:0;height:100vh;}
+  .side-top{padding:18px;border-bottom:1px solid rgba(251,248,241,.12);display:flex;align-items:center;gap:11px;}
+  .side-top img{width:34px;height:34px;border-radius:50%;background:#fff;padding:1.5px;flex-shrink:0;}
+  .side-top .t{font-family:'Bodoni Moda',serif;font-size:17px;line-height:1.1;}
+  .side-top .s{font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:.15em;
+    text-transform:uppercase;color:var(--green-gl);margin-top:4px;}
+  .nav{flex:1;padding:11px 9px;display:flex;flex-direction:column;gap:2px;}
+  .nav button{display:flex;align-items:center;justify-content:space-between;gap:9px;
+    padding:11px 13px;border-radius:8px;font-size:13px;font-weight:600;
+    color:rgba(251,248,241,.68);background:none;border:none;text-align:left;width:100%;transition:.18s;}
+  .nav button:hover{background:rgba(251,248,241,.07);color:var(--bone);}
+  .nav button.on{background:var(--red);color:#fff;}
+  .pip{background:var(--amber-lt);color:var(--ink);border-radius:100px;min-width:19px;
+    padding:1px 6px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;text-align:center;}
+  .pip.z{background:rgba(251,248,241,.14);color:rgba(251,248,241,.5);}
+  .side-bot{padding:14px 18px 18px;border-top:1px solid rgba(251,248,241,.12);}
+  .who{display:flex;align-items:center;gap:10px;}
+  .who .av{width:33px;height:33px;border-radius:50%;background:var(--green);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-family:'Bodoni Moda',serif;font-size:13px;}
+  .who .n{font-size:12.5px;font-weight:700;line-height:1.25;}
+  .who .r{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--green-gl);}
+  .signout{font-size:11.5px;color:rgba(251,248,241,.45);margin-top:11px;background:none;
+    border:none;padding:0;text-align:left;}
+  .signout:hover{color:var(--bone);}
+
+  main{min-width:0;}
+  .top{background:var(--bone);border-bottom:1px solid var(--hair);padding:17px 26px;
+    display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+    position:sticky;top:0;z-index:20;}
+  .top h1{font-family:'Bodoni Moda',serif;font-size:23px;}
+  .top .sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .content{padding:22px 26px 70px;}
+  .demo{background:#FDF3DC;color:#6B4A05;border-bottom:1px solid #E8D08A;
+    padding:10px 26px;font-size:12px;display:flex;gap:9px;}
+  .demo b{font-weight:800;}
+
+  .btn{background:var(--red);color:#fff;border:none;padding:11px 20px;border-radius:100px;
+    font-weight:700;font-size:13px;transition:.2s;}
+  .btn:hover{background:var(--red-dp);}
+  .btn.g{background:var(--green);} .btn.g:hover{background:#005423;}
+  .btn-o{background:none;border:1.5px solid var(--ink);color:var(--ink);padding:10px 19px;
+    border-radius:100px;font-weight:700;font-size:13px;transition:.2s;}
+  .btn-o:hover{background:var(--ink);color:var(--bone);}
+  .btn-sm{padding:6px 13px;font-size:11.5px;}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:20px;}
+  .stat{background:var(--bone);border:1px solid var(--hair-2);border-radius:13px;padding:18px;}
+  .stat .n{font-family:'Bodoni Moda',serif;font-size:31px;line-height:1;}
+  .stat .n.g{color:var(--green);} .stat .n.a{color:var(--amber);} .stat .n.r{color:var(--red);}
+  .stat .l{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.45;}
+
+  .panel{background:var(--bone);border:1px solid var(--hair-2);border-radius:13px;
+    margin-bottom:18px;overflow:hidden;}
+  .panel-hd{padding:15px 19px;border-bottom:1px solid var(--hair-2);
+    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+  .panel-hd h2{font-family:'Bodoni Moda',serif;font-size:18px;}
+  .panel-hd .n{font-family:'Space Mono',monospace;font-size:10.5px;color:var(--muted);}
+  .panel-bd{padding:19px;}
+
+  .tbl-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;min-width:640px;}
+  th{text-align:left;font-family:'Space Mono',monospace;font-size:8.5px;text-transform:uppercase;
+    letter-spacing:.13em;color:var(--muted);padding:0 12px 10px;font-weight:700;
+    border-bottom:1px solid var(--hair);}
+  td{padding:12px;border-bottom:1px solid var(--hair-2);font-size:13px;vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#fff;}
+  .nm{font-weight:700;}
+  .sub2{font-size:11px;color:var(--muted);margin-top:2px;}
+  .tag{display:inline-block;font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.09em;
+    text-transform:uppercase;padding:4px 9px;border-radius:100px;background:var(--bone-3);color:var(--ink-2);}
+  .tag.g{background:#DFF1E6;color:var(--green);}
+  .tag.r{background:#FBE4E4;color:var(--red);}
+  .tag.a{background:#FBF0D8;color:var(--amber);}
+  .tag.b{background:#E3ECFA;color:#1B4C8C;}
+  .empty{padding:52px 20px;text-align:center;color:var(--muted);font-size:13.5px;line-height:1.8;}
+  .thumb{width:44px;height:44px;border-radius:8px;background:var(--bone-3);overflow:hidden;
+    display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .rowflex{display:flex;align-items:center;gap:11px;}
+  .note{font-size:11px;color:var(--red);margin-top:3px;}
+
+  .feed{display:flex;gap:13px;padding:13px 0;border-top:1px solid var(--hair-2);}
+  .feed:first-child{border-top:none;}
+  .feed .d{width:8px;height:8px;border-radius:50%;margin-top:7px;flex-shrink:0;}
+  .feed .t{font-size:13px;}
+  .feed .w{font-size:11px;color:var(--muted);margin-top:2px;}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .fr{margin-bottom:16px;}
+  .fr.full{grid-column:1/-1;}
+  .fr label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;}
+  .fr label .req{color:var(--red);}
+  .fr label .opt{font-weight:400;color:var(--muted);font-size:11.5px;}
+  .fr input,.fr select,.fr textarea{width:100%;padding:11px 13px;border:1px solid var(--hair);
+    border-radius:10px;background:#fff;outline:none;transition:.18s;}
+  .fr textarea{resize:vertical;min-height:88px;}
+  .fr input:focus,.fr select:focus,.fr textarea:focus{
+    border-color:var(--green);box-shadow:0 0 0 4px rgba(0,112,47,.09);}
+  .fr input.bad,.fr select.bad{border-color:var(--red);box-shadow:0 0 0 4px rgba(126,15,18,.08);}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.55;}
+  .drop{border:2px dashed var(--hair);border-radius:12px;padding:30px 20px;text-align:center;
+    background:var(--bone-2);cursor:pointer;transition:.2s;}
+  .drop:hover{border-color:var(--green);background:#fff;}
+  .drop .i{font-size:26px;margin-bottom:8px;}
+  .drop p{font-size:13px;color:#413B31;margin:0;}
+  .drop .s{font-size:11.5px;color:var(--muted);margin-top:5px;}
+  .facts{display:flex;gap:9px;justify-content:flex-end;padding-top:16px;
+    border-top:1px solid var(--hair-2);margin-top:6px;flex-wrap:wrap;}
+  .infobox{background:#E3ECFA;border-left:3px solid #1B4C8C;border-radius:9px;
+    padding:12px 15px;font-size:12px;color:#1B4C8C;line-height:1.6;margin-bottom:18px;}
+  .warnbox{background:#FBF0D8;border-left:3px solid var(--amber);border-radius:9px;
+    padding:12px 15px;font-size:12px;color:#6B4A05;line-height:1.6;margin-bottom:18px;}
+  .err{background:#FBE4E4;color:var(--red-dp);border-radius:10px;padding:12px 15px;
+    font-size:12.5px;margin-bottom:16px;display:none;}
+  .err.show{display:block;}
+
+  .payhero{background:var(--ink);color:var(--bone);border-radius:14px;padding:26px;
+    display:flex;justify-content:space-between;align-items:center;gap:18px;
+    margin-bottom:18px;flex-wrap:wrap;}
+  .payhero .n{font-family:'Bodoni Moda',serif;font-size:36px;color:var(--green-gl);line-height:1;}
+  .payhero .l{font-size:12px;color:rgba(251,248,241,.6);margin-top:5px;}
+  .payhero .r{text-align:right;}
+  .payhero .r .n2{font-family:'Bodoni Moda',serif;font-size:19px;}
+
+
+  /* ---------- polish ---------- */
+  ::selection{background:var(--red);color:#fff;}
+  ::-moz-selection{background:var(--red);color:#fff;}
+  ::-webkit-scrollbar{width:11px;height:11px;}
+  ::-webkit-scrollbar-track{background:var(--bone-2);}
+  ::-webkit-scrollbar-thumb{background:var(--bone-3);border-radius:100px;border:3px solid var(--bone-2);}
+  ::-webkit-scrollbar-thumb:hover{background:var(--muted);}
+
+  .btn{position:relative;overflow:hidden;isolation:isolate;}
+  .btn::after{
+    content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+    background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.3) 50%,transparent 62%);
+    transform:translateX(-120%);
+  }
+  .btn:hover::after{transform:translateX(120%);transition:transform .75s cubic-bezier(.16,1,.3,1);}
+
+  .panel,.card,.stat{transition:box-shadow .3s,border-color .3s;}
+  .stat:hover{box-shadow:0 10px 26px -18px rgba(12,11,10,.4);}
+
+  tbody tr{transition:background .2s;}
+
+  :focus-visible{outline:2px solid var(--green-br);outline-offset:3px;border-radius:4px;}
+
+  @media (prefers-reduced-motion:reduce){
+    .btn::after{transition:none;}
+    *{animation:none!important;}
+  }
+
+  /* ==========================================================
+     RESPONSIVE
+     ========================================================== */
+
+  .mob-only{display:none;}
+
+  @media (max-width:1200px){
+    .app,.app.on{grid-template-columns:210px 1fr;}
+    .stats{gap:11px;}
+    .stat{padding:15px;}
+    .stat .n{font-size:27px;}
+  }
+
+  /* ---------- tablet ---------- */
+  @media (max-width:1000px){
+    .app,.app.on{grid-template-columns:1fr;}
+    .side{position:sticky;top:0;height:auto;z-index:30;flex-direction:row;
+      align-items:center;gap:8px;padding-right:10px;}
+    .side-top{border-bottom:none;border-right:1px solid rgba(251,248,241,.12);
+      padding:12px 16px;flex-shrink:0;}
+    .side-top .t{font-size:15px;}
+    .nav{flex-direction:row;overflow-x:auto;padding:9px 4px;gap:4px;scrollbar-width:none;}
+    .nav::-webkit-scrollbar{display:none;}
+    .nav button{white-space:nowrap;padding:9px 14px;}
+    .side-bot{display:none;}
+    .mob-only{display:block;color:rgba(251,248,241,.5);}
+    .grid2{grid-template-columns:1fr;}
+  }
+
+  /* ---------- phone ---------- */
+  @media (max-width:680px){
+    .side-top .t,.side-top .s{display:none;}
+    .side-top{padding:10px 12px;}
+    .nav button{font-size:12.5px;padding:9px 13px;}
+    .content{padding:16px 14px 60px;}
+    .top{padding:14px;}
+    .top h1{font-size:20px;}
+    .demo{padding:9px 14px;font-size:11.5px;}
+
+    .stats{grid-template-columns:1fr 1fr;gap:10px;}
+    .stat{padding:14px;border-radius:11px;}
+    .stat .n{font-size:25px;}
+    .stat .l{font-size:11px;}
+
+    .panel{border-radius:11px;}
+    .panel-hd{padding:13px 15px;}
+    .panel-hd h2{font-size:16px;}
+    .panel-bd{padding:15px;}
+
+    /* --- tables become stacked cards --- */
+    .tbl-wrap{overflow-x:visible;}
+    table{min-width:0;display:block;}
+    thead{display:none;}
+    tbody,tr,td{display:block;width:100%;}
+    tr{background:#fff;border:1px solid var(--hair-2);border-radius:12px;
+      padding:13px 15px;margin-bottom:10px;}
+    tbody tr:hover{background:#fff;}
+    td{border:none;padding:5px 0;font-size:13px;}
+    td:first-child{padding-top:0;}
+    td:last-child{padding-bottom:0;padding-top:11px;
+      border-top:1px solid var(--hair-2);margin-top:7px;}
+    td:empty{display:none;}
+    td:last-child .btn,td:last-child .btn-o{width:100%;}
+
+    #prodRows td:nth-child(2)::before{content:"Price: ";color:var(--muted);font-size:11.5px;}
+    #prodRows td:nth-child(3)::before{content:"Stock: ";color:var(--muted);font-size:11.5px;}
+    #ordRows  td:nth-child(2)::before{content:"Items: ";color:var(--muted);font-size:11.5px;}
+    #ordRows  td:nth-child(3)::before{content:"Collection: ";color:var(--muted);font-size:11.5px;}
+    #ordRows  td:nth-child(4)::before{content:"You receive: ";color:var(--muted);font-size:11.5px;}
+    #payRows  td:nth-child(2)::before{content:"Orders: ";color:var(--muted);font-size:11.5px;}
+    #payRows  td:nth-child(3)::before{content:"Gross: ";color:var(--muted);font-size:11.5px;}
+    #payRows  td:nth-child(4)::before{content:"Platform fee: ";color:var(--muted);font-size:11.5px;}
+    #payRows  td:nth-child(5)::before{content:"Agent fee: ";color:var(--muted);font-size:11.5px;}
+    #payRows  td:nth-child(6)::before{content:"Paid to you: ";color:var(--muted);font-size:11.5px;}
+
+    .feed{align-items:flex-start;}
+    .feed[style*="space-between"]{flex-direction:column;gap:10px;}
+    .feed[style*="space-between"] .t{flex:none;}
+    .feed[style*="space-between"] .btn,
+    .feed[style*="space-between"] .btn-o{width:100%;}
+
+    .payhero{padding:20px;flex-direction:column;align-items:flex-start;gap:14px;}
+    .payhero .r{text-align:left;}
+    .payhero .n{font-size:31px;}
+
+    .facts{flex-direction:column-reverse;}
+    .facts .btn,.facts .btn-o{width:100%;}
+
+    .drop{padding:24px 16px;}
+
+    /* iOS zooms a focused field below 16px */
+    .fr input,.fr select,.fr textarea,
+    .login input{font-size:16px;}
+  }
+
+  /* ---------- login on small screens ---------- */
+  @media (max-width:520px){
+    .login-wrap{padding:0;align-items:stretch;}
+    .login{width:100%;border-radius:0;padding:28px 20px calc(28px + env(safe-area-inset-bottom));
+      display:flex;flex-direction:column;justify-content:center;}
+    .login h1{font-size:24px;}
+  }
+
+  @media (max-width:400px){
+    .stats{grid-template-columns:1fr;}
+    .content{padding:14px 11px 56px;}
+    .top{padding:12px 11px;}
+    tr{padding:12px;}
+  }
+
+  @media (hover:none){
+    .nav button{padding:11px 15px;}
+    .btn,.btn-o{padding:12px 20px;}
+    .btn-sm{padding:9px 15px;}
+    tbody tr:hover{background:var(--bone);}
+  }
+</style>
+</head>
+<body>
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
+  <symbol id="ic-warning" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17.2" r="0.9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="ic-photo" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.7"/><path d="M4 18l5-5.5a1.2 1.2 0 0 1 1.7 0L14 16l2.5-3a1.2 1.2 0 0 1 1.7 0L20 16"/></symbol>
+  <symbol id="ic-camera" viewBox="0 0 24 24"><path d="M3 8a1 1 0 0 1 1-1h2.2l1-1.6a1 1 0 0 1 .86-.4h7.88a1 1 0 0 1 .86.4L17.8 7H20a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8Z"/><circle cx="12" cy="13" r="3.6"/></symbol>
+</svg>
+
+
+<!-- ================= LOGIN ================= -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login">
+    <div class="brand">
+      <img src="logo.svg" alt="">
+      <div>
+        <div class="nm">MaketPles ENB</div>
+        <div class="dv">Seller Portal</div>
+      </div>
+    </div>
+    <h1>Sign in</h1>
+    <p class="lead">Use the email and password the Division sent you when your business was approved.</p>
+
+    <div class="demo-hint">
+      <b>Design preview.</b> Sign in with anything — no account is checked and nothing is saved.
+    </div>
+
+    <div class="fr">
+      <label>Email or mobile number</label>
+      <input id="l_user" placeholder="you@example.pg or +675 7XX XXXXX">
+    </div>
+    <div class="fr">
+      <label>Password</label>
+      <input id="l_pass" type="password" placeholder="Your password">
+    </div>
+    <button class="btn g" onclick="signIn()">Sign in</button>
+
+    <div class="alt">
+      Not registered yet? <a href="register.html">Apply to sell on MaketPles</a><br>
+      Forgotten your password? Contact your district commerce office.
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div class="app" id="app">
+  <aside class="side">
+    <div class="side-top">
+      <img src="logo.svg" alt="">
+      <div>
+        <div class="t">Seller Portal</div>
+        <div class="s">MaketPles ENB</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="on" data-v="dash">Overview</button>
+      <button data-v="products">My products <span class="pip z" id="pProd">0</span></button>
+      <button data-v="newprod">+ Add a product</button>
+      <button data-v="orders">Orders <span class="pip" id="pOrd">0</span></button>
+      <button data-v="payouts">Payouts</button>
+      <button data-v="settings">My business</button>
+      <button class="mob-only" onclick="signOut()">Sign out</button>
+    </nav>
+    <div class="side-bot">
+      <div class="who">
+        <span class="av">KM</span>
+        <div>
+          <div class="n">Kerevat Mill Co.</div>
+          <div class="r">Gazelle District</div>
+        </div>
+      </div>
+      <button class="signout" onclick="signOut()">Sign out</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="demo">
+      <svg class="icon" aria-hidden="true"><use href="#ic-warning"/></svg>
+      <span><b>Design preview.</b> Sample data held in memory — nothing is saved. Once connected to Supabase, the database itself prevents a seller publishing their own listing or marking their own order paid.</span>
+    </div>
+
+    <div class="top">
+      <div>
+        <h1 id="pTitle">Overview</h1>
+        <div class="sub" id="pSub">How your business is doing this month.</div>
+      </div>
+      <a class="btn-o btn-sm" href="index.html" style="text-decoration:none;">View the marketplace →</a>
+    </div>
+
+    <div class="content">
+
+      <!-- OVERVIEW -->
+      <section class="view" id="v-dash">
+        <div class="stats">
+          <div class="stat"><div class="n g" id="sLive">0</div><div class="l">Products live on the site</div></div>
+          <div class="stat"><div class="n a" id="sPend">0</div><div class="l">Waiting for Division review</div></div>
+          <div class="stat"><div class="n" id="sOrd">0</div><div class="l">Orders to prepare</div></div>
+          <div class="stat"><div class="n g" id="sOwed">K0</div><div class="l">Owed to you at next payout</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><h2>Needs your attention</h2></div>
+          <div class="panel-bd" id="todo"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><h2>Recent activity</h2></div>
+          <div class="panel-bd" id="feed"></div>
+        </div>
+      </section>
+
+      <!-- PRODUCTS -->
+      <section class="view" id="v-products" style="display:none;">
+        <div class="infobox">
+          New products and changed photographs go to the Division for checking before they appear on the site. Price and stock changes take effect straight away.
+        </div>
+        <div class="panel">
+          <div class="panel-hd"><h2>My products</h2>
+            <button class="btn btn-sm" onclick="show('newprod')">+ Add a product</button></div>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Status</th><th></th></tr></thead>
+            <tbody id="prodRows"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- NEW PRODUCT -->
+      <section class="view" id="v-newprod" style="display:none;">
+        <div class="err" id="prodErr"></div>
+        <div class="panel">
+          <div class="panel-hd"><h2 id="formTitle">Add a product</h2></div>
+          <div class="panel-bd">
+            <div class="infobox">
+              When you send this, the Division checks it before it appears on the site. If something needs changing they will tell you why.
+            </div>
+            <div class="grid2">
+              <div class="fr full">
+                <label>Product name <span class="req">*</span></label>
+                <input id="p_name" placeholder="What a buyer would search for">
+                <div class="hint">Include the size or weight, e.g. “Cold-Pressed Copra Oil (500ml)”.</div>
+              </div>
+              <div class="fr">
+                <label>Category <span class="req">*</span></label>
+                <select id="p_cat"></select>
+              </div>
+              <div class="fr">
+                <label>Price in Kina <span class="req">*</span></label>
+                <input id="p_price" placeholder="0.00" inputmode="decimal">
+              </div>
+              <div class="fr">
+                <label>Unit <span class="req">*</span></label>
+                <input id="p_unit" placeholder="each · per kg · per bundle · per bottle">
+              </div>
+              <div class="fr">
+                <label>How many do you have? <span class="req">*</span></label>
+                <input id="p_stock" placeholder="e.g. 40" inputmode="numeric">
+              </div>
+              <div class="fr full">
+                <label>Description <span class="opt">(recommended)</span></label>
+                <textarea id="p_desc" placeholder="How it is grown or made, and where. A few sentences."></textarea>
+                <div class="hint">Products with a description sell noticeably better.</div>
+              </div>
+              <div class="fr full">
+                <label>Photographs <span class="req">*</span></label>
+                <div class="drop" onclick="ph('open your phone camera or photo gallery')">
+                  <div class="i"><svg class="icon" aria-hidden="true" style="width:26px;height:26px;"><use href="#ic-camera"/></svg></div>
+                  <p>Tap to take a photo or choose from your phone</p>
+                  <div class="s">At least one clear photo taken in daylight. Up to six.</div>
+                </div>
+                <div class="hint">Photographs taken in daylight against a plain background are approved fastest.</div>
+              </div>
+              <div class="fr full">
+                <label>Video <span class="opt">(optional)</span></label>
+                <input id="p_video" placeholder="Paste a YouTube link">
+                <div class="hint">Upload to YouTube as <b>Unlisted</b>, then paste the link. It plays on your listing at no cost to you.</div>
+              </div>
+            </div>
+            <div class="facts">
+              <button class="btn-o" onclick="show('products')">Cancel</button>
+              <button class="btn-o" onclick="saveProduct('draft')">Save as draft</button>
+              <button class="btn g" onclick="saveProduct('in_review')">Send for review</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ORDERS -->
+      <section class="view" id="v-orders" style="display:none;">
+        <div class="warnbox">
+          You will see an order here once payment has been confirmed. Payment is confirmed by the bank, not by you or by the Division.
+        </div>
+        <div class="panel">
+          <div class="panel-hd"><h2>Orders</h2></div>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Order</th><th>Items</th><th>Collection</th><th>You receive</th><th>Status</th><th></th></tr></thead>
+            <tbody id="ordRows"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- PAYOUTS -->
+      <section class="view" id="v-payouts" style="display:none;">
+        <div class="payhero">
+          <div>
+            <div class="n" id="owedBig">K0.00</div>
+            <div class="l">Owed to you right now</div>
+          </div>
+          <div class="r">
+            <div class="n2">Friday</div>
+            <div class="l">Next payout run</div>
+          </div>
+        </div>
+        <div class="infobox">
+          The platform fee is <b>10%</b> of each sale and is already taken off the figures below. What you see is what reaches your bank account. Agent commission applies only where an agent placed the order for a buyer.
+        </div>
+        <div class="panel">
+          <div class="panel-hd"><h2>Payout history</h2></div>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Date</th><th>Orders</th><th>Gross</th><th>Platform fee</th><th>Agent fee</th><th>Paid to you</th></tr></thead>
+            <tbody id="payRows"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="view" id="v-settings" style="display:none;">
+        <div class="panel">
+          <div class="panel-hd"><h2>Business details</h2></div>
+          <div class="panel-bd">
+            <div class="grid2">
+              <div class="fr"><label>Business name</label>
+                <input value="Kerevat Mill Co." disabled style="background:var(--bone-2);color:var(--muted);">
+                <div class="hint">Contact the Division to change your registered business name.</div></div>
+              <div class="fr"><label>District</label>
+                <input value="Gazelle" disabled style="background:var(--bone-2);color:var(--muted);">
+                <div class="hint">Set by the Division when your business was approved.</div></div>
+              <div class="fr"><label>Contact person</label><input value="P. Umong"></div>
+              <div class="fr"><label>Mobile number</label><input value="+675 7100 0010"></div>
+              <div class="fr full"><label>About your business <span class="opt">(shown to buyers)</span></label>
+                <textarea>Copra oil and coffee processed at the Kerevat mill, supplied direct from Gazelle District growers.</textarea></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-hd"><h2>Where your payouts go</h2></div>
+          <div class="panel-bd">
+            <div class="warnbox">Changing your bank details requires confirmation from the Division before the next payout run.</div>
+            <div class="grid2">
+              <div class="fr"><label>Bank</label>
+                <select><option>BSP</option><option>Kina Bank</option><option>ENBSL</option><option>KPML</option></select></div>
+              <div class="fr"><label>Account number</label><input value="••••••1234"></div>
+              <div class="fr full"><label>Account name</label><input value="Kerevat Mill Co."></div>
+            </div>
+          </div>
+        </div>
+        <div class="facts" style="border:none;">
+          <button class="btn g" onclick="ph('save your changes')">Save changes</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+const CATS = [
+  {key:"retail",label:"Retail"},{key:"wholesale",label:"Wholesale"},
+  {key:"tailoring",label:"Tailoring"},{key:"crafts",label:"Arts & Crafts"},
+  {key:"processing",label:"Downstream Processing"},{key:"produce",label:"Fresh Produce"},
+  {key:"foodcrops",label:"Food Crops — Rice & Spices"},
+];
+
+let products = [
+  {id:"p1", name:"Cold-Pressed Copra Oil (500ml)", cat:"processing", price:32.00, unit:"per bottle",
+   stock:40, status:"in_review", photos:2, submitted:"1 hour ago"},
+  {id:"p2", name:"Baining Mountain Coffee (250g)", cat:"processing", price:40.00, unit:"per pack",
+   stock:25, status:"needs_changes", photos:1,
+   note:"Photograph is too dark — please retake in daylight."},
+  {id:"p3", name:"Copra Oil, 20L Bulk Drum", cat:"wholesale", price:520.00, unit:"per drum",
+   stock:6, status:"live", photos:3},
+  {id:"p4", name:"Roasted Cocoa Nibs (250g)", cat:"processing", price:28.00, unit:"per pack",
+   stock:0, status:"draft", photos:0},
+];
+
+let orders = [
+  {id:"o1", ref:"ENB-1042", items:"Copra Oil ×4", route:"Delivery — Kokopo Urban",
+   net:115.20, status:"paid", when:"Today"},
+  {id:"o2", ref:"ENB-1038", items:"Bulk Drum ×1", route:"Agent handoff — Kerevat",
+   net:441.00, status:"processing", when:"Yesterday"},
+  {id:"o3", ref:"ENB-1031", items:"Coffee ×3", route:"Collect from you — Gazelle",
+   net:108.00, status:"fulfilled", when:"5 days ago"},
+];
+
+let payouts = [
+  {date:"Jul 24", n:9, gross:612.00, fee:61.20, agent:0, paid:550.80},
+  {date:"Jul 17", n:6, gross:398.00, fee:39.80, agent:19.90, paid:338.30},
+  {date:"Jul 10", n:4, gross:220.00, fee:22.00, agent:0, paid:198.00},
+];
+
+let feed = [
+  {t:'“Copra Oil, 20L Bulk Drum” approved and now live', w:"Today, 9:14am", k:"ok"},
+  {t:'“Baining Mountain Coffee” returned — photograph too dark', w:"Yesterday, 4:02pm", k:"bad"},
+  {t:"New order ENB-1042 — payment confirmed", w:"Today, 8:02am", k:"ok"},
+  {t:'“Cold-Pressed Copra Oil” sent for review', w:"1 hour ago", k:"warn"},
+];
+
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const K = n => "K" + Number(n||0).toFixed(2);
+const catLabel = k => (CATS.find(c=>c.key===k)||{}).label || "—";
+const ph = w => alert("Design preview: this would " + w + ".");
+
+/* ---------- login ---------- */
+function signIn(){
+  /* LIVE: await supabase.auth.signInWithPassword({ email, password })
+     The seller's own smes row is then found via owner_id = auth.uid() */
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('app').classList.add('on');
+  show('dash');
+}
+function signOut(){
+  document.getElementById('app').classList.remove('on');
+  document.getElementById('loginWrap').style.display = 'flex';
+  window.scrollTo({top:0});
+}
+
+/* ---------- nav ---------- */
+const TITLES = {
+  dash:["Overview","How your business is doing this month."],
+  products:["My products","Everything you sell, and where each listing stands."],
+  newprod:["Add a product","The Division checks new listings before they appear."],
+  orders:["Orders","Orders placed against your products."],
+  payouts:["Payouts","What you are owed and what has been paid."],
+  settings:["My business","Your details and where payouts are sent."],
+};
+function show(v){
+  document.querySelectorAll('.view').forEach(e=>e.style.display='none');
+  document.getElementById('v-'+v).style.display='block';
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on', b.dataset.v===v));
+  document.getElementById('pTitle').textContent = TITLES[v][0];
+  document.getElementById('pSub').textContent = TITLES[v][1];
+  ({dash:renderDash, products:renderProducts, newprod:resetForm,
+    orders:renderOrders, payouts:renderPayouts, settings:()=>{}})[v]();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.getElementById('nav').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(b) show(b.dataset.v);
+});
+
+function badges(){
+  const set=(id,n,warn)=>{const e=document.getElementById(id);e.textContent=n;
+    e.className="pip"+(warn&&n>0?"":" z");};
+  set('pProd', products.length, false);
+  set('pOrd', orders.filter(o=>o.status==='paid').length, true);
+}
+
+/* ---------- overview ---------- */
+function renderDash(){
+  badges();
+  const live = products.filter(p=>p.status==='live').length;
+  const pend = products.filter(p=>p.status==='in_review').length;
+  const toPrep = orders.filter(o=>o.status==='paid').length;
+  const owed = orders.filter(o=>['paid','processing'].includes(o.status))
+                     .reduce((a,o)=>a+o.net,0);
+  document.getElementById('sLive').textContent = live;
+  document.getElementById('sPend').textContent = pend;
+  document.getElementById('sOrd').textContent = toPrep;
+  document.getElementById('sOwed').textContent = "K" + Math.round(owed);
+  document.getElementById('owedBig').textContent = K(owed);
+
+  const todo = [];
+  products.filter(p=>p.status==='needs_changes').forEach(p=>todo.push(
+    {t:`<b>${esc(p.name)}</b> needs changes — ${esc(p.note||'see the Division note')}`,
+     a:`<button class="btn btn-sm" onclick="editProduct('${p.id}')">Fix it</button>`}));
+  orders.filter(o=>o.status==='paid').forEach(o=>todo.push(
+    {t:`Order <b>${esc(o.ref)}</b> is paid and waiting to be prepared`,
+     a:`<button class="btn btn-sm" onclick="advance('${o.id}')">Start preparing</button>`}));
+  products.filter(p=>p.status==='draft').forEach(p=>todo.push(
+    {t:`<b>${esc(p.name)}</b> is still a draft and not visible to buyers`,
+     a:`<button class="btn-o btn-sm" onclick="editProduct('${p.id}')">Finish it</button>`}));
+  products.filter(p=>p.stock===0 && p.status==='live').forEach(p=>todo.push(
+    {t:`<b>${esc(p.name)}</b> is live but shows no stock`,
+     a:`<button class="btn-o btn-sm" onclick="editProduct('${p.id}')">Update stock</button>`}));
+
+  document.getElementById('todo').innerHTML = todo.length
+    ? todo.map(i=>`<div class="feed" style="justify-content:space-between;align-items:center;">
+        <div class="t" style="flex:1;">${i.t}</div><div>${i.a}</div></div>`).join('')
+    : `<div class="empty">Nothing needs your attention right now.</div>`;
+
+  const dot = k => ({ok:'var(--green)',warn:'var(--amber)',bad:'var(--red)'}[k]||'var(--muted)');
+  document.getElementById('feed').innerHTML = feed.map(f=>`
+    <div class="feed"><span class="d" style="background:${dot(f.k)}"></span>
+      <div><div class="t">${esc(f.t)}</div><div class="w">${esc(f.w)}</div></div></div>`).join('');
+}
+
+/* ---------- products ---------- */
+function statusTag(s){
+  return {
+    live:'<span class="tag g">Live on site</span>',
+    in_review:'<span class="tag a">With the Division</span>',
+    needs_changes:'<span class="tag r">Needs changes</span>',
+    draft:'<span class="tag">Draft</span>',
+    withdrawn:'<span class="tag">Withdrawn</span>',
+  }[s] || `<span class="tag">${s}</span>`;
+}
+function renderProducts(){
+  badges();
+  document.getElementById('prodRows').innerHTML = products.length ? products.map(p=>`
+    <tr>
+      <td><div class="rowflex">
+        <div class="thumb">${p.photos?`<svg class="icon" aria-hidden="true" style="width:18px;height:18px;"><use href="#ic-photo"/></svg>`:'<span style="font-size:10px;color:var(--red)">no photo</span>'}</div>
+        <div><div class="nm">${esc(p.name)}</div>
+          <div class="sub2">${esc(catLabel(p.cat))} · ${p.photos} photo${p.photos===1?'':'s'}</div>
+          ${p.note?`<div class="note">${esc(p.note)}</div>`:''}</div>
+      </div></td>
+      <td class="mono">${K(p.price)}<div class="sub2">${esc(p.unit)}</div></td>
+      <td>${p.stock}${p.stock===0?'<div class="sub2" style="color:var(--red)">out of stock</div>':''}</td>
+      <td>${statusTag(p.status)}</td>
+      <td><button class="btn-o btn-sm" onclick="editProduct('${p.id}')">
+        ${p.status==='needs_changes'?'Fix':'Edit'}</button></td>
+    </tr>`).join('') : `<tr><td colspan="5"><div class="empty">
+      You have no products yet.<br>Add your first one to start selling.</div></td></tr>`;
+}
+
+let editing = null;
+function resetForm(){
+  editing = null;
+  document.getElementById('formTitle').textContent = "Add a product";
+  ['p_name','p_price','p_unit','p_stock','p_desc','p_video'].forEach(i=>document.getElementById(i).value="");
+  document.getElementById('p_cat').innerHTML = CATS.map(c=>`<option value="${c.key}">${esc(c.label)}</option>`).join('');
+  document.getElementById('prodErr').classList.remove('show');
+  document.querySelectorAll('.bad').forEach(e=>e.classList.remove('bad'));
+}
+function editProduct(id){
+  const p = products.find(x=>x.id===id); if(!p) return;
+  show('newprod');
+  editing = id;
+  document.getElementById('formTitle').textContent = "Edit “" + p.name + "”";
+  document.getElementById('p_name').value = p.name;
+  document.getElementById('p_price').value = p.price.toFixed(2);
+  document.getElementById('p_unit').value = p.unit || "";
+  document.getElementById('p_stock').value = p.stock;
+  document.getElementById('p_cat').value = p.cat;
+}
+function saveProduct(target){
+  const g = id => document.getElementById(id).value.trim();
+  const problems = [];
+  document.querySelectorAll('.bad').forEach(e=>e.classList.remove('bad'));
+  if(g('p_name').length < 2){ problems.push("a product name"); document.getElementById('p_name').classList.add('bad'); }
+  const price = parseFloat(g('p_price'));
+  if(isNaN(price)||price<0){ problems.push("a price in Kina"); document.getElementById('p_price').classList.add('bad'); }
+  if(!g('p_unit')){ problems.push("a unit, such as “each” or “per kg”"); document.getElementById('p_unit').classList.add('bad'); }
+  if(g('p_stock')==="" ){ problems.push("how many you have"); document.getElementById('p_stock').classList.add('bad'); }
+
+  if(problems.length){
+    const e = document.getElementById('prodErr');
+    e.innerHTML = "Please add " + problems.join(", ") + ".";
+    e.classList.add('show');
+    window.scrollTo({top:0,behavior:'smooth'});
+    return;
+  }
+
+  const rec = {name:g('p_name'), cat:document.getElementById('p_cat').value, price:price,
+    unit:g('p_unit'), stock:parseInt(g('p_stock'),10)||0, status:target, photos:1, note:null};
+
+  if(editing){
+    const i = products.findIndex(x=>x.id===editing);
+    products[i] = Object.assign({}, products[i], rec);
+  } else {
+    products.push(Object.assign({id:"p"+Date.now()}, rec));
+  }
+  feed.unshift({t: target==='in_review'
+      ? `“${rec.name}” sent to the Division for review`
+      : `“${rec.name}” saved as a draft`,
+    w:"Just now", k: target==='in_review'?'warn':'info'});
+  alert(target==='in_review'
+    ? "Sent to the Division. You will be told once it is checked."
+    : "Saved as a draft. It is not visible to buyers yet.");
+  show('products');
+}
+
+/* ---------- orders ---------- */
+function renderOrders(){
+  badges();
+  const tag = s => ({
+    paid:'<span class="tag g">Paid — prepare it</span>',
+    processing:'<span class="tag b">You are preparing</span>',
+    ready:'<span class="tag b">Ready for collection</span>',
+    fulfilled:'<span class="tag g">Completed</span>',
+  })[s] || `<span class="tag">${s}</span>`;
+  const next = {paid:'processing', processing:'ready', ready:'fulfilled'};
+  const label = {paid:'Start preparing', processing:'Mark ready', ready:'Mark collected'};
+  document.getElementById('ordRows').innerHTML = orders.length ? orders.map(o=>`
+    <tr>
+      <td><div class="nm mono">${esc(o.ref)}</div><div class="sub2">${esc(o.when)}</div></td>
+      <td>${esc(o.items)}</td>
+      <td class="sub2">${esc(o.route)}</td>
+      <td class="mono"><b>${K(o.net)}</b></td>
+      <td>${tag(o.status)}</td>
+      <td>${next[o.status]?`<button class="btn btn-sm" onclick="advance('${o.id}')">${label[o.status]}</button>`:''}</td>
+    </tr>`).join('') : `<tr><td colspan="6"><div class="empty">No orders yet.</div></td></tr>`;
+}
+function advance(id){
+  const o = orders.find(x=>x.id===id);
+  const next = {paid:'processing', processing:'ready', ready:'fulfilled'};
+  if(!next[o.status]) return;
+  o.status = next[o.status];
+  feed.unshift({t:`Order ${o.ref} moved to “${o.status}”`, w:"Just now", k:"ok"});
+  renderOrders(); badges();
+}
+
+/* ---------- payouts ---------- */
+function renderPayouts(){
+  badges();
+  document.getElementById('payRows').innerHTML = payouts.map(p=>`
+    <tr>
+      <td class="mono">${esc(p.date)}</td>
+      <td>${p.n} orders</td>
+      <td class="mono">${K(p.gross)}</td>
+      <td class="mono">−${K(p.fee)}</td>
+      <td class="mono">${p.agent?'−'+K(p.agent):'—'}</td>
+      <td class="mono"><b>${K(p.paid)}</b></td>
+    </tr>`).join('');
+}
+</script>
+</body>
+</html>
