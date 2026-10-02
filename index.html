@@ -368,6 +368,7 @@
   .card .ph{
     aspect-ratio:1/1;background:var(--bone-2);position:relative;overflow:hidden;
     display:flex;align-items:center;justify-content:center;font-size:38px;
+    text-decoration:none;color:inherit;
   }
   .card .ph img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.16,1,.3,1);}
   .card:hover .ph img{transform:scale(1.08);}
@@ -379,7 +380,11 @@
     box-shadow:0 3px 10px rgba(255,184,0,0.4);
   }
   .card .bd{padding:17px 17px 19px;display:flex;flex-direction:column;gap:6px;flex:1;}
-  .card .sme{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+  .card .sme{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;
+    color:var(--muted);text-decoration:none;display:inline-block;}
+  .card .sme:hover{color:var(--red-dp);text-decoration:underline;}
+  .card h3 a{color:inherit;text-decoration:none;}
+  .card h3 a:hover{text-decoration:underline;}
   .card h3{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:20px;line-height:1.14;font-weight:500;}
   .card .dist{font-size:11px;color:var(--green);font-weight:700;letter-spacing:0.02em;}
   .card .foot{margin-top:auto;padding-top:15px;display:flex;align-items:center;justify-content:space-between;}
@@ -395,9 +400,13 @@
   .smes{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
   .sme-card{
     background:linear-gradient(150deg,#fff,var(--bone-2));
-    border:1px solid var(--hair-2);border-radius:18px;padding:26px;
-    display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;
+    border:1px solid var(--hair-2);border-radius:18px;padding:0;
+    position:relative;overflow:hidden;
     transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s;
+  }
+  .sme-link{
+    display:flex;flex-direction:column;gap:12px;padding:26px;height:100%;
+    color:inherit;text-decoration:none;
   }
   .sme-card::before{
     content:"";position:absolute;top:-40%;right:-30%;width:220px;height:220px;border-radius:50%;
@@ -560,6 +569,9 @@
   .dhd button:hover{opacity:1;transform:rotate(90deg);}
   .ditems{flex:1;overflow-y:auto;padding:22px 26px;display:flex;flex-direction:column;gap:17px;}
   .ditem{display:flex;gap:14px;padding-bottom:17px;border-bottom:1px solid var(--hair-2);}
+  .ditem .th a{color:inherit;text-decoration:none;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+  .ditem h4 a{color:inherit;text-decoration:none;}
+  .ditem h4 a:hover{text-decoration:underline;}
   .ditem .th{width:60px;height:60px;background:var(--bone-2);border-radius:12px;overflow:hidden;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;font-size:23px;}
   .ditem .th img{width:100%;height:100%;object-fit:cover;}
@@ -1312,70 +1324,20 @@
   </div>
 </div>
 
+<script src="shop-data.js"></script>
 <script>
 /* ============================================================
-   DATA
-   ------------------------------------------------------------
-   The site looks for a file called `data.json` next to this
-   page, produced by the SME Intake tool. If it is found, the
-   real data below is replaced entirely.
-   If it is not found, the sample data below is used instead
-   and a preview notice appears at the top of the page.
+   This page's own data variables mirror Shop.* (see shop-data.js)
+   once loadShop() resolves at the bottom of this file. Kept as
+   local variables, not direct Shop.* references, so the rest of
+   this file reads exactly as it always has.
    ============================================================ */
-let CONFIG = { photoBase:"photos/", slideMs:7000 };
-let IS_SAMPLE = true;
-
-let SMES = [
-  {id:"vunamami", n:"Vunamami Growers Collective", d:"Kokopo",  f:"Fresh produce · food crops",            c:9},
-  {id:"weavers",  n:"Rabaul Weavers Guild",        d:"Rabaul",  f:"Arts &amp; crafts · tailoring",             c:7},
-  {id:"kerevat",  n:"Kerevat Mill Co.",            d:"Gazelle", f:"Downstream processing · wholesale",     c:8},
-  {id:"pomio",    n:"Pomio Forest Crafts",         d:"Pomio",   f:"Arts &amp; crafts · downstream processing", c:6},
-  {id:"toma",     n:"Toma Tailoring Centre",       d:"Gazelle", f:"Tailoring · garment production",        c:5},
-  {id:"ktrade",   n:"Kokopo Trade Supplies",       d:"Kokopo",  f:"Retail · wholesale",                    c:4},
-];
-
-const U = "https://images.unsplash.com/";
-const Q = "?fm=jpg&q=72&w=820&auto=format&fit=crop";
-
-let P = [
-  {n:"Single-Origin Cocoa, Hand Fermented (1kg)", s:"kerevat",  p:52,  c:"processing", b:"Signature",   ph:U+"photo-1573710661345-610f790e1218"+Q},
-  {n:"Fine-Weave Bilum, Large",                   s:"weavers",  p:135, c:"crafts",     b:null,          ph:U+"photo-1601330862030-1e08c703ac04"+Q},
-  {n:"Volcanic Soil Vanilla Beans (100g)",        s:"vunamami", p:88,  c:"foodcrops",  b:"Best seller", ph:U+"photo-1682482198446-4cbf92f85a4b"+Q},
-  {n:"Baining Mountain Coffee (250g)",            s:"kerevat",  p:40,  c:"processing", b:"New",         ph:U+"photo-1642258632706-142d5ce17754"+Q},
-  {n:"Island Spice Blend (150g)",                 s:"vunamami", p:26,  c:"foodcrops",  b:null,          ph:U+"photo-1716816211590-c15a328a5ff0"+Q},
-  {n:"Dried Chilli Powder (100g)",                s:"vunamami", p:18,  c:"foodcrops",  b:null,          ph:U+"photo-1547332226-395d746d139a"+Q},
-  {n:"Highlands Rice, Milled (5kg)",              s:"ktrade",   p:62,  c:"foodcrops",  b:null,          ph:U+"flagged/photo-1553617569-8ef7a8da3146"+Q},
-  {n:"Meri Blouse, Made to Measure",              s:"toma",     p:95,  c:"tailoring",  b:null,          ph:U+"photo-1633655442432-620aa55d7ac1"+Q},
-  {n:"School Uniform Set, Tailored",              s:"toma",     p:78,  c:"tailoring",  b:"Seasonal",    ph:U+"photo-1618587194716-40490bdba417"+Q},
-  {n:"Laplap, Hand-Finished",                     s:"weavers",  p:45,  c:"tailoring",  b:null,          ph:U+"photo-1718184021018-d2158af6b321"+Q},
-  {n:"Wild Forest Honey (350ml)",                 s:"pomio",    p:45,  c:"processing", b:null,          ph:U+"photo-1558642452-9d2a7deb7f62"+Q},
-  {n:"Smoked Reef Fish, Whole",                   s:"vunamami", p:38,  c:"processing", b:null,          ph:U+"photo-1739484151190-e2a73842ca13"+Q},
-  {n:"Cooking Bananas (Bunch)",                   s:"vunamami", p:18,  c:"produce",    b:null,          ph:U+"photo-1706059924238-361c705b121f"+Q},
-  {n:"Aibika Greens Bundle",                      s:"vunamami", p:12,  c:"produce",    b:"Fresh today", ph:null},
-  {n:"Fresh Taro (5kg bag)",                      s:"kerevat",  p:35,  c:"produce",    b:null,          ph:null},
-  {n:"Handcarved Ebony Figure",                   s:"pomio",    p:225, c:"crafts",     b:null,          ph:null},
-  {n:"Shell &amp; Seed Necklace",                     s:"weavers",  p:60,  c:"crafts",     b:null,          ph:null},
-  {n:"Cold-Pressed Copra Oil (500ml)",            s:"kerevat",  p:32,  c:"processing", b:null,          ph:null},
-  {n:"Copra Oil, 20L Bulk Drum",                  s:"kerevat",  p:520, c:"wholesale",  b:"Bulk",        ph:null},
-  {n:"Trade Store Starter Pack",                  s:"ktrade",   p:340, c:"wholesale",  b:"Bulk",        ph:null},
-  {n:"Household Goods Bundle",                    s:"ktrade",   p:85,  c:"retail",     b:null,          ph:null},
-  {n:"Stationery &amp; School Supplies Pack",          s:"ktrade",   p:55,  c:"retail",     b:null,          ph:null},
-];
-
-let cart = [], cat = 'all', dist = 'all';
-const sme = id => SMES.find(s => s.id === id);
-const clean = s => s.replace(/&amp;/g,'&');
+/* SMES, P, SLIDES, CONFIG now live in shop-data.js, shared with
+   sme.html and product.html. This page reads them via Shop.* once
+   loadShop() resolves — see boot() near the end of this script. */
+let SMES = [], P = [], cat = 'all', dist = 'all';
+const sme = getSme;  // alias kept so the rest of this file reads the same as before
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-/* Photo references may be full URLs (sample data) or bare filenames
-   collected by the intake tool. Filenames resolve against config.photoBase. */
-function photoURL(ref, big){
-  if(!ref) return null;
-  const r = String(ref).trim();
-  if(/^https?:\/\//i.test(r)) return r;
-  if(/^data:/i.test(r)) return r;
-  return CONFIG.photoBase.replace(/\/?$/,'/') + r.replace(/^\/+/,'');
-}
 
 /* ---------- marquee ---------- */
 const INDUSTRIES = ["Retail","Wholesale","Tailoring","Arts &amp; Crafts","Downstream Processing","Fresh Produce","Food Crops · Rice &amp; Spices"];
@@ -1390,14 +1352,7 @@ document.getElementById('marq').innerHTML =
    Everything else (caption, district, industry) is read from here.
    ================================================================ */
 const SLIDE_MS_DEFAULT = 7000;
-let SLIDES = [
-  { img:U+"photo-1533900298318-6b8da08a523e",  ind:"Fresh Produce",          biz:"Vunamami Growers Collective", loc:"Kokopo District"  },
-  { img:U+"photo-1718184021018-d2158af6b321",  ind:"Tailoring",              biz:"Toma Tailoring Centre",       loc:"Gazelle District" },
-  { img:U+"photo-1601330862030-1e08c703ac04",  ind:"Arts &amp; Crafts",          biz:"Rabaul Weavers Guild",        loc:"Rabaul District"  },
-  { img:U+"photo-1573710661345-610f790e1218",  ind:"Downstream Processing",  biz:"Kerevat Mill Co.",            loc:"Gazelle District" },
-  { img:U+"photo-1663154438428-60cdc204f99b",  ind:"Retail &amp; Wholesale",     biz:"Kokopo Trade Supplies",       loc:"Kokopo District"  },
-  { img:U+"photo-1517137744310-173515c62d59",  ind:"Arts &amp; Crafts",          biz:"Pomio Forest Crafts",         loc:"Pomio District"   },
-];
+let SLIDES = [];  // populated from Shop.SLIDES in boot()
 let SLIDE_MS = SLIDE_MS_DEFAULT;
 
 const stage = document.getElementById('stage');
@@ -1462,12 +1417,13 @@ function goSlide(k){ stop(); show(k); play(); }
    ============================================================ */
 function applyData(d){
   if(!d || !Array.isArray(d.SMES) || !Array.isArray(d.P)) throw new Error("unrecognised data file");
-  SMES = d.SMES;
-  P = d.P;
-  if(Array.isArray(d.SLIDES) && d.SLIDES.length) SLIDES = d.SLIDES;
-  if(d.config) CONFIG = Object.assign({}, CONFIG, d.config);
-  SLIDE_MS = CONFIG.slideMs || SLIDE_MS_DEFAULT;
-  IS_SAMPLE = false;
+  Shop.SMES = d.SMES;
+  Shop.P = d.P;
+  if(Array.isArray(d.SLIDES) && d.SLIDES.length) Shop.SLIDES = d.SLIDES;
+  if(d.config) Shop.CONFIG = Object.assign({}, Shop.CONFIG, d.config);
+  Shop.IS_SAMPLE = false;
+  SMES = Shop.SMES; P = Shop.P; SLIDES = Shop.SLIDES;
+  SLIDE_MS = Shop.CONFIG.slideMs || SLIDE_MS_DEFAULT;
   boot();
   notice(false);
 }
@@ -1524,13 +1480,7 @@ function boot(){
 }
 
 /* the loader itself runs at the end of this script */
-
-/* one clean icon per industry, used whenever a listing has no photo yet */
-const CAT_ICON = {
-  retail:"ic-retail", wholesale:"ic-wholesale", tailoring:"ic-tailoring",
-  crafts:"ic-crafts", processing:"ic-processing", produce:"ic-produce", foodcrops:"ic-foodcrops"
-};
-const catIcon = c => `<svg class="icon cat-icon" aria-hidden="true"><use href="#${CAT_ICON[c]||'ic-wholesale'}"/></svg>`;
+/* catIcon() comes from shop-data.js */
 
 /* ---------- render ---------- */
 function visible(){
@@ -1563,13 +1513,13 @@ function render(){
     const s = sme(p.s);
     const img = photoURL(p.ph);
     return `<article class="card">
-      <div class="ph">
+      <a class="ph" href="product.html?p=${i}">
         ${p.b ? `<span class="badge">${p.b}</span>` : ''}
         ${img ? `<img src="${img}" alt="${clean(p.n)}" loading="lazy">` : catIcon(p.c)}
-      </div>
+      </a>
       <div class="bd">
-        <span class="sme">${s ? s.n : ''}</span>
-        <h3>${p.n}</h3>
+        <a class="sme" href="sme.html?s=${p.s}">${s ? s.n : ''}</a>
+        <h3><a href="product.html?p=${i}">${p.n}</a></h3>
         <span class="dist">${s ? s.d + ' District' : ''}</span>
         <div class="foot">
           <span class="price">K${p.p.toFixed(2)}</span>
@@ -1583,12 +1533,14 @@ function render(){
 function renderSmes(){
   document.getElementById('smeGrid').innerHTML = SMES.map((s,k)=>`
     <article class="sme-card rv" style="--d:${k*70}ms">
-      <div class="sme-top">
-        <span class="sme-av"><i>${clean(s.n).split(' ').map(w=>w[0]).slice(0,2).join('')}</i></span>
-        <h3>${s.n}</h3>
-      </div>
-      <span class="meta"><b>${s.d} District</b><br>${s.f} · ${s.c} products</span>
-      <button class="go" onclick="byDist('${s.d}')">View ${s.d} SMEs <span>→</span></button>
+      <a class="sme-link" href="sme.html?s=${s.id}" aria-label="Visit ${clean(s.n)}'s stall">
+        <div class="sme-top">
+          <span class="sme-av"><i>${clean(s.n).split(' ').map(w=>w[0]).slice(0,2).join('')}</i></span>
+          <h3>${s.n}</h3>
+        </div>
+        <span class="meta"><b>${s.d} District</b><br>${s.f} · ${s.c||0} product${s.c===1?'':'s'}</span>
+        <span class="go">Visit stall <span>→</span></span>
+      </a>
     </article>`).join('');
   observe();
 }
@@ -1621,8 +1573,7 @@ function clearAll(){
 
 /* ---------- cart ---------- */
 function add(i){
-  const e = cart.find(c=>c.i===i);
-  if(e) e.q++; else cart.push({i,q:1});
+  cartAdd(i, 1);
   renderCart(); openCart();
   // the count reacts so it is obvious something landed in the basket
   const c = document.getElementById('bcount');
@@ -1633,12 +1584,12 @@ function add(i){
   }
 }
 function chg(idx,d){
-  cart[idx].q += d;
-  if(cart[idx].q <= 0) cart.splice(idx,1);
+  cartChange(idx, d);
   renderCart();
 }
 function renderCart(){
-  document.getElementById('bcount').textContent = cart.reduce((a,c)=>a+c.q,0);
+  const { cart, sub, del, total } = cartTotals();
+  document.getElementById('bcount').textContent = cartCount();
   const it = document.getElementById('ditems'), ft = document.getElementById('dfoot');
   if(!cart.length){
     it.innerHTML = '<div class="empty">Your basket is empty.<br>Add something from the market.</div>';
@@ -1646,12 +1597,13 @@ function renderCart(){
   }
   ft.style.display='block';
   it.innerHTML = cart.map((c,idx)=>{
-    const p = P[c.i], s = sme(p.s);
+    const p = getProduct(c.i); if(!p) return '';
+    const s = sme(p.s);
     const img = photoURL(p.ph);
     return `<div class="ditem">
-      <div class="th">${img ? `<img src="${img}" alt="">` : catIcon(p.c)}</div>
+      <div class="th"><a href="product.html?p=${c.i}">${img ? `<img src="${img}" alt="">` : catIcon(p.c)}</a></div>
       <div class="mt">
-        <h4>${p.n}</h4>
+        <h4><a href="product.html?p=${c.i}">${p.n}</a></h4>
         <span class="sm">${s ? s.n : ''}</span>
         <div class="qty">
           <button onclick="chg(${idx},-1)" aria-label="Less">−</button>
@@ -1662,16 +1614,14 @@ function renderCart(){
       <span class="pr">K${(p.p*c.q).toFixed(2)}</span>
     </div>`;
   }).join('');
-  const sub = cart.reduce((a,c)=>a + P[c.i].p*c.q, 0);
-  const del = (sub > 150 || sub === 0) ? 0 : 15;
   document.getElementById('sub').textContent = 'K'+sub.toFixed(2);
   document.getElementById('del').textContent = del===0 ? 'Free' : 'K'+del.toFixed(2);
-  document.getElementById('tot').textContent = 'K'+(sub+del).toFixed(2);
-  document.getElementById('mtot').textContent = 'K'+(sub+del).toFixed(2);
+  document.getElementById('tot').textContent = 'K'+total.toFixed(2);
+  document.getElementById('mtot').textContent = 'K'+total.toFixed(2);
 }
 function openCart(){document.getElementById('drawer').classList.add('on');document.getElementById('ovl').classList.add('on');}
 function closeCart(){document.getElementById('drawer').classList.remove('on');document.getElementById('ovl').classList.remove('on');}
-function openCo(){ if(cart.length) document.getElementById('movl').classList.add('on'); }
+function openCo(){ if(cartCount()) document.getElementById('movl').classList.add('on'); }
 function closeCo(){document.getElementById('movl').classList.remove('on');}
 function tab(t){
   document.getElementById('tSelf').classList.toggle('on', t==='self');
@@ -1679,7 +1629,7 @@ function tab(t){
   document.getElementById('rcp').style.display = t==='home' ? 'block' : 'none';
 }
 function pay(){
-  closeCo(); closeCart(); cart=[]; renderCart();
+  closeCo(); closeCart(); cartClear(); renderCart();
   alert('Design preview: on the live platform this redirects to the bank\'s secure payment page.');
 }
 
@@ -1735,18 +1685,21 @@ document.querySelectorAll('.metric .n[data-to]').forEach(e=>mio.observe(e));
 
 document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCo(); closeCart(); } });
 
-/* ---------- start: try real data, fall back to the sample set ---------- */
-boot();
-if(!reduce){
-  document.addEventListener('visibilitychange', ()=>{
-    if(document.hidden){ stop(); stage.classList.add('paused'); }
-    else { stage.classList.remove('paused'); play(); }
-  });
-}
-fetch('data.json', {cache:'no-store'})
-  .then(r => { if(!r.ok) throw new Error('no data.json'); return r.json(); })
-  .then(applyData)
-  .catch(() => notice(true));
+/* ---------- start: load the shared shop data, then boot once ---------- */
+loadShop().then(() => {
+  SMES = Shop.SMES;
+  P = Shop.P;
+  if(Shop.SLIDES.length) SLIDES = Shop.SLIDES;
+  SLIDE_MS = Shop.CONFIG.slideMs || SLIDE_MS_DEFAULT;
+  boot();
+  if(!reduce){
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.hidden){ stop(); stage.classList.add('paused'); }
+      else { stage.classList.remove('paused'); play(); }
+    });
+  }
+  if(Shop.IS_SAMPLE) notice(true);
+});
 </script>
 
 </body>
