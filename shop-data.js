@@ -28,6 +28,10 @@
 const CONFIG_DEFAULT = { photoBase: "photos/", slideMs: 7000 };
 
 const SAMPLE_SMES = [
+  {id:"abuta",    n:"Abuta Agro Services",         d:"Gazelle", f:"Fresh produce · cocoa nursery",
+   llg:"Rakunai Village, Central Gazelle LLG",
+   about:"A family-run cocoa nursery at Rakunai Village in Central Gazelle, raising healthy bagged cocoa seedlings for smallholder growers across the Gazelle Peninsula. Every seedling is grown under shade cloth and hardened off before sale, so it is ready to plant out the day it leaves the nursery. Bulk orders for new blocks and replanting are welcome.",
+   photo:"GAZELLE_Abuta_business_01.jpg"},
   {id:"vunamami", n:"Vunamami Growers Collective", d:"Kokopo",  f:"Fresh produce · food crops",
    about:"Smallholder growers from Vunamami village supplying fresh garden produce, vanilla and food crops across Kokopo District."},
   {id:"weavers",  n:"Rabaul Weavers Guild",        d:"Rabaul",  f:"Arts & crafts · tailoring",
@@ -46,6 +50,10 @@ const U = "https://images.unsplash.com/";
 const Qp = "?fm=jpg&q=72&w=820&auto=format&fit=crop";
 
 const SAMPLE_P = [
+  {n:"Cocoa Seedlings, Bagged & Ready to Plant", s:"abuta", p:3, c:"produce", b:"Local grower", ph:"GAZELLE_Abuta_seedlings_01.jpg", u:"per seedling",
+   about:"Healthy cocoa seedlings raised in poly bags under shade cloth at Rakunai Village. Hardened off and ready to plant straight into the ground. Collect from the nursery in Central Gazelle, or order in bulk for delivery.", stock:4800, fresh:true},
+  {n:"Cocoa Seedlings, Block Planting Pack (500)", s:"abuta", p:1500, c:"produce", b:"Bulk", ph:"GAZELLE_Abuta_seedlings_02.jpg", u:"per 500 seedlings",
+   about:"Five hundred bagged cocoa seedlings for planting a new block or replacing ageing trees — the same K3 a seedling, ready in one lot. Please allow around three weeks for large orders so the nursery can set aside hardened stock.", stock:9, fresh:true},
   {n:"Single-Origin Cocoa, Hand Fermented (1kg)", s:"kerevat",  p:52,  c:"processing", b:"Signature",   ph:U+"photo-1573710661345-610f790e1218"+Qp, u:"per kg", about:"Hand-fermented at the Kerevat mill from cocoa grown within Gazelle District.", stock:34},
   {n:"Fine-Weave Bilum, Large",                   s:"weavers",  p:135, c:"crafts",     b:null,          ph:U+"photo-1601330862030-1e08c703ac04"+Qp, u:"each", about:"Hand-woven over several weeks using traditional Tolai patterns.", stock:6},
   {n:"Volcanic Soil Vanilla Beans (100g)",        s:"vunamami", p:88,  c:"foodcrops",  b:"Best seller", ph:U+"photo-1682482198446-4cbf92f85a4b"+Qp, u:"per 100g", about:"Grown in the mineral-rich volcanic soil around Kokopo.", stock:18},
@@ -71,6 +79,7 @@ const SAMPLE_P = [
 ];
 
 const SAMPLE_SLIDES = [
+  { img:"GAZELLE_Abuta_frontpage_01.jpg",  ind:"Fresh Produce · Cocoa Nursery", biz:"Abuta Agro Services", loc:"Gazelle District" },
   { img:U+"photo-1533900298318-6b8da08a523e",  ind:"Fresh Produce",          biz:"Vunamami Growers Collective", loc:"Kokopo District"  },
   { img:U+"photo-1718184021018-d2158af6b321",  ind:"Tailoring",              biz:"Toma Tailoring Centre",       loc:"Gazelle District" },
   { img:U+"photo-1601330862030-1e08c703ac04",  ind:"Arts & Crafts",          biz:"Rabaul Weavers Guild",        loc:"Rabaul District"  },
@@ -144,6 +153,10 @@ function loadShop(){
       Shop.CONFIG = CONFIG_DEFAULT;
       Shop.IS_SAMPLE = true;
       return Shop;
+    })
+    .then(shop => {
+      shop.SMES.forEach(x => { x.c = shop.P.filter(p => p.s === x.id).length; });
+      return shop;
     });
   return _loadPromise;
 }

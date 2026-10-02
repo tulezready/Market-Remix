@@ -946,7 +946,12 @@
     background:radial-gradient(60% 90% at 85% 10%, rgba(255,184,0,0.16), transparent 60%),
                radial-gradient(50% 80% at 10% 95%, rgba(240,57,30,0.18), transparent 62%);
   }
-  .stall-hero-in{position:relative;z-index:2;}
+  .stall-hero-in{position:relative;z-index:2;display:grid;grid-template-columns:1fr;gap:28px;align-items:center;}
+  .stall-hero-in.has-photo{grid-template-columns:1.4fr 1fr;}
+  .stall-photo{border-radius:14px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 18px 40px -18px rgba(0,0,0,.6);}
+  .stall-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+  .stall-loc{font-size:12.5px;color:rgba(255,252,247,.6);margin:-6px 0 14px;}
+  @media (max-width:760px){ .stall-hero-in.has-photo{grid-template-columns:1fr;} .stall-photo{order:-1;} }
   .stall-back{
     display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;
     color:rgba(255,252,247,.75);margin-bottom:18px;text-decoration:none;
@@ -1030,13 +1035,17 @@
 <div class="wrap">
   <div id="app" style="display:none;">
     <div class="stall-hero rv">
-      <div class="stall-hero-in">
-        <a class="stall-back" href="index.html">&larr; Back to the market</a>
-        <div><span class="stall-dist" id="s-dist">District</span></div>
-        <h1 id="s-name">Business name</h1>
-        <div class="stall-industries" id="s-industries">Industries</div>
-        <p class="stall-about" id="s-about"></p>
-        <div class="stall-stat"><b id="s-count">0</b> products listed</div>
+      <div class="stall-hero-in" id="s-in">
+        <div>
+          <a class="stall-back" href="index.html">&larr; Back to the market</a>
+          <div><span class="stall-dist" id="s-dist">District</span></div>
+          <h1 id="s-name">Business name</h1>
+          <div class="stall-loc" id="s-loc"></div>
+          <div class="stall-industries" id="s-industries">Industries</div>
+          <p class="stall-about" id="s-about"></p>
+          <div class="stall-stat"><b id="s-count">0</b> products listed</div>
+        </div>
+        <div class="stall-photo" id="s-photo" style="display:none;"></div>
       </div>
     </div>
 
@@ -1183,6 +1192,15 @@ function renderStall(){
   document.getElementById('s-industries').textContent = clean(s.f || '');
   document.getElementById('s-about').textContent = s.about || '';
   document.getElementById('s-about').style.display = s.about ? 'block' : 'none';
+  document.getElementById('s-loc').textContent = s.llg || '';
+  document.getElementById('s-loc').style.display = s.llg ? 'block' : 'none';
+  const ph = photoURL(s.photo);
+  const phBox = document.getElementById('s-photo');
+  if(ph){
+    phBox.innerHTML = `<img src="${ph}" alt="${esc(clean(s.n))}">`;
+    phBox.style.display = 'block';
+    document.getElementById('s-in').classList.add('has-photo');
+  }
 
   const items = productsForSme(s.id);
   document.getElementById('s-count').textContent = items.length;
