@@ -14,8 +14,9 @@
 | Keep-awake | `.github/workflows/supabase-keepalive.yml` queries the project every Monday and Thursday so the free plan does not pause it. **Delete it after the Pro upgrade** |
 | Data | 7 sample businesses and 24 sample products, flagged `is_sample` |
 
-**Done:** schema, security rules, storage buckets, ordering, applications, payouts, sample
-data, security advisor clean except the functions that are public on purpose.
+**Done:** schema, security rules, storage buckets, ordering, applications, seller logins,
+order payment, payout runs, sample data. Security advisor clean except the functions that are
+public on purpose (each checks who is calling).
 
 **Still to do by hand** (needs a person, not code):
 1. Create the first Division admin login (section 4).
@@ -39,7 +40,13 @@ project from scratch:
 2. `public-submissions.sql` — public business applications, photo uploads
 3. `security-and-orders.sql` — private business details, `place_order`,
    `submit_application`, settings, payouts, storage buckets, hardening
-4. `seed-sample.sql` — *optional* sample businesses and products
+4. `accounts-and-payouts.sql` — marking orders paid, what sellers may change, holding period,
+   `prepare_payout`, two-person payout approval, seller photo uploads, seller-login lookups
+5. `seed-sample.sql` — *optional* sample businesses and products
+
+Then deploy the Edge Function `supabase/functions/seller-logins` (Dashboard → Edge Functions →
+Deploy a new function, paste `index.ts`, and turn **off** "Verify JWT" — the function checks
+the caller itself). It creates seller logins with the secret key, which never reaches a browser.
 
 ### What the database protects
 
@@ -47,7 +54,15 @@ project from scratch:
   public columns. Contact, tax and bank details live in `sme_private` (owner and Division only).
 - Orders are created **only** by `place_order()`, which prices everything itself.
 - A seller cannot publish a listing, approve or feature themselves, or mark an order paid.
-- Payouts need a second approver and a verified bank account.
+- Only the Division marks an order **paid**, and only with an agent receipt number or bank
+  reference. Paying an order takes the items out of stock.
+- A seller can only move their own paid orders forward (preparing → ready → collected), and
+  cannot change anything else on the order.
+- Payouts are prepared by `prepare_payout()` (the database picks the orders and adds them up),
+  approved by a second officer who did not verify that business's bank account, and marked paid
+  only with a bank reference and a verified account. An order in a payout is locked.
+- A seller can upload photos only to their own folder; a new photo or a wording change on a live
+  listing sends it back to the Division for review. Price and stock change straight away.
 
 Tested as a public visitor: catalogue and directory readable; bank and phone columns,
 private details, orders and applications refused; direct order inserts refused; tampered
@@ -86,6 +101,31 @@ update profiles set role = 'division_admin' where id = 'PASTE-THE-UID-HERE';
 
 Add more staff the same way (`division_staff` for reviewers). For payouts, at least
 **two** staff accounts are needed — the person who prepares a payout cannot approve it.
+
+## 4a. Seller logins
+
+Supabase's free email service cannot send sign-up or password emails to sellers, so the
+Division issues logins from the panel:
+
+1. **Division panel → Businesses → Open** the business → **Seller login**.
+2. Enter their **email**, or their **mobile number** if they have no email (it is stored as
+   `675XXXXXXXX@phone.maketples.com.pg`; they sign in by typing their mobile number).
+3. **Create login.** A temporary password is shown **once** — give it to the owner in person or
+   by phone. On first sign-in at `seller.html` they must choose their own password.
+4. Forgotten password: **New temporary password** on the same screen.
+
+When SMS sign-in is added (Pro plan + an SMS provider), mobile-number logins can move to it.
+
+## 4b. Day-to-day money
+
+1. **Orders → Waiting for payment.** When an agent hands in cash or a bank transfer arrives,
+   open the order, enter the receipt number or bank reference, **Mark paid**. The seller then
+   sees it and prepares it.
+2. **Businesses → Open → Bank account.** Phone the business on its registered number, read the
+   details back, then **I have confirmed these by phone**.
+3. **Payouts.** One officer presses **Prepare payout** for each business with money ready.
+   A second officer opens it and **Approves**. After the bank transfer, enter the bank reference
+   and **Mark paid**. The seller sees each step in their portal.
 
 ## 5. Bank transfer details for buyers
 
@@ -127,7 +167,7 @@ database cannot be reached, the shop falls back to the samples automatically.
 delete from smes where is_sample;
 ```
 
-Then: upgrade to Pro (and delete `.github/workflows/supabase-keepalive.yml`), transfer the project to the merchant of record's organisation,
+Then: upgrade to Pro (turn on leaked-password protection under Authentication, and delete `.github/workflows/supabase-keepalive.yml`), transfer the project to the merchant of record's organisation,
 add the live domain under Authentication → URL Configuration, and remove the eight
 legacy columns on `smes` (see the comment in `security-and-orders.sql`).
 

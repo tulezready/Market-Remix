@@ -243,13 +243,13 @@
 
   /* ---------- tablet ---------- */
   @media (max-width:1000px){
-    .app,.app.on{grid-template-columns:1fr;}
-    .side{position:sticky;top:0;height:auto;z-index:30;flex-direction:row;
+    .app,.app.on{grid-template-columns:minmax(0,1fr);}
+    .side{position:sticky;top:0;height:auto;z-index:30;flex-direction:row;min-width:0;
       align-items:center;gap:8px;padding-right:10px;}
     .side-top{border-bottom:none;border-right:1px solid rgba(250,244,234,.12);
       padding:12px 16px;flex-shrink:0;}
     .side-top .t{font-size:15px;}
-    .nav{flex-direction:row;overflow-x:auto;padding:9px 4px;gap:4px;scrollbar-width:none;}
+    .nav{flex-direction:row;overflow-x:auto;min-width:0;padding:9px 4px;gap:4px;scrollbar-width:none;}
     .nav::-webkit-scrollbar{display:none;}
     .nav button{white-space:nowrap;padding:9px 14px;}
     .side-bot{display:none;}
@@ -297,11 +297,9 @@
     #ordRows  td:nth-child(2)::before{content:"Items: ";color:var(--muted);font-size:12px;}
     #ordRows  td:nth-child(3)::before{content:"Collection: ";color:var(--muted);font-size:12px;}
     #ordRows  td:nth-child(4)::before{content:"You receive: ";color:var(--muted);font-size:12px;}
-    #payRows  td:nth-child(2)::before{content:"Orders: ";color:var(--muted);font-size:12px;}
-    #payRows  td:nth-child(3)::before{content:"Gross: ";color:var(--muted);font-size:12px;}
-    #payRows  td:nth-child(4)::before{content:"Platform fee: ";color:var(--muted);font-size:12px;}
-    #payRows  td:nth-child(5)::before{content:"Agent fee: ";color:var(--muted);font-size:12px;}
-    #payRows  td:nth-child(6)::before{content:"Paid to you: ";color:var(--muted);font-size:12px;}
+    #payRows  td:nth-child(3)::before{content:"Amount: ";color:var(--muted);font-size:12px;}
+    #payRows  td:nth-child(5)::before{content:"Bank reference: ";color:var(--muted);font-size:12px;}
+    #ordRows  td:nth-child(3)::before{content:"";}
 
     .feed{align-items:flex-start;}
     .feed[style*="space-between"]{flex-direction:column;gap:10px;}
@@ -357,6 +355,24 @@
     input[type=checkbox],input[type=radio]{width:24px;height:24px;}
     header nav a,.hdr a{display:inline-flex;align-items:center;min-height:44px;}
   }
+
+  /* product photos in the form */
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin-bottom:10px;}
+  .pgrid:empty{display:none;}
+  .ptile{position:relative;border-radius:10px;overflow:hidden;background:var(--bone-3);aspect-ratio:1;}
+  .ptile img{width:100%;height:100%;object-fit:cover;display:block;}
+  .ptile.new{box-shadow:0 0 0 2px var(--green-br);}
+  .ptile button{position:absolute;top:4px;right:4px;width:44px;height:44px;border:none;border-radius:50%;
+    background:rgba(22,18,20,.72);color:#fff;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;}
+  label.drop{display:block;cursor:pointer;}
+  label.drop[hidden]{display:none;}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .nophoto{font-size:12px;color:var(--red);text-align:center;line-height:1.1;}
+  .chkline{display:flex !important;gap:10px;align-items:center;font-weight:600 !important;min-height:44px;cursor:pointer;}
+  .chkline input{width:20px;height:20px;}
+  .bad{border-color:var(--red) !important;box-shadow:0 0 0 3px rgba(200,50,30,.12) !important;}
+  [hidden]{display:none !important;}
+  td a[href^="tel:"]{color:var(--harbour);font-weight:700;}
 </style>
 </head>
 <body>
@@ -370,7 +386,7 @@
 
 <!-- ================= LOGIN ================= -->
 <div class="login-wrap" id="loginWrap">
-  <div class="login">
+  <div class="login" id="loginCard">
     <div class="brand">
       <img src="logo-96.png" width="96" height="96" alt="">
       <div>
@@ -379,26 +395,40 @@
       </div>
     </div>
     <h1>Sign in</h1>
-    <p class="lead">Use the email and password the Division sent you when your business was approved.</p>
+    <p class="lead">Use the login and password the Division gave you when your business was approved.</p>
 
-    <div class="demo-hint">
+    <div class="demo-hint" id="loginHint" hidden>
       <b>Design preview.</b> Sign in with anything — no account is checked and nothing is saved.
     </div>
+    <div class="err" id="loginErr" role="alert"></div>
 
-    <div class="fr">
-      <label>Email or mobile number</label>
-      <input id="l_user" placeholder="you@example.pg or +675 7XX XXXXX">
-    </div>
-    <div class="fr">
-      <label>Password</label>
-      <input id="l_pass" type="password" placeholder="Your password">
-    </div>
-    <button class="btn g" onclick="signIn()">Sign in</button>
+    <form onsubmit="signIn(event)">
+      <div class="fr">
+        <label for="l_user">Email or mobile number</label>
+        <input id="l_user" autocomplete="username" placeholder="you@example.com or 7XXX XXXX">
+      </div>
+      <div class="fr">
+        <label for="l_pass">Password</label>
+        <input id="l_pass" type="password" autocomplete="current-password" placeholder="Your password">
+      </div>
+      <button class="btn g" id="loginBtn" type="submit">Sign in</button>
+    </form>
 
     <div class="alt">
       Not registered yet? <a href="register.html">Apply to sell on MaketPles</a><br>
-      Forgotten your password? Contact your district commerce office.
+      Forgotten your password? Contact the Division or your district commerce office — they can give you a new one.
     </div>
+  </div>
+
+  <div class="login" id="pwCard" hidden>
+    <h1>Choose your password</h1>
+    <p class="lead">You signed in with a temporary password. Choose your own now — at least 8 characters, something only you know.</p>
+    <div class="err" id="pwErr" role="alert"></div>
+    <form onsubmit="firstPassword(event)">
+      <div class="fr"><label for="pw1">New password</label><input id="pw1" type="password" autocomplete="new-password"></div>
+      <div class="fr"><label for="pw2">Type it again</label><input id="pw2" type="password" autocomplete="new-password"></div>
+      <button class="btn g" id="pwBtn" type="submit">Save and continue</button>
+    </form>
   </div>
 </div>
 
@@ -417,16 +447,16 @@
       <button data-v="products">My products <span class="pip z" id="pProd">0</span></button>
       <button data-v="newprod">+ Add a product</button>
       <button data-v="orders">Orders <span class="pip" id="pOrd">0</span></button>
-      <button data-v="payouts">Payouts</button>
+      <button data-v="payouts">Money</button>
       <button data-v="settings">My business</button>
       <button class="mob-only" onclick="signOut()">Sign out</button>
     </nav>
     <div class="side-bot">
       <div class="who">
-        <span class="av">KM</span>
+        <span class="av" id="whoAv">—</span>
         <div>
-          <div class="n">Kerevat Mill Co.</div>
-          <div class="r">Gazelle District</div>
+          <div class="n" id="whoName">—</div>
+          <div class="r" id="whoDist">—</div>
         </div>
       </div>
       <button class="signout" onclick="signOut()">Sign out</button>
@@ -434,20 +464,28 @@
   </aside>
 
   <main>
-    <div class="demo">
+    <div class="demo" id="modeBar">
       <svg class="icon" aria-hidden="true"><use href="#ic-warning"/></svg>
-      <span><b>Design preview.</b> Sample data held in memory — nothing is saved. Once connected to Supabase, the database itself prevents a seller publishing their own listing or marking their own order paid.</span>
+      <span><b>Design preview.</b> Sample data held in memory — nothing is saved.</span>
     </div>
 
     <div class="top">
       <div>
         <h1 id="pTitle">Overview</h1>
-        <div class="sub" id="pSub">How your business is doing this month.</div>
+        <div class="sub" id="pSub">How your business is doing.</div>
       </div>
-      <a class="btn-o btn-sm" href="index.html" style="text-decoration:none;">View the marketplace →</a>
+      <a class="btn-o btn-sm" id="stallLink" href="index.html" style="text-decoration:none;">See your stall →</a>
     </div>
 
     <div class="content">
+
+      <!-- NO BUSINESS LINKED -->
+      <section class="view" id="v-none" style="display:none;">
+        <div class="panel"><div class="empty">
+          <b>This login is not linked to a business yet.</b><br>
+          Ask the Division to link it from the Division panel, then sign in again.
+        </div></div>
+      </section>
 
       <!-- OVERVIEW -->
       <section class="view" id="v-dash">
@@ -455,24 +493,19 @@
           <div class="stat"><div class="n g" id="sLive">0</div><div class="l">Products live on the site</div></div>
           <div class="stat"><div class="n a" id="sPend">0</div><div class="l">Waiting for Division review</div></div>
           <div class="stat"><div class="n" id="sOrd">0</div><div class="l">Orders to prepare</div></div>
-          <div class="stat"><div class="n g" id="sOwed">K0</div><div class="l">Owed to you at next payout</div></div>
+          <div class="stat"><div class="n g" id="sOwed">K0</div><div class="l">Ready for your next payout</div></div>
         </div>
-
         <div class="panel">
           <div class="panel-hd"><h2>Needs your attention</h2></div>
           <div class="panel-bd" id="todo"></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-hd"><h2>Recent activity</h2></div>
-          <div class="panel-bd" id="feed"></div>
         </div>
       </section>
 
       <!-- PRODUCTS -->
       <section class="view" id="v-products" style="display:none;">
         <div class="infobox">
-          New products and changed photographs go to the Division for checking before they appear on the site. Price and stock changes take effect straight away.
+          New products go to the Division for checking before they appear on the site. On a live product, price and stock
+          change straight away; a new name, description or photo is checked again first.
         </div>
         <div class="panel">
           <div class="panel-hd"><h2>My products</h2>
@@ -484,137 +517,144 @@
         </div>
       </section>
 
-      <!-- NEW PRODUCT -->
+      <!-- ADD / EDIT PRODUCT -->
       <section class="view" id="v-newprod" style="display:none;">
-        <div class="err" id="prodErr"></div>
+        <div class="err" id="prodErr" role="alert"></div>
         <div class="panel">
           <div class="panel-hd"><h2 id="formTitle">Add a product</h2></div>
           <div class="panel-bd">
-            <div class="infobox">
-              When you send this, the Division checks it before it appears on the site. If something needs changing they will tell you why.
-            </div>
+            <div class="warnbox" id="formNote" hidden></div>
             <div class="grid2">
               <div class="fr full">
-                <label>Product name <span class="req">*</span></label>
-                <input id="p_name" placeholder="What a buyer would search for">
+                <label for="p_name">Product name <span class="req">*</span></label>
+                <input id="p_name" placeholder="What a buyer would search for" maxlength="120">
                 <div class="hint">Include the size or weight, e.g. “Cold-Pressed Copra Oil (500ml)”.</div>
               </div>
               <div class="fr">
-                <label>Category <span class="req">*</span></label>
+                <label for="p_cat">Category <span class="req">*</span></label>
                 <select id="p_cat"></select>
               </div>
               <div class="fr">
-                <label>Price in Kina <span class="req">*</span></label>
+                <label for="p_price">Price in Kina <span class="req">*</span></label>
                 <input id="p_price" placeholder="0.00" inputmode="decimal">
               </div>
               <div class="fr">
-                <label>Unit <span class="req">*</span></label>
-                <input id="p_unit" placeholder="each · per kg · per bundle · per bottle">
+                <label for="p_unit">Unit <span class="req">*</span></label>
+                <input id="p_unit" placeholder="each · per kg · per bundle · per bottle" maxlength="40">
               </div>
               <div class="fr">
-                <label>How many do you have? <span class="req">*</span></label>
+                <label for="p_stock">How many do you have? <span class="req">*</span></label>
                 <input id="p_stock" placeholder="e.g. 40" inputmode="numeric">
               </div>
               <div class="fr full">
-                <label>Description <span class="opt">(recommended)</span></label>
-                <textarea id="p_desc" placeholder="How it is grown or made, and where. A few sentences."></textarea>
+                <label class="chkline"><input type="checkbox" id="p_fresh"> Fresh produce — must be collected or delivered quickly</label>
+              </div>
+              <div class="fr full">
+                <label for="p_desc">Description <span class="opt">(recommended)</span></label>
+                <textarea id="p_desc" placeholder="How it is grown or made, and where. A few sentences." maxlength="1200"></textarea>
                 <div class="hint">Products with a description sell noticeably better.</div>
               </div>
               <div class="fr full">
                 <label>Photographs <span class="req">*</span></label>
-                <div class="drop" onclick="ph('open your phone camera or photo gallery')">
+                <div class="pgrid" id="pgrid"></div>
+                <label class="drop" for="p_files">
                   <div class="i"><svg class="icon" aria-hidden="true" style="width:26px;height:26px;"><use href="#ic-camera"/></svg></div>
                   <p>Tap to take a photo or choose from your phone</p>
                   <div class="s">At least one clear photo taken in daylight. Up to six.</div>
-                </div>
-                <div class="hint">Photographs taken in daylight against a plain background are approved fastest.</div>
-              </div>
-              <div class="fr full">
-                <label>Video <span class="opt">(optional)</span></label>
-                <input id="p_video" placeholder="Paste a YouTube link">
-                <div class="hint">Upload to YouTube as <b>Unlisted</b>, then paste the link. It plays on your listing at no cost to you.</div>
+                </label>
+                <input type="file" id="p_files" accept="image/jpeg,image/png,image/webp" multiple hidden onchange="addPhotos(this.files); this.value='';">
               </div>
             </div>
-            <div class="facts">
-              <button class="btn-o" onclick="show('products')">Cancel</button>
-              <button class="btn-o" onclick="saveProduct('draft')">Save as draft</button>
-              <button class="btn g" onclick="saveProduct('in_review')">Send for review</button>
-            </div>
+            <div class="facts" id="formActs"></div>
           </div>
         </div>
       </section>
 
       <!-- ORDERS -->
       <section class="view" id="v-orders" style="display:none;">
-        <div class="warnbox">
-          You will see an order here once payment has been confirmed. Payment is confirmed by the bank, not by you or by the Division.
+        <div class="infobox" id="ordInfo">
+          An order shows here once the Division has confirmed the buyer paid. Prepare it, mark it ready, then mark it collected
+          when it is handed over.
         </div>
         <div class="panel">
           <div class="panel-hd"><h2>Orders</h2></div>
           <div class="tbl-wrap"><table>
-            <thead><tr><th>Order</th><th>Items</th><th>Collection</th><th>You receive</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Order</th><th>Items</th><th>Buyer and collection</th><th>You receive</th><th>Status</th><th></th></tr></thead>
             <tbody id="ordRows"></tbody>
           </table></div>
         </div>
       </section>
 
-      <!-- PAYOUTS -->
+      <!-- MONEY -->
       <section class="view" id="v-payouts" style="display:none;">
         <div class="payhero">
           <div>
             <div class="n" id="owedBig">K0.00</div>
-            <div class="l">Owed to you right now</div>
+            <div class="l">Ready for your next payout</div>
           </div>
           <div class="r">
-            <div class="n2">Friday</div>
-            <div class="l">Next payout run</div>
+            <div class="n2" id="heldBig">K0.00</div>
+            <div class="l">Held — orders in progress or in the holding period</div>
           </div>
         </div>
-        <div class="infobox">
-          The platform fee is <b>10%</b> of each sale and is already taken off the figures below. What you see is what reaches your bank account. Agent commission applies only where an agent placed the order for a buyer.
-        </div>
+        <div class="infobox" id="feeInfo"></div>
         <div class="panel">
-          <div class="panel-hd"><h2>Payout history</h2></div>
+          <div class="panel-hd"><h2>Payouts</h2><span class="n mono" id="paidOut"></span></div>
           <div class="tbl-wrap"><table>
-            <thead><tr><th>Date</th><th>Orders</th><th>Gross</th><th>Platform fee</th><th>Agent fee</th><th>Paid to you</th></tr></thead>
+            <thead><tr><th>Prepared</th><th>Orders</th><th>Amount</th><th>Status</th><th>Bank reference</th></tr></thead>
             <tbody id="payRows"></tbody>
           </table></div>
         </div>
       </section>
 
-      <!-- SETTINGS -->
+      <!-- MY BUSINESS -->
       <section class="view" id="v-settings" style="display:none;">
+        <div class="err" id="setErr" role="alert"></div>
         <div class="panel">
           <div class="panel-hd"><h2>Business details</h2></div>
           <div class="panel-bd">
             <div class="grid2">
-              <div class="fr"><label>Business name</label>
-                <input value="Kerevat Mill Co." disabled style="background:var(--bone-2);color:var(--muted);">
-                <div class="hint">Contact the Division to change your registered business name.</div></div>
-              <div class="fr"><label>District</label>
-                <input value="Gazelle" disabled style="background:var(--bone-2);color:var(--muted);">
-                <div class="hint">Set by the Division when your business was approved.</div></div>
-              <div class="fr"><label>Contact person</label><input value="P. Umong"></div>
-              <div class="fr"><label>Mobile number</label><input value="+675 7100 0010"></div>
-              <div class="fr full"><label>About your business <span class="opt">(shown to buyers)</span></label>
-                <textarea>Copra oil and coffee processed at the Kerevat mill, supplied direct from Gazelle District growers.</textarea></div>
+              <div class="fr"><label for="b_name">Registered name</label>
+                <input id="b_name" disabled>
+                <div class="hint">Contact the Division to change your registered name or district.</div></div>
+              <div class="fr"><label for="b_trading">Trading name <span class="opt">(if different)</span></label>
+                <input id="b_trading" maxlength="120"></div>
+              <div class="fr full"><label for="b_about">About your business <span class="opt">(shown to buyers)</span></label>
+                <textarea id="b_about" maxlength="1500"></textarea></div>
+              <div class="fr"><label for="b_contact">Contact person</label><input id="b_contact" autocomplete="name"></div>
+              <div class="fr"><label for="b_phone">Mobile number</label><input id="b_phone" type="tel" autocomplete="tel"></div>
+              <div class="fr"><label for="b_email">Email <span class="opt">(optional)</span></label><input id="b_email" type="email" autocomplete="email"></div>
+              <div class="fr"><label for="b_ipa">IPA registration number</label><input id="b_ipa"></div>
+              <div class="fr"><label for="b_tin">TIN <span class="opt">(if you have one)</span></label><input id="b_tin"></div>
             </div>
           </div>
         </div>
         <div class="panel">
-          <div class="panel-hd"><h2>Where your payouts go</h2></div>
+          <div class="panel-hd"><h2>Where your payouts go</h2><span id="bankTag"></span></div>
           <div class="panel-bd">
-            <div class="warnbox">Changing your bank details requires confirmation from the Division before the next payout run.</div>
+            <div class="warnbox">The account must be in your business's name. Whenever you change these details the Division phones you to
+              confirm them, and payouts wait until they have.</div>
             <div class="grid2">
-              <div class="fr"><label>Bank</label>
-                <select><option>BSP</option><option>Kina Bank</option><option>ENBSL</option><option>KPML</option></select></div>
-              <div class="fr"><label>Account number</label><input value="••••••1234"></div>
-              <div class="fr full"><label>Account name</label><input value="Kerevat Mill Co."></div>
+              <div class="fr"><label for="b_bank">Bank</label>
+                <select id="b_bank"><option value="">Choose…</option><option>BSP</option><option>Kina Bank</option><option>Westpac</option>
+                  <option>ENBSL</option><option>KPML</option><option>Other</option></select></div>
+              <div class="fr"><label for="b_accno">Account number</label><input id="b_accno" inputmode="numeric" autocomplete="off"></div>
+              <div class="fr full"><label for="b_accname">Account name</label><input id="b_accname" autocomplete="off"></div>
             </div>
           </div>
         </div>
         <div class="facts" style="border:none;">
-          <button class="btn g" onclick="ph('save your changes')">Save changes</button>
+          <button class="btn g" id="saveBizBtn" onclick="saveBusiness()">Save changes</button>
+        </div>
+        <div class="panel">
+          <div class="panel-hd"><h2>Your password</h2></div>
+          <div class="panel-bd">
+            <div class="grid2">
+              <div class="fr"><label for="np1">New password</label><input id="np1" type="password" autocomplete="new-password"></div>
+              <div class="fr"><label for="np2">Type it again</label><input id="np2" type="password" autocomplete="new-password"></div>
+            </div>
+            <div class="facts" style="border:none;padding-top:0;"><button class="btn-o" onclick="changePassword()">Change password</button></div>
+          </div>
         </div>
       </section>
 
@@ -622,7 +662,26 @@
   </main>
 </div>
 
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
+/* ============================================================
+   SELLER PORTAL
+   Connects to the Supabase project in config.js. The database decides
+   what a seller may do (db/schema.sql, db/accounts-and-payouts.sql):
+   they see only their own business, cannot publish their own listings,
+   cannot mark orders paid, and cannot verify their own bank account.
+   With no project configured it runs on sample data.
+   ============================================================ */
+const CFG = window.MAKETPLES || {};
+const PHOTOS_BUCKET = "product-photos";
+const PHOTO_MAX = 1400, PHOTO_Q = 0.82, MAX_PHOTOS = 6;
+const PHONE_DOMAIN = "phone.maketples.com.pg";
+let sb = null, LIVE = false;
+if(CFG.supabaseUrl && CFG.supabaseKey && window.supabase){
+  try{ sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey); LIVE = true; }catch(e){ LIVE = false; }
+}
+
 const CATS = [
   {key:"retail",label:"Retail"},{key:"wholesale",label:"Wholesale"},
   {key:"tailoring",label:"Tailoring"},{key:"crafts",label:"Arts & Crafts"},
@@ -630,126 +689,207 @@ const CATS = [
   {key:"foodcrops",label:"Food Crops — Rice & Spices"},
 ];
 
-let products = [
-  {id:"p1", name:"Cold-Pressed Copra Oil (500ml)", cat:"processing", price:32.00, unit:"per bottle",
-   stock:40, status:"in_review", photos:2, submitted:"1 hour ago"},
-  {id:"p2", name:"Baining Mountain Coffee (250g)", cat:"processing", price:40.00, unit:"per pack",
-   stock:25, status:"needs_changes", photos:1,
-   note:"Photograph is too dark — please retake in daylight."},
-  {id:"p3", name:"Copra Oil, 20L Bulk Drum", cat:"wholesale", price:520.00, unit:"per drum",
-   stock:6, status:"live", photos:3},
-  {id:"p4", name:"Roasted Cocoa Nibs (250g)", cat:"processing", price:28.00, unit:"per pack",
-   stock:0, status:"draft", photos:0},
-];
+/* ---------- state ---------- */
+let me = null, sme = null, priv = null, settings = {platform_rate:10, payout_hold_days:5};
+let products = [], orders = [], payouts = [], balance = {held:0, available:0, in_payout:0, paid_out:0};
 
-let orders = [
-  {id:"o1", ref:"ENB-1042", items:"Copra Oil ×4", route:"Delivery — Kokopo Urban",
-   net:115.20, status:"paid", when:"Today"},
-  {id:"o2", ref:"ENB-1038", items:"Bulk Drum ×1", route:"Agent handoff — Kerevat",
-   net:441.00, status:"processing", when:"Yesterday"},
-  {id:"o3", ref:"ENB-1031", items:"Coffee ×3", route:"Collect from you — Gazelle",
-   net:108.00, status:"fulfilled", when:"5 days ago"},
-];
+/* sample data for the design preview (no Supabase configured) */
+function loadSample(){
+  sme = {id:'demo', slug:'kerevat', registered_name:'Kerevat Mill Co.', trading_name:'', district:'Gazelle',
+         description:'Copra oil and coffee processed at the Kerevat mill, supplied direct from Gazelle District growers.'};
+  priv = {contact_name:'P. Umong', phone:'+675 7100 0010', email:'', ipa_number:'', tin:'',
+          bank_name:'BSP', account_name:'Kerevat Mill Co.', account_number:'1000123456', bank_verified:true};
+  products = [
+    {id:'p1', name:'Cold-Pressed Copra Oil (500ml)', category:'processing', price:32, unit:'per bottle', stock:40, status:'in_review', description:'', perishable:false, images:[]},
+    {id:'p2', name:'Baining Mountain Coffee (250g)', category:'processing', price:40, unit:'per pack', stock:25, status:'needs_changes', review_note:'Photograph is too dark — please retake in daylight.', perishable:false, images:[]},
+    {id:'p3', name:'Copra Oil, 20L Bulk Drum', category:'wholesale', price:520, unit:'per drum', stock:6, status:'live', perishable:false, images:[]},
+  ];
+  orders = [
+    {id:'o1', order_number:'ENB-1042', status:'paid', created_at:new Date().toISOString(), buyer_name:'A. Tovut', buyer_phone:'+675 7000 1111',
+     fulfilment:'delivery', delivery_district:'Kokopo', delivery_address:'Section 12, Lot 4', seller_net:115.20, items:[{product_name:'Cold-Pressed Copra Oil (500ml)', quantity:4}]},
+    {id:'o2', order_number:'ENB-1038', status:'processing', created_at:new Date(Date.now()-864e5).toISOString(), buyer_name:'M. Kaputin', buyer_phone:'+61 400 000 000',
+     is_gift:true, recipient_name:'R. Kaputin', recipient_phone:'+675 7000 2222', fulfilment:'sme_pickup', seller_net:441, items:[{product_name:'Copra Oil, 20L Bulk Drum', quantity:1}]},
+  ];
+  payouts = [{id:'y1', amount:550.80, status:'paid', created_at:new Date(Date.now()-12*864e5).toISOString(), bank_reference:'TT-20931', payout_orders:[1,2,3]}];
+  balance = {held:556.20, available:108, in_payout:0, paid_out:550.80};
+}
 
-let payouts = [
-  {date:"Jul 24", n:9, gross:612.00, fee:61.20, agent:0, paid:550.80},
-  {date:"Jul 17", n:6, gross:398.00, fee:39.80, agent:19.90, paid:338.30},
-  {date:"Jul 10", n:4, gross:220.00, fee:22.00, agent:0, paid:198.00},
-];
-
-let feed = [
-  {t:'“Copra Oil, 20L Bulk Drum” approved and now live', w:"Today, 9:14am", k:"ok"},
-  {t:'“Baining Mountain Coffee” returned — photograph too dark', w:"Yesterday, 4:02pm", k:"bad"},
-  {t:"New order ENB-1042 — payment confirmed", w:"Today, 8:02am", k:"ok"},
-  {t:'“Cold-Pressed Copra Oil” sent for review', w:"1 hour ago", k:"warn"},
-];
-
-const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const K = n => "K" + Number(n||0).toFixed(2);
 const catLabel = k => (CATS.find(c=>c.key===k)||{}).label || "—";
-const ph = w => alert("Design preview: this would " + w + ".");
-
-/* ---------- login ---------- */
-function signIn(){
-  /* LIVE: await supabase.auth.signInWithPassword({ email, password })
-     The seller's own smes row is then found via owner_id = auth.uid() */
-  document.getElementById('loginWrap').style.display = 'none';
-  document.getElementById('app').classList.add('on');
-  show('dash');
+const when = iso => iso ? new Date(iso).toLocaleDateString('en-GB', {day:'numeric', month:'short'}) : '—';
+function toLogin(raw){
+  const s = (raw||'').trim().toLowerCase();
+  if(s.includes('@')) return s;
+  let d = s.replace(/[^\d]/g, '');
+  if(d.length === 8 && d[0] === '7') d = '675' + d;
+  return /^6757\d{7}$/.test(d) ? `${d}@${PHONE_DOMAIN}` : s;
 }
-function signOut(){
-  document.getElementById('app').classList.remove('on');
-  document.getElementById('loginWrap').style.display = 'flex';
-  window.scrollTo({top:0});
+function showErr(id, msg){ const e = $(id); e.textContent = msg || ''; e.classList.toggle('show', !!msg); if(msg) e.scrollIntoView({block:'nearest'}); }
+function busy(btn, on, label){ if(!btn) return; btn.disabled = on; if(label) btn.textContent = label; }
+function friendly(err){
+  const m = (err && err.message) || String(err || '');
+  if(/Invalid login credentials/i.test(m)) return 'That login and password do not match. Check them and try again.';
+  if(/Failed to fetch|NetworkError/i.test(m)) return 'Could not reach MaketPles. Check your connection and try again.';
+  return m;
+}
+
+/* ---------- sign in ---------- */
+if(LIVE){
+  sb.auth.getSession().then(({data}) => { if(data.session) afterSignIn(data.session.user); });
+} else {
+  $('loginHint').hidden = false;
+}
+async function signIn(ev){
+  ev.preventDefault();
+  showErr('loginErr', '');
+  if(!LIVE){ loadSample(); return enterApp(); }
+  const login = toLogin($('l_user').value), password = $('l_pass').value;
+  if(!login || !password) return showErr('loginErr', 'Enter your login and password.');
+  const btn = $('loginBtn'); busy(btn, true, 'Signing in…');
+  const {data, error} = await sb.auth.signInWithPassword({email: login, password});
+  busy(btn, false, 'Sign in');
+  if(error) return showErr('loginErr', friendly(error));
+  afterSignIn(data.user);
+}
+async function afterSignIn(user){
+  me = user;
+  if(user.user_metadata && user.user_metadata.must_change_password){
+    $('loginCard').hidden = true; $('pwCard').hidden = false; $('pw1').focus();
+    return;
+  }
+  try{ await loadAll(); }catch(e){ return showErr('loginErr', friendly(e)); }
+  enterApp();
+}
+async function firstPassword(ev){
+  ev.preventDefault();
+  const a = $('pw1').value, b = $('pw2').value;
+  if(a.length < 8) return showErr('pwErr', 'Use at least 8 characters.');
+  if(a !== b) return showErr('pwErr', 'The two passwords are different.');
+  const btn = $('pwBtn'); busy(btn, true, 'Saving…');
+  const {data, error} = await sb.auth.updateUser({password:a, data:{must_change_password:false}});
+  busy(btn, false, 'Save and continue');
+  if(error) return showErr('pwErr', friendly(error));
+  $('pwCard').hidden = true; $('loginCard').hidden = false;
+  afterSignIn(data.user);
+}
+async function signOut(){
+  if(LIVE) await sb.auth.signOut();
+  location.reload();
+}
+
+/* ---------- load everything for this seller ---------- */
+async function loadAll(){
+  const {data:biz, error} = await sb.from('smes')
+    .select('id, slug, registered_name, trading_name, district, llg, primary_industry, description, approved')
+    .eq('owner_id', me.id).order('registered_name').limit(1);
+  if(error) throw error;
+  sme = (biz||[])[0] || null;
+  if(!sme) return;
+  const id = sme.id;
+  const [p, pr, o, b, y, st] = await Promise.all([
+    sb.from('sme_private').select('*').eq('sme_id', id).maybeSingle(),
+    sb.from('products').select('id, name, category, price, unit, stock, description, perishable, status, review_note, created_at, product_images(id, storage_path, sort_order)')
+      .eq('sme_id', id).order('created_at', {ascending:false}),
+    sb.from('orders').select('id, order_number, status, created_at, buyer_name, buyer_phone, is_gift, recipient_name, recipient_phone, fulfilment, delivery_address, delivery_district, subtotal, platform_fee, agent_fee, seller_net, paid_at, fulfilled_at, order_items(product_name, quantity, unit)')
+      .eq('sme_id', id).order('created_at', {ascending:false}),
+    sb.from('seller_balances').select('*').eq('sme_id', id).maybeSingle(),
+    sb.from('payouts').select('id, amount, status, created_at, paid_at, bank_reference, payout_orders(order_id)').eq('sme_id', id).order('created_at', {ascending:false}),
+    sb.from('platform_settings').select('platform_rate, payout_hold_days').limit(1).maybeSingle()
+  ]);
+  for(const r of [p, pr, o, b, y, st]) if(r.error) throw r.error;
+  priv = p.data || null;
+  products = (pr.data||[]).map(x => Object.assign(x, {images:(x.product_images||[]).sort((a,c)=>a.sort_order-c.sort_order)}));
+  orders = (o.data||[]).map(x => Object.assign(x, {items:x.order_items||[]}));
+  balance = b.data ? {held:+b.data.held, available:+b.data.available, in_payout:+b.data.in_payout, paid_out:+b.data.paid_out}
+                   : {held:0, available:0, in_payout:0, paid_out:0};
+  payouts = y.data || [];
+  if(st.data) settings = st.data;
+}
+async function reload(){ if(LIVE){ try{ await loadAll(); }catch(e){ alert(friendly(e)); } } }
+
+function enterApp(){
+  $('loginWrap').style.display = 'none';
+  $('app').classList.add('on');
+  if(LIVE){
+    const bar = $('modeBar');
+    bar.innerHTML = '<span style="color:var(--green);">●</span><span><b>Signed in.</b> Changes here are saved to MaketPles straight away.</span>';
+    bar.style.background = '#E6F5EC'; bar.style.color = '#0B5228'; bar.style.borderBottomColor = '#A9DCBF';
+  }
+  if(!sme){ document.querySelectorAll('#nav button[data-v]').forEach(b=>b.hidden = true); return show('none'); }
+  const name = sme.trading_name || sme.registered_name;
+  $('whoName').textContent = name;
+  $('whoDist').textContent = sme.district + ' District';
+  $('whoAv').textContent = name.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  $('stallLink').href = 'sme.html?s=' + encodeURIComponent(sme.slug || '');
+  $('p_cat').innerHTML = CATS.map(c=>`<option value="${c.key}">${esc(c.label)}</option>`).join('');
+  show('dash');
 }
 
 /* ---------- nav ---------- */
 const TITLES = {
-  dash:["Overview","How your business is doing this month."],
+  none:["Welcome","Your login is ready."],
+  dash:["Overview","How your business is doing."],
   products:["My products","Everything you sell, and where each listing stands."],
   newprod:["Add a product","The Division checks new listings before they appear."],
-  orders:["Orders","Orders placed against your products."],
-  payouts:["Payouts","What you are owed and what has been paid."],
+  orders:["Orders","Paid orders to prepare and hand over."],
+  payouts:["Money","What you are owed and what has been paid."],
   settings:["My business","Your details and where payouts are sent."],
 };
+let currentView = 'dash';
 function show(v){
+  currentView = v;
   document.querySelectorAll('.view').forEach(e=>e.style.display='none');
-  document.getElementById('v-'+v).style.display='block';
+  $('v-'+v).style.display='block';
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on', b.dataset.v===v));
-  document.getElementById('pTitle').textContent = TITLES[v][0];
-  document.getElementById('pSub').textContent = TITLES[v][1];
-  ({dash:renderDash, products:renderProducts, newprod:resetForm,
-    orders:renderOrders, payouts:renderPayouts, settings:()=>{}})[v]();
+  $('pTitle').textContent = TITLES[v][0];
+  $('pSub').textContent = TITLES[v][1];
+  ({none:()=>{}, dash:renderDash, products:renderProducts, newprod:()=>editProduct(null),
+    orders:renderOrders, payouts:renderPayouts, settings:renderSettings})[v]();
   window.scrollTo({top:0,behavior:'smooth'});
 }
-document.getElementById('nav').addEventListener('click', e=>{
-  const b = e.target.closest('button'); if(b) show(b.dataset.v);
+$('nav').addEventListener('click', e=>{
+  const b = e.target.closest('button[data-v]'); if(b) show(b.dataset.v);
 });
 
+const toPrepare = () => orders.filter(o=>o.status==='paid');
 function badges(){
-  const set=(id,n,warn)=>{const e=document.getElementById(id);e.textContent=n;
-    e.className="pip"+(warn&&n>0?"":" z");};
+  const set=(id,n,warn)=>{const e=$(id);e.textContent=n;e.className="pip"+(warn&&n>0?"":" z");};
   set('pProd', products.length, false);
-  set('pOrd', orders.filter(o=>o.status==='paid').length, true);
+  set('pOrd', toPrepare().length, true);
 }
 
 /* ---------- overview ---------- */
 function renderDash(){
   badges();
-  const live = products.filter(p=>p.status==='live').length;
-  const pend = products.filter(p=>p.status==='in_review').length;
-  const toPrep = orders.filter(o=>o.status==='paid').length;
-  const owed = orders.filter(o=>['paid','processing'].includes(o.status))
-                     .reduce((a,o)=>a+o.net,0);
-  document.getElementById('sLive').textContent = live;
-  document.getElementById('sPend').textContent = pend;
-  document.getElementById('sOrd').textContent = toPrep;
-  document.getElementById('sOwed').textContent = "K" + Math.round(owed);
-  document.getElementById('owedBig').textContent = K(owed);
+  $('sLive').textContent = products.filter(p=>p.status==='live').length;
+  $('sPend').textContent = products.filter(p=>p.status==='in_review').length;
+  $('sOrd').textContent = toPrepare().length;
+  $('sOwed').textContent = "K" + Math.round(balance.available);
 
   const todo = [];
-  products.filter(p=>p.status==='needs_changes').forEach(p=>todo.push(
-    {t:`<b>${esc(p.name)}</b> needs changes — ${esc(p.note||'see the Division note')}`,
-     a:`<button class="btn btn-sm" onclick="editProduct('${p.id}')">Fix it</button>`}));
-  orders.filter(o=>o.status==='paid').forEach(o=>todo.push(
-    {t:`Order <b>${esc(o.ref)}</b> is paid and waiting to be prepared`,
+  if(priv && !priv.account_number) todo.push({t:'<b>Add your bank account</b> so the Division can pay you.',
+    a:`<button class="btn btn-sm" onclick="show('settings')">Add it</button>`});
+  else if(priv && !priv.bank_verified) todo.push({t:'Your bank details are <b>waiting for the Division to confirm them</b> by phone. Payouts wait until then.', a:''});
+  toPrepare().forEach(o=>todo.push({t:`Order <b>${esc(o.order_number)}</b> is paid and waiting to be prepared`,
      a:`<button class="btn btn-sm" onclick="advance('${o.id}')">Start preparing</button>`}));
+  products.filter(p=>p.status==='needs_changes').forEach(p=>todo.push(
+    {t:`<b>${esc(p.name)}</b> needs changes — ${esc(p.review_note||'see the Division note')}`,
+     a:`<button class="btn btn-sm" onclick="editProduct('${p.id}')">Fix it</button>`}));
   products.filter(p=>p.status==='draft').forEach(p=>todo.push(
     {t:`<b>${esc(p.name)}</b> is still a draft and not visible to buyers`,
      a:`<button class="btn-o btn-sm" onclick="editProduct('${p.id}')">Finish it</button>`}));
   products.filter(p=>p.stock===0 && p.status==='live').forEach(p=>todo.push(
-    {t:`<b>${esc(p.name)}</b> is live but shows no stock`,
+    {t:`<b>${esc(p.name)}</b> is live but out of stock`,
      a:`<button class="btn-o btn-sm" onclick="editProduct('${p.id}')">Update stock</button>`}));
+  if(!products.length) todo.push({t:'Add your first product to start selling.', a:`<button class="btn btn-sm" onclick="show('newprod')">Add a product</button>`});
 
-  document.getElementById('todo').innerHTML = todo.length
+  $('todo').innerHTML = todo.length
     ? todo.map(i=>`<div class="feed" style="justify-content:space-between;align-items:center;">
         <div class="t" style="flex:1;">${i.t}</div><div>${i.a}</div></div>`).join('')
     : `<div class="empty">Nothing needs your attention right now.</div>`;
-
-  const dot = k => ({ok:'var(--green)',warn:'var(--amber)',bad:'var(--red)'}[k]||'var(--muted)');
-  document.getElementById('feed').innerHTML = feed.map(f=>`
-    <div class="feed"><span class="d" style="background:${dot(f.k)}"></span>
-      <div><div class="t">${esc(f.t)}</div><div class="w">${esc(f.w)}</div></div></div>`).join('');
 }
 
 /* ---------- products ---------- */
@@ -759,127 +899,304 @@ function statusTag(s){
     in_review:'<span class="tag a">With the Division</span>',
     needs_changes:'<span class="tag r">Needs changes</span>',
     draft:'<span class="tag">Draft</span>',
-    withdrawn:'<span class="tag">Withdrawn</span>',
-  }[s] || `<span class="tag">${s}</span>`;
+    withdrawn:'<span class="tag">Not for sale</span>',
+  }[s] || `<span class="tag">${esc(s)}</span>`;
 }
 function renderProducts(){
   badges();
-  document.getElementById('prodRows').innerHTML = products.length ? products.map(p=>`
-    <tr>
+  $('prodRows').innerHTML = products.length ? products.map(p=>{
+    const img = (p.images||[])[0];
+    return `<tr>
       <td><div class="rowflex">
-        <div class="thumb">${p.photos?`<svg class="icon" aria-hidden="true" style="width:18px;height:18px;"><use href="#ic-photo"/></svg>`:'<span style="font-size:10px;color:var(--red)">no photo</span>'}</div>
+        <div class="thumb">${img ? `<img src="${esc(img.storage_path)}" alt="" loading="lazy">` : '<span class="nophoto">no photo</span>'}</div>
         <div><div class="nm">${esc(p.name)}</div>
-          <div class="sub2">${esc(catLabel(p.cat))} · ${p.photos} photo${p.photos===1?'':'s'}</div>
-          ${p.note?`<div class="note">${esc(p.note)}</div>`:''}</div>
+          <div class="sub2">${esc(catLabel(p.category))} · ${(p.images||[]).length} photo${(p.images||[]).length===1?'':'s'}</div>
+          ${p.status==='needs_changes' && p.review_note ? `<div class="note">${esc(p.review_note)}</div>` : ''}</div>
       </div></td>
-      <td class="mono">${K(p.price)}<div class="sub2">${esc(p.unit)}</div></td>
-      <td>${p.stock}${p.stock===0?'<div class="sub2" style="color:var(--red)">out of stock</div>':''}</td>
+      <td class="mono">${K(p.price)}<div class="sub2">${esc(p.unit||'')}</div></td>
+      <td>${p.stock ?? '—'}${p.stock===0?'<div class="sub2" style="color:var(--red)">out of stock</div>':''}</td>
       <td>${statusTag(p.status)}</td>
-      <td><button class="btn-o btn-sm" onclick="editProduct('${p.id}')">
-        ${p.status==='needs_changes'?'Fix':'Edit'}</button></td>
-    </tr>`).join('') : `<tr><td colspan="5"><div class="empty">
-      You have no products yet.<br>Add your first one to start selling.</div></td></tr>`;
+      <td><button class="btn-o btn-sm" onclick="editProduct('${p.id}')">${p.status==='needs_changes'?'Fix':'Edit'}</button></td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="5"><div class="empty">You have no products yet.<br>Add your first one to start selling.</div></td></tr>`;
 }
 
-let editing = null;
-function resetForm(){
-  editing = null;
-  document.getElementById('formTitle').textContent = "Add a product";
-  ['p_name','p_price','p_unit','p_stock','p_desc','p_video'].forEach(i=>document.getElementById(i).value="");
-  document.getElementById('p_cat').innerHTML = CATS.map(c=>`<option value="${c.key}">${esc(c.label)}</option>`).join('');
-  document.getElementById('prodErr').classList.remove('show');
-  document.querySelectorAll('.bad').forEach(e=>e.classList.remove('bad'));
-}
+/* the product form: existing photos (kept or removed) plus new ones waiting to upload */
+let editing = null, keepImgs = [], dropImgs = [], newPics = [];
 function editProduct(id){
-  const p = products.find(x=>x.id===id); if(!p) return;
-  show('newprod');
-  editing = id;
-  document.getElementById('formTitle').textContent = "Edit “" + p.name + "”";
-  document.getElementById('p_name').value = p.name;
-  document.getElementById('p_price').value = p.price.toFixed(2);
-  document.getElementById('p_unit').value = p.unit || "";
-  document.getElementById('p_stock').value = p.stock;
-  document.getElementById('p_cat').value = p.cat;
+  if(id && currentView !== 'newprod'){ currentView = 'newprod'; show('newprod'); }
+  const p = id ? products.find(x=>x.id===id) : null;
+  editing = p;
+  keepImgs = p ? (p.images||[]).slice() : []; dropImgs = []; newPics = [];
+  showErr('prodErr', '');
+  document.querySelectorAll('#v-newprod .bad').forEach(e=>e.classList.remove('bad'));
+  $('formTitle').textContent = p ? 'Edit “' + p.name + '”' : 'Add a product';
+  $('pTitle').textContent = p ? 'Edit a product' : 'Add a product';
+  $('p_name').value = p ? p.name : '';
+  $('p_cat').value = p ? p.category : (sme && sme.primary_industry) || CATS[0].key;
+  $('p_price').value = p ? Number(p.price).toFixed(2) : '';
+  $('p_unit').value = p ? (p.unit||'') : '';
+  $('p_stock').value = p ? (p.stock ?? '') : '';
+  $('p_desc').value = p ? (p.description||'') : '';
+  $('p_fresh').checked = p ? !!p.perishable : false;
+
+  const note = $('formNote');
+  note.hidden = true;
+  if(p && p.status==='needs_changes' && p.review_note){ note.hidden = false; note.innerHTML = '<b>The Division asked for a change:</b> ' + esc(p.review_note); }
+  else if(p && p.status==='live'){ note.hidden = false; note.innerHTML = 'This product is <b>live</b>. Price and stock changes appear straight away. Changing the name, description, category, unit or photos sends it back to the Division to check, and it is hidden until they do.'; }
+  else if(p && p.status==='in_review'){ note.hidden = false; note.innerHTML = 'The Division is checking this product. You can still make changes.'; }
+
+  const st = p ? p.status : 'new';
+  $('formActs').innerHTML =
+    `<button class="btn-o" onclick="show('products')">Cancel</button>` +
+    (st==='draft' ? `<button class="btn-o" onclick="deleteProduct()">Delete draft</button>` : '') +
+    (st==='live' ? `<button class="btn-o" onclick="saveProduct('withdrawn')">Stop selling</button>
+                    <button class="btn g" onclick="saveProduct('live')">Save changes</button>`
+     : (st==='new' || st==='draft' || st==='needs_changes' || st==='withdrawn')
+       ? `<button class="btn-o" onclick="saveProduct('draft')">Save as draft</button>
+          <button class="btn g" onclick="saveProduct('in_review')">Send for review</button>`
+       : `<button class="btn g" onclick="saveProduct('in_review')">Save changes</button>`);
+  drawPics();
 }
-function saveProduct(target){
-  const g = id => document.getElementById(id).value.trim();
+function drawPics(){
+  const tiles = keepImgs.map((im,i)=>`<div class="ptile"><img src="${esc(im.storage_path)}" alt="Photo ${i+1}">
+      <button type="button" aria-label="Remove photo ${i+1}" onclick="removePic('keep',${i})">×</button></div>`)
+    .concat(newPics.map((np,i)=>`<div class="ptile new"><img src="${np.url}" alt="New photo ${i+1}">
+      <button type="button" aria-label="Remove new photo ${i+1}" onclick="removePic('new',${i})">×</button></div>`));
+  $('pgrid').innerHTML = tiles.join('');
+  document.querySelector('label.drop').hidden = keepImgs.length + newPics.length >= MAX_PHOTOS;
+}
+function removePic(kind, i){
+  if(kind==='keep') dropImgs.push(keepImgs.splice(i,1)[0]);
+  else { URL.revokeObjectURL(newPics[i].url); newPics.splice(i,1); }
+  drawPics();
+}
+async function addPhotos(files){
+  for(const f of [...files]){
+    if(keepImgs.length + newPics.length >= MAX_PHOTOS) break;
+    try{ const blob = await shrink(f); newPics.push({blob, url:URL.createObjectURL(blob)}); }
+    catch(e){ alert(`“${f.name}” could not be used as a photo.`); }
+  }
+  drawPics();
+}
+function shrink(file){
+  return new Promise((res,rej)=>{
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onerror = ()=>{ URL.revokeObjectURL(url); rej(new Error('not an image')); };
+    img.onload = ()=>{
+      URL.revokeObjectURL(url);
+      const sc = Math.min(1, PHOTO_MAX / Math.max(img.width, img.height));
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(img.width*sc); cv.height = Math.round(img.height*sc);
+      const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0,0,cv.width,cv.height);
+      ctx.drawImage(img,0,0,cv.width,cv.height);
+      cv.toBlob(b => b ? res(b) : rej(new Error('could not compress')), 'image/jpeg', PHOTO_Q);
+    };
+    img.src = url;
+  });
+}
+
+async function saveProduct(target){
+  const g = id => $(id).value.trim();
   const problems = [];
-  document.querySelectorAll('.bad').forEach(e=>e.classList.remove('bad'));
-  if(g('p_name').length < 2){ problems.push("a product name"); document.getElementById('p_name').classList.add('bad'); }
-  const price = parseFloat(g('p_price'));
-  if(isNaN(price)||price<0){ problems.push("a price in Kina"); document.getElementById('p_price').classList.add('bad'); }
-  if(!g('p_unit')){ problems.push("a unit, such as “each” or “per kg”"); document.getElementById('p_unit').classList.add('bad'); }
-  if(g('p_stock')==="" ){ problems.push("how many you have"); document.getElementById('p_stock').classList.add('bad'); }
+  document.querySelectorAll('#v-newprod .bad').forEach(e=>e.classList.remove('bad'));
+  const flag = (id, msg) => { problems.push(msg); $(id).classList.add('bad'); };
+  if(g('p_name').length < 2) flag('p_name', 'a product name');
+  const price = Number(g('p_price').replace(/[^\d.]/g,''));
+  if(!g('p_price') || isNaN(price) || price <= 0) flag('p_price', 'a price in Kina');
+  if(!g('p_unit')) flag('p_unit', 'a unit, such as “each” or “per kg”');
+  const stock = parseInt(g('p_stock'), 10);
+  if(isNaN(stock) || stock < 0) flag('p_stock', 'how many you have');
+  if(target !== 'draft' && target !== 'withdrawn' && keepImgs.length + newPics.length === 0) problems.push('at least one photograph');
+  if(problems.length) return showErr('prodErr', 'Please add ' + problems.join(', ') + '.');
+  showErr('prodErr', '');
 
-  if(problems.length){
-    const e = document.getElementById('prodErr');
-    e.innerHTML = "Please add " + problems.join(", ") + ".";
-    e.classList.add('show');
-    window.scrollTo({top:0,behavior:'smooth'});
-    return;
+  const rec = {name:g('p_name'), category:$('p_cat').value, price:Math.round(price*100)/100, unit:g('p_unit'),
+               stock, description:g('p_desc') || null, perishable:$('p_fresh').checked};
+  if(target !== 'live') rec.status = target;   // 'live' means: keep it live, just save the changes
+
+  const btns = [...document.querySelectorAll('#formActs button')]; btns.forEach(b=>b.disabled = true);
+  try{
+    if(!LIVE){
+      const p = editing || (products.unshift({id:'p'+Date.now(), images:[]}), products[0]);
+      Object.assign(p, rec, {status: rec.status || p.status});
+      p.images = keepImgs.concat(newPics.map(n=>({storage_path:n.url})));
+    } else {
+      let id;
+      if(editing){
+        const {error} = await sb.from('products').update(rec).eq('id', editing.id);
+        if(error) throw error;
+        id = editing.id;
+      } else {
+        const {data, error} = await sb.from('products').insert(Object.assign({sme_id:sme.id}, rec)).select('id').single();
+        if(error) throw error;
+        id = data.id;
+      }
+      for(const im of dropImgs){
+        const {error} = await sb.from('product_images').delete().eq('id', im.id);
+        if(error) throw error;
+        const path = (im.storage_path.split('/' + PHOTOS_BUCKET + '/')[1] || '');
+        if(path.startsWith('sme/')) await sb.storage.from(PHOTOS_BUCKET).remove([path]);
+      }
+      let order = keepImgs.length ? Math.max(...keepImgs.map(i=>i.sort_order||0)) + 1 : 0;
+      for(const np of newPics){
+        const path = `sme/${sme.id}/${id}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
+        const {error:eUp} = await sb.storage.from(PHOTOS_BUCKET).upload(path, np.blob, {contentType:'image/jpeg', upsert:false});
+        if(eUp) throw eUp;
+        const {data:pub} = sb.storage.from(PHOTOS_BUCKET).getPublicUrl(path);
+        const {error:eImg} = await sb.from('product_images').insert({product_id:id, storage_path:pub.publicUrl, sort_order:order++});
+        if(eImg) throw eImg;
+      }
+      await reload();
+      const saved = products.find(p=>p.id===id);
+      if(target === 'live' && saved && saved.status === 'in_review')
+        alert('Saved. Because the wording or photos changed, the Division will check it again before it reappears on the site.');
+    }
+    alert({in_review:'Sent to the Division. You will see it go live once it has been checked.',
+           draft:'Saved as a draft. It is not visible to buyers yet.',
+           withdrawn:'This product is no longer for sale. You can send it for review again at any time.'}[target] || 'Saved.');
+    show('products');
+  }catch(e){
+    showErr('prodErr', 'Could not save: ' + friendly(e));
+  }finally{
+    btns.forEach(b=>b.disabled = false);
   }
-
-  const rec = {name:g('p_name'), cat:document.getElementById('p_cat').value, price:price,
-    unit:g('p_unit'), stock:parseInt(g('p_stock'),10)||0, status:target, photos:1, note:null};
-
-  if(editing){
-    const i = products.findIndex(x=>x.id===editing);
-    products[i] = Object.assign({}, products[i], rec);
-  } else {
-    products.push(Object.assign({id:"p"+Date.now()}, rec));
-  }
-  feed.unshift({t: target==='in_review'
-      ? `“${rec.name}” sent to the Division for review`
-      : `“${rec.name}” saved as a draft`,
-    w:"Just now", k: target==='in_review'?'warn':'info'});
-  alert(target==='in_review'
-    ? "Sent to the Division. You will be told once it is checked."
-    : "Saved as a draft. It is not visible to buyers yet.");
+}
+async function deleteProduct(){
+  if(!editing || !confirm('Delete this draft? This cannot be undone.')) return;
+  if(LIVE){
+    const {error} = await sb.from('products').delete().eq('id', editing.id);
+    if(error) return showErr('prodErr', 'Could not delete: ' + friendly(error));
+    await reload();
+  } else products = products.filter(p=>p !== editing);
   show('products');
 }
 
 /* ---------- orders ---------- */
+const ORDER_TAG = {
+  paid:'<span class="tag g">Paid — prepare it</span>',
+  processing:'<span class="tag b">Preparing</span>',
+  ready:'<span class="tag b">Ready for collection</span>',
+  fulfilled:'<span class="tag g">Collected</span>',
+  disputed:'<span class="tag r">Problem reported</span>',
+  refunded:'<span class="tag">Refunded</span>',
+};
+const NEXT = {paid:'processing', processing:'ready', ready:'fulfilled'};
+const NEXT_LABEL = {paid:'Start preparing', processing:'Mark ready', ready:'Mark collected'};
+function route(o){
+  const where = o.fulfilment === 'delivery' ? `Deliver to ${esc(o.delivery_address||'')}${o.delivery_district?', '+esc(o.delivery_district):''}`
+              : o.fulfilment === 'agent_handoff' ? 'Hand to the agent' : 'Buyer collects from you';
+  const who = o.is_gift
+    ? `For <b>${esc(o.recipient_name||'')}</b> · <a href="tel:${esc(o.recipient_phone||'')}">${esc(o.recipient_phone||'')}</a><div class="sub2">Sent by ${esc(o.buyer_name)}</div>`
+    : `<b>${esc(o.buyer_name)}</b> · <a href="tel:${esc(o.buyer_phone||'')}">${esc(o.buyer_phone||'')}</a>`;
+  return who + `<div class="sub2">${where}</div>`;
+}
 function renderOrders(){
   badges();
-  const tag = s => ({
-    paid:'<span class="tag g">Paid — prepare it</span>',
-    processing:'<span class="tag b">You are preparing</span>',
-    ready:'<span class="tag b">Ready for collection</span>',
-    fulfilled:'<span class="tag g">Completed</span>',
-  })[s] || `<span class="tag">${s}</span>`;
-  const next = {paid:'processing', processing:'ready', ready:'fulfilled'};
-  const label = {paid:'Start preparing', processing:'Mark ready', ready:'Mark collected'};
-  document.getElementById('ordRows').innerHTML = orders.length ? orders.map(o=>`
+  const waiting = orders.filter(o=>o.status==='pending_payment').length;
+  const shown = orders.filter(o=>!['pending_payment','cancelled'].includes(o.status));
+  $('ordInfo').innerHTML = 'An order shows here once the Division has confirmed the buyer paid. Prepare it, mark it ready, then mark it collected when it is handed over.' +
+    (waiting ? `<br><b>${waiting} more order${waiting===1?' is':'s are'} waiting for the buyer to pay</b> — don't prepare ${waiting===1?'it':'them'} yet.` : '');
+  $('ordRows').innerHTML = shown.length ? shown.map(o=>`
     <tr>
-      <td><div class="nm mono">${esc(o.ref)}</div><div class="sub2">${esc(o.when)}</div></td>
-      <td>${esc(o.items)}</td>
-      <td class="sub2">${esc(o.route)}</td>
-      <td class="mono"><b>${K(o.net)}</b></td>
-      <td>${tag(o.status)}</td>
-      <td>${next[o.status]?`<button class="btn btn-sm" onclick="advance('${o.id}')">${label[o.status]}</button>`:''}</td>
-    </tr>`).join('') : `<tr><td colspan="6"><div class="empty">No orders yet.</div></td></tr>`;
+      <td><div class="nm mono">${esc(o.order_number)}</div><div class="sub2">${esc(when(o.created_at))}</div></td>
+      <td>${(o.items||[]).map(i=>`${esc(i.product_name)} × ${i.quantity}`).join('<br>') || '—'}</td>
+      <td>${route(o)}</td>
+      <td class="mono"><b>${K(o.seller_net)}</b></td>
+      <td>${ORDER_TAG[o.status] || esc(o.status)}</td>
+      <td>${NEXT[o.status] ? `<button class="btn btn-sm" onclick="advance('${o.id}')">${NEXT_LABEL[o.status]}</button>` : ''}</td>
+    </tr>`).join('') : `<tr><td colspan="6"><div class="empty">No paid orders yet.</div></td></tr>`;
 }
-function advance(id){
+async function advance(id){
   const o = orders.find(x=>x.id===id);
-  const next = {paid:'processing', processing:'ready', ready:'fulfilled'};
-  if(!next[o.status]) return;
-  o.status = next[o.status];
-  feed.unshift({t:`Order ${o.ref} moved to “${o.status}”`, w:"Just now", k:"ok"});
-  renderOrders(); badges();
+  const next = NEXT[o.status]; if(!next) return;
+  if(next === 'fulfilled' && !confirm(`Has ${o.order_number} been handed over to the buyer${o.is_gift?' or recipient':''}?`)) return;
+  if(LIVE){
+    const {error} = await sb.from('orders').update({status:next}).eq('id', id);
+    if(error) return alert('Could not update the order: ' + friendly(error));
+    await reload();
+  } else o.status = next;
+  show(currentView);
 }
 
-/* ---------- payouts ---------- */
+/* ---------- money ---------- */
 function renderPayouts(){
   badges();
-  document.getElementById('payRows').innerHTML = payouts.map(p=>`
+  $('owedBig').textContent = K(balance.available + balance.in_payout);
+  $('heldBig').textContent = K(balance.held);
+  $('paidOut').textContent = balance.paid_out ? 'PAID SO FAR ' + K(balance.paid_out) : '';
+  $('feeInfo').innerHTML = `The platform fee is <b>${Number(settings.platform_rate)}%</b> of each sale, plus the agent's commission when an agent placed
+    the order. The amounts here already have those taken off — this is what reaches your bank account. Money becomes ready to pay
+    <b>${settings.payout_hold_days} days</b> after an order is collected, in case the buyer reports a problem.` +
+    (priv && !priv.bank_verified ? '<br><b>Your bank details are not confirmed yet, so payouts are waiting.</b>' : '');
+  const tag = {draft:'<span class="tag a">Being approved</span>', approved:'<span class="tag b">Approved — being sent</span>',
+               paid:'<span class="tag g">Paid</span>', cancelled:'<span class="tag">Cancelled</span>'};
+  $('payRows').innerHTML = payouts.length ? payouts.map(p=>`
     <tr>
-      <td class="mono">${esc(p.date)}</td>
-      <td>${p.n} orders</td>
-      <td class="mono">${K(p.gross)}</td>
-      <td class="mono">−${K(p.fee)}</td>
-      <td class="mono">${p.agent?'−'+K(p.agent):'—'}</td>
-      <td class="mono"><b>${K(p.paid)}</b></td>
-    </tr>`).join('');
+      <td class="mono">${esc(when(p.created_at))}</td>
+      <td>${(p.payout_orders||[]).length} order${(p.payout_orders||[]).length===1?'':'s'}</td>
+      <td class="mono"><b>${K(p.amount)}</b></td>
+      <td>${tag[p.status] || esc(p.status)}</td>
+      <td class="mono">${esc(p.bank_reference || '—')}</td>
+    </tr>`).join('') : `<tr><td colspan="5"><div class="empty">No payouts yet.</div></td></tr>`;
+}
+
+/* ---------- my business ---------- */
+function renderSettings(){
+  showErr('setErr', '');
+  const pv = priv || {};
+  $('b_name').value = sme.registered_name;
+  $('b_trading').value = sme.trading_name || '';
+  $('b_about').value = sme.description || '';
+  $('b_contact').value = pv.contact_name || '';
+  $('b_phone').value = pv.phone || '';
+  $('b_email').value = pv.email || '';
+  $('b_ipa').value = pv.ipa_number || '';
+  $('b_tin').value = pv.tin || '';
+  $('b_bank').value = pv.bank_name || '';
+  $('b_accno').value = pv.account_number || '';
+  $('b_accname').value = pv.account_name || '';
+  $('bankTag').innerHTML = pv.bank_verified ? '<span class="tag g">Confirmed by the Division</span>'
+    : pv.account_number ? '<span class="tag a">Waiting for the Division to confirm</span>' : '<span class="tag r">Not added yet</span>';
+}
+async function saveBusiness(){
+  const g = id => $(id).value.trim();
+  const pv = priv || {};
+  const bank = {bank_name:g('b_bank') || null, account_number:g('b_accno').replace(/\s+/g,'') || null, account_name:g('b_accname') || null};
+  const bankChanged = bank.bank_name !== (pv.bank_name||null) || bank.account_number !== (pv.account_number||null) || bank.account_name !== (pv.account_name||null);
+  if(bankChanged && pv.bank_verified &&
+     !confirm('Change your bank details? Payouts will wait until the Division phones you to confirm the new account.')) return;
+  if(bank.account_number && !/^\d{6,20}$/.test(bank.account_number)) return showErr('setErr', 'The account number should be digits only.');
+  const btn = $('saveBizBtn'); busy(btn, true, 'Saving…');
+  try{
+    const bizUpd = {trading_name:g('b_trading') || null, description:g('b_about') || null};
+    const privUpd = Object.assign({contact_name:g('b_contact') || null, phone:g('b_phone') || null, email:g('b_email') || null,
+                                   ipa_number:g('b_ipa') || null, tin:g('b_tin') || null}, bank);
+    if(LIVE){
+      const {error:e1} = await sb.from('smes').update(bizUpd).eq('id', sme.id);
+      if(e1) throw e1;
+      if(!priv) throw new Error('Your private details record is missing. Please contact the Division.');
+      const {error:e2} = await sb.from('sme_private').update(privUpd).eq('sme_id', sme.id);
+      if(e2) throw e2;
+      await reload();
+    } else {
+      Object.assign(sme, bizUpd); priv = Object.assign(priv || {}, privUpd, bankChanged ? {bank_verified:false} : {});
+    }
+    renderSettings();
+    alert(bankChanged ? 'Saved. The Division will phone you to confirm your new bank details.' : 'Saved.');
+  }catch(e){ showErr('setErr', 'Could not save: ' + friendly(e)); }
+  finally{ busy(btn, false, 'Save changes'); }
+}
+async function changePassword(){
+  const a = $('np1').value, b = $('np2').value;
+  if(a.length < 8) return alert('Use at least 8 characters.');
+  if(a !== b) return alert('The two passwords are different.');
+  if(LIVE){
+    const {error} = await sb.auth.updateUser({password:a});
+    if(error) return alert('Could not change it: ' + friendly(error));
+  }
+  $('np1').value = $('np2').value = '';
+  alert('Your password has been changed.');
 }
 </script>
 </body>

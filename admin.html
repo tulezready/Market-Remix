@@ -209,6 +209,13 @@
     border-top:1px solid var(--hair-2);margin-top:14px;flex-wrap:wrap;}
   .warnbox{background:#FBF0D2;border-left:3px solid var(--amber);border-radius:8px;
     padding:11px 14px;font-size:12px;color:#8A6410;line-height:1.55;margin:14px 0;}
+  .okbox{background:#E6F5EC;border-left:3px solid var(--green);border-radius:8px;
+    padding:11px 14px;font-size:12.5px;color:#0B5228;line-height:1.55;margin:14px 0;}
+  .msec{font-size:13px;font-weight:800;margin:22px 0 4px;padding-top:14px;border-top:1px solid var(--hair);}
+  .cred{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:10px;background:#fff;border-radius:8px;padding:12px 14px;color:var(--ink);}
+  .cred span{font-family:'Space Mono',monospace;font-size:12px;text-transform:uppercase;color:var(--muted);align-self:center;}
+  .cred b{font-size:15px;word-break:break-all;}
+  .cred b.mono{font-size:17px;letter-spacing:.04em;}
 
   .app-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin-top:8px;}
   .app-photo{border:1px solid var(--hair);border-radius:9px;overflow:hidden;background:#fff;}
@@ -261,13 +268,13 @@
 
   /* ---------- tablet ---------- */
   @media (max-width:1000px){
-    .app{grid-template-columns:1fr;}
-    .side{position:sticky;top:0;height:auto;z-index:30;flex-direction:row;
+    .app{grid-template-columns:minmax(0,1fr);}
+    .side{position:sticky;top:0;height:auto;z-index:30;flex-direction:row;min-width:0;
       align-items:center;gap:8px;padding-right:10px;}
     .side-top{border-bottom:none;border-right:1px solid rgba(250,244,234,.12);
       padding:12px 16px;flex-shrink:0;}
     .side-top .t{font-size:15px;}
-    .nav{flex-direction:row;overflow-x:auto;padding:9px 4px;gap:4px;
+    .nav{flex-direction:row;overflow-x:auto;min-width:0;padding:9px 4px;gap:4px;
       scrollbar-width:none;}
     .nav::-webkit-scrollbar{display:none;}
     .nav .grp{display:none;}
@@ -331,12 +338,16 @@
     #agRows   td:nth-child(2)::before{content:"District: ";color:var(--muted);font-size:12px;}
     #agRows   td:nth-child(4)::before{content:"Commission: ";color:var(--muted);font-size:12px;}
     #agRows   td:nth-child(5)::before{content:"Orders: ";color:var(--muted);font-size:12px;}
-    #payRows  td:nth-child(2)::before{content:"District: ";color:var(--muted);font-size:12px;}
-    #payRows  td:nth-child(3)::before{content:"Orders: ";color:var(--muted);font-size:12px;}
-    #payRows  td:nth-child(4)::before{content:"Gross: ";color:var(--muted);font-size:12px;}
-    #payRows  td:nth-child(5)::before{content:"Platform fee: ";color:var(--muted);font-size:12px;}
-    #payRows  td:nth-child(6)::before{content:"Agent fee: ";color:var(--muted);font-size:12px;}
-    #payRows  td:nth-child(7)::before{content:"Net owed: ";color:var(--muted);font-size:12px;}
+    #payRows  td:nth-child(2)::before{content:"Bank: ";color:var(--muted);font-size:12px;}
+    #payRows  td:nth-child(3)::before{content:"Held: ";color:var(--muted);font-size:12px;}
+    #payRows  td:nth-child(4)::before{content:"Ready to pay: ";color:var(--muted);font-size:12px;}
+    #payRows  td:nth-child(5)::before{content:"In a payout: ";color:var(--muted);font-size:12px;}
+    #payRows  td:nth-child(6)::before{content:"Paid out: ";color:var(--muted);font-size:12px;}
+    #runRows  td:nth-child(1)::before{content:"Prepared: ";color:var(--muted);font-size:12px;}
+    #runRows  td:nth-child(3)::before{content:"Amount: ";color:var(--muted);font-size:12px;}
+    #runRows  td:nth-child(4)::before{content:"Orders: ";color:var(--muted);font-size:12px;}
+    #runRows  td:nth-child(5)::before{content:"Prepared by: ";color:var(--muted);font-size:12px;}
+    #runRows  td:nth-child(6)::before{content:"Approved by: ";color:var(--muted);font-size:12px;}
     #notRows  td:nth-child(2)::before{content:"Category: ";color:var(--muted);font-size:12px;}
 
     .prow{grid-template-columns:1fr;gap:6px;}
@@ -452,7 +463,7 @@
       <button data-v="notices">Notices <span class="pip z" id="pNot">0</span></button>
       <div class="grp">Reporting</div>
       <button data-v="progress">Launch progress</button>
-      <button data-v="payouts">Payouts owed</button>
+      <button data-v="payouts">Payouts <span class="pip z" id="pPay">0</span></button>
       <button class="mob-signout" onclick="signOut()">Sign out</button>
     </nav>
     <div class="side-bot">
@@ -564,9 +575,12 @@
             <option value="">All statuses</option>
             <option value="pending_payment">Pending payment</option>
             <option value="paid">Paid</option>
-            <option value="processing">Processing</option>
+            <option value="processing">Being prepared</option>
+            <option value="ready">Ready</option>
             <option value="fulfilled">Fulfilled</option>
             <option value="disputed">Disputed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="refunded">Refunded</option>
           </select>
         </div>
         <div class="panel"><div class="tbl-wrap"><table>
@@ -618,16 +632,25 @@
       <!-- PAYOUTS -->
       <section class="view" id="v-payouts" style="display:none;">
         <div class="panel">
-          <div class="panel-hd"><h2>Owed to businesses</h2>
-            <span class="n" id="payTotal"></span></div>
+          <div class="panel-hd"><h2>What each business is owed</h2><span class="n" id="payTotal"></span></div>
           <div class="tbl-wrap"><table>
-            <thead><tr><th>Business</th><th>District</th><th>Orders</th><th>Gross</th><th>Platform fee</th><th>Agent fee</th><th>Net owed</th></tr></thead>
+            <thead><tr><th>Business</th><th>Bank account</th><th>Held</th><th>Ready to pay</th><th>In a payout</th><th>Paid out</th><th></th></tr></thead>
             <tbody id="payRows"></tbody>
           </table></div>
         </div>
         <div class="panel">
+          <div class="panel-hd"><h2>Payout runs</h2><span class="n" id="runN"></span></div>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Prepared</th><th>Business</th><th>Amount</th><th>Orders</th><th>Prepared by</th><th>Approved by</th><th>Status</th><th></th></tr></thead>
+            <tbody id="runRows"></tbody>
+          </table></div>
+        </div>
+        <div class="panel">
           <div class="panel-bd" style="font-size:12.5px;color:var(--muted);line-height:1.65;">
-            Figures are calculated by the database from paid orders, not entered by hand. Payment runs remain a Division finance function — this panel shows what is owed, it does not transfer money.
+            <b>How a payout works.</b> Money is <i>held</i> while an order is being prepared and for the holding period after it is collected,
+            then it is <i>ready to pay</i>. One officer prepares a payout — the database picks the orders and adds them up.
+            A different officer approves it; whoever verified the business's bank details cannot. After the bank transfer is made,
+            record the bank reference to mark it paid. Payment is only possible to a verified bank account.
           </div>
         </div>
       </section>
@@ -815,7 +838,7 @@ const TITLES = {
   agents:["Agents","The agent network and commission rates."],
   notices:["Notices","Announcements shown on the public site."],
   progress:["Launch progress","Collection against the 35-business target."],
-  payouts:["Payouts owed","Calculated from paid orders."],
+  payouts:["Payouts","Prepare, approve and record payments to businesses."],
 };
 
 function show(v){
@@ -929,7 +952,8 @@ function signOut(){
 async function loadAll(){
   await Promise.all([
     loadApplications(), loadSmes(), loadListings(),
-    loadOrders(), loadAgents(), loadNotices()
+    loadOrders(), loadAgents(), loadNotices(),
+    loadPayouts(), loadStaff(), loadLogins()
   ]);
   // counts that depend on more than one table, computed once everything is in
   smes.forEach(s => s.products = listings.filter(l => l.smeId === s.id).length);
@@ -983,7 +1007,8 @@ async function loadListings(){
 async function loadSmes(){
   // contact details live in sme_private (Division and owner only), not on the public smes table
   const {data, error} = await sb.from('smes')
-    .select('id, slug, registered_name, district, primary_industry, approved, featured, consent, sme_private(contact_name, phone)')
+    .select('id, slug, owner_id, registered_name, trading_name, district, primary_industry, approved, featured, consent, is_sample, ' +
+            'sme_private(contact_name, phone, email, ipa_number, tin, bank_name, account_name, account_number, bank_verified, bank_verified_at, bank_verified_by)')
     .order('registered_name');
   if(error){ console.error('loadSmes', error); return; }
   smes = (data||[]).map(r => ({
@@ -994,6 +1019,9 @@ async function loadSmes(){
     primary_industry: r.primary_industry,
     contact_name: (r.sme_private || {}).contact_name || '',
     phone: (r.sme_private || {}).phone || '',
+    priv: r.sme_private || {},
+    owner_id: r.owner_id,
+    is_sample: r.is_sample,
     approved: r.approved,
     featured: r.featured,
     consent: r.consent,
@@ -1032,9 +1060,60 @@ async function loadOrders(){
     status: r.status,
     gift: r.is_gift,
     created: relTime(r.created_at),
-    note: r.notes
+    created_at: r.created_at,
+    note: r.notes,
+    buyer_name: r.buyer_name,
+    buyer_phone: r.buyer_phone,
+    recipient_name: r.recipient_name,
+    recipient_phone: r.recipient_phone,
+    delivery_fee: Number(r.delivery_fee)||0,
+    payment_method: r.payment_method,
+    payment_ref: r.payment_ref,
+    paid_at: r.paid_at,
+    paid_marked_by: r.paid_marked_by,
+    fulfilled_at: r.fulfilled_at
   }));
 }
+
+/* ---------- payouts, balances, staff names, seller logins ---------- */
+let payouts = [], balances = [], staff = {}, logins = {};
+async function loadPayouts(){
+  const [{data:p, error:e1}, {data:b, error:e2}] = await Promise.all([
+    sb.from('payouts').select('*, payout_orders(order_id)').order('created_at', {ascending:false}),
+    sb.from('seller_balances').select('*')
+  ]);
+  if(e1) console.error('loadPayouts', e1); else payouts = p || [];
+  if(e2) console.error('loadBalances', e2); else balances = (b || []).map(r => ({
+    sme_id:r.sme_id, held:+r.held, available:+r.available, in_payout:+r.in_payout, paid_out:+r.paid_out }));
+}
+async function loadStaff(){
+  const {data, error} = await sb.from('profiles').select('id, full_name, role').in('role', ['division_staff','division_admin']);
+  if(error){ console.error('loadStaff', error); return; }
+  staff = Object.fromEntries((data||[]).map(r => [r.id, r.full_name || 'Division staff']));
+}
+async function loadLogins(){
+  try{
+    const r = await sellerFn({action:'list'});
+    logins = Object.fromEntries((r.logins||[]).map(l => [l.sme_id, l]));
+  }catch(e){ console.error('loadLogins', e); }
+}
+
+/* the seller-logins Edge Function: creates and resets seller logins with the
+   secret key, which never reaches this page. See supabase/functions/seller-logins. */
+async function sellerFn(body){
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session) throw new Error('Your session has expired. Please sign in again.');
+  const res = await fetch(SUPABASE.URL + '/functions/v1/seller-logins', {
+    method:'POST',
+    headers:{'Content-Type':'application/json', apikey:SUPABASE.KEY, Authorization:'Bearer ' + session.access_token},
+    body: JSON.stringify(body)
+  });
+  const out = await res.json().catch(() => ({}));
+  if(!res.ok) throw new Error(out.error || ('The login service answered ' + res.status));
+  return out;
+}
+const who = id => id ? (id === currentUserId ? 'You' : (staff[id] || 'Division staff')) : '—';
+const showLogin = e => e ? e.replace(/^675(\d{4})(\d{4})@phone\.maketples\.com\.pg$/, '+675 $1 $2') : '';
 
 async function loadAgents(){
   const {data, error} = await sb.from('agents').select('*').order('full_name');
@@ -1082,6 +1161,7 @@ function badges(){
   set('pApps', a, true); set('pList', l, true);
   set('pSme', smes.length, false); set('pOrd', orders.length, false);
   set('pAg', agents.length, false); set('pNot', notices.length, false);
+  set('pPay', payouts.filter(p=>p.status==='draft'||p.status==='approved').length, true);
 }
 
 /* ============================================================
@@ -1103,6 +1183,12 @@ function renderDash(){
                      w:a.created, act:`<button class="btn btn-sm" onclick="openApp('${a.id}')">Review</button>`})),
     ...rev.map(l=>({t:`<b>${esc(l.name)}</b> submitted by ${esc(l.sme)}`,
                     w:l.submitted, act:`<button class="btn btn-sm" onclick="openListing('${l.id}')">Review</button>`})),
+    ...(() => { const n = orders.filter(o=>o.status==='pending_payment').length;
+        return n ? [{t:`<b>${n}</b> order${n===1?'':'s'} waiting for payment — mark each paid when the agent or bank confirms`,
+          w:'Orders', act:`<button class="btn btn-sm" onclick="document.getElementById('fOrdS').value='pending_payment';show('orders')">Open</button>`}] : []; })(),
+    ...payouts.filter(p=>p.status==='draft' && p.created_by!==currentUserId).map(p=>({
+        t:`Payout of <b>${k(p.amount)}</b> to ${esc((smes.find(s=>s.id===p.sme_id)||{}).registered_name||'—')} needs a second approver`,
+        w:relTime(p.created_at), act:`<button class="btn btn-sm" onclick="show('payouts');openPayout('${p.id}')">Review</button>`})),
     ...disp.map(o=>({t:`Order <b>${esc(o.order_number)}</b> disputed — ${esc(o.sme)}`,
                      w:o.created, act:`<button class="btn-warn" onclick="openOrder('${o.id}')">Open</button>`})),
   ];
@@ -1459,13 +1545,117 @@ function renderSmes(){
       <td>${s.products}</td>
       <td>${s.approved?'<span class="tag g">Live</span>':'<span class="tag a">Not approved</span>'}
           ${s.featured?' <span class="tag b">Featured</span>':''}
-          ${s.consent?'':' <span class="tag r">No consent</span>'}</td>
+          ${s.consent?'':' <span class="tag r">No consent</span>'}
+          ${s.owner_id?' <span class="tag g">Login</span>':' <span class="tag">No login</span>'}
+          ${(s.priv||{}).bank_verified?' <span class="tag g">Bank verified</span>':''}</td>
       <td><div class="acts">
-        <button class="btn-o btn-sm" onclick="ph('open the full business record')">Open</button>
+        <button class="btn-o btn-sm" onclick="openSme('${s.id}')">Open</button>
         <button class="btn-o btn-sm" onclick="toggleFeature('${s.id}')">${s.featured?'Unfeature':'Feature'}</button>
       </div></td>
     </tr>`).join('') : `<tr><td colspan="6"><div class="empty">No businesses match.</div></td></tr>`;
 }
+function openSme(id){
+  const s = smes.find(x=>x.id===id); if(!s) return;
+  const p = s.priv || {};
+  const miss = v => v ? esc(v) : '<span class="v miss">not supplied</span>';
+  const login = logins[id];
+  const hasBank = p.bank_name && p.account_name && p.account_number;
+  document.getElementById('mTitle').textContent = s.registered_name;
+  document.getElementById('mBody').innerHTML = `
+    <div class="kv"><span class="k">District</span><span class="v">${esc(s.district)}</span></div>
+    <div class="kv"><span class="k">Industry</span><span class="v">${esc(ind(s.primary_industry))}</span></div>
+    <div class="kv"><span class="k">Contact</span><span class="v">${miss(p.contact_name)}</span></div>
+    <div class="kv"><span class="k">Phone</span><span class="v">${miss(p.phone)}</span></div>
+    <div class="kv"><span class="k">Email</span><span class="v">${miss(p.email)}</span></div>
+    <div class="kv"><span class="k">IPA number</span><span class="v">${miss(p.ipa_number)}</span></div>
+    <div class="kv"><span class="k">TIN</span><span class="v">${miss(p.tin)}</span></div>
+
+    <h4 class="msec">Bank account for payouts</h4>
+    <div class="kv"><span class="k">Bank</span><span class="v">${miss(p.bank_name)}</span></div>
+    <div class="kv"><span class="k">Account name</span><span class="v">${miss(p.account_name)}</span></div>
+    <div class="kv"><span class="k">Account number</span><span class="v mono">${miss(p.account_number)}</span></div>
+    ${p.bank_verified
+      ? `<div class="okbox">Verified by ${esc(who(p.bank_verified_by))} · ${esc(relTime(p.bank_verified_at))}. If the business changes these details, verification is cleared automatically.</div>`
+      : hasBank
+        ? `<div class="warnbox"><b>Not verified.</b> Phone the business on the number above (not a number they give you in a message),
+             read the details back, and check the account name matches <b>${esc(s.registered_name)}</b>.
+             <div class="mact" style="margin-top:10px;"><button class="btn g btn-sm" onclick="verifyBank('${s.id}')">I have confirmed these by phone</button></div></div>`
+        : `<div class="warnbox">No bank details yet. The business enters them in its seller portal.</div>`}
+
+    <h4 class="msec">Seller login</h4>
+    <div id="loginBox">${loginBoxHTML(s, login)}</div>
+
+    <div class="mact"><button class="btn-o" onclick="closeModal()">Close</button></div>`;
+  openModal();
+}
+function loginBoxHTML(s, login){
+  if(s.owner_id){
+    return `<div class="kv"><span class="k">Signs in with</span><span class="v mono">${login ? esc(showLogin(login.email)) : 'linked'}</span></div>
+      <div class="kv"><span class="k">Last signed in</span><span class="v">${login && login.last_sign_in_at ? esc(relTime(login.last_sign_in_at)) : 'Never'}</span></div>
+      <div class="mact" style="justify-content:flex-start;">
+        <button class="btn-o btn-sm" onclick="resetLogin('${s.id}')">New temporary password</button>
+        <button class="btn-o btn-sm" onclick="removeLogin('${s.id}')">Remove login</button></div>`;
+  }
+  const p = s.priv || {};
+  return `<p class="sub2" style="margin:0 0 10px;">Create a login so the business can manage its listings, orders and bank details.
+      Use their email, or their mobile number if they have no email.</p>
+    <div class="fr"><label for="newLogin">Email or mobile number</label>
+      <input id="newLogin" value="${esc(p.email || p.phone || s.phone || '')}" placeholder="name@example.com or 7XXX XXXX"></div>
+    <div class="mact" style="justify-content:flex-start;"><button class="btn g btn-sm" id="loginBtn2" onclick="createLogin('${s.id}')">Create login</button></div>`;
+}
+function passwordBox(login, password){
+  return `<div class="okbox"><b>Give these to the business owner in person or by phone.</b> The password is shown only once;
+    they will be asked to choose their own when they first sign in.
+    <div class="cred"><span>Sign in at</span><b>${esc(new URL('seller.html', location.href).href)}</b><span>Login</span><b class="mono">${esc(showLogin(login))}</b>
+    <span>Temporary password</span><b class="mono">${esc(password)}</b></div></div>`;
+}
+async function createLogin(id){
+  const s = smes.find(x=>x.id===id);
+  const val = (document.getElementById('newLogin').value||'').trim();
+  if(!val){ alert('Enter an email address or mobile number.'); return; }
+  const btn = document.getElementById('loginBtn2'); btn.disabled = true; btn.textContent = 'Creating…';
+  try{
+    if(!LIVE){ s.owner_id = 'preview'; logins[id] = {email:val}; document.getElementById('loginBox').innerHTML = passwordBox(val, 'abcd-efgh-jkmn'); return; }
+    const r = await sellerFn({action:'create', sme_id:id, login:val, name:(s.priv||{}).contact_name || ''});
+    await Promise.all([loadSmes(), loadLogins()]);
+    document.getElementById('loginBox').innerHTML = r.existing
+      ? `<div class="okbox">Linked to the existing login <b class="mono">${esc(showLogin(r.login))}</b>. Their password has not changed.</div>`
+      : passwordBox(r.login, r.password);
+    activity.unshift({t:`Seller login created for ${s.registered_name}`, w:"Just now", k:"ok"});
+    renderSmes();
+  }catch(e){
+    alert(e.message); btn.disabled = false; btn.textContent = 'Create login';
+  }
+}
+async function resetLogin(id){
+  if(!confirm('Give this business a new temporary password? Their current password will stop working.')) return;
+  try{
+    const r = LIVE ? await sellerFn({action:'reset', sme_id:id}) : {login:(logins[id]||{}).email, password:'abcd-efgh-jkmn'};
+    document.getElementById('loginBox').innerHTML = passwordBox(r.login, r.password);
+  }catch(e){ alert(e.message); }
+}
+async function removeLogin(id){
+  if(!confirm('Remove this login from the business? They will no longer be able to manage it. The login itself is kept and can be linked again.')) return;
+  try{
+    if(LIVE){ await sellerFn({action:'remove', sme_id:id}); await Promise.all([loadSmes(), loadLogins()]); }
+    else { smes.find(x=>x.id===id).owner_id = null; }
+    openSme(id); renderSmes();
+  }catch(e){ alert(e.message); }
+}
+async function verifyBank(id){
+  const s = smes.find(x=>x.id===id);
+  if(!confirm(`Confirm that you phoned ${s.registered_name} and the bank details are correct?`)) return;
+  if(LIVE){
+    const {error} = await sb.from('sme_private').update({bank_verified:true}).eq('sme_id', id);
+    if(error){ alert('Could not save: ' + error.message); return; }
+    await loadSmes();
+  } else {
+    s.priv = Object.assign(s.priv || {}, {bank_verified:true, bank_verified_by:currentUserId, bank_verified_at:new Date().toISOString()});
+  }
+  activity.unshift({t:`Bank details verified for ${s.registered_name}`, w:"Just now", k:"ok"});
+  openSme(id); renderSmes();
+}
+
 async function toggleFeature(id){
   const s = smes.find(x=>x.id===id);
   const next = !s.featured;
@@ -1506,37 +1696,91 @@ function renderOrders(){
     </tr>`).join('') : `<tr><td colspan="7"><div class="empty">No orders match.</div></td></tr>`;
 }
 
-function openOrder(id){
+const PAY_LABEL = {agent_cash:'Cash through an agent', bank_transfer:'Bank transfer', card:'Card', bsp_pay:'BSP Pay'};
+const STATUS_LABEL = {pending_payment:'Waiting for payment', paid:'Paid', processing:'Being prepared', ready:'Ready',
+  fulfilled:'Fulfilled', cancelled:'Cancelled', refunded:'Refunded', disputed:'Disputed'};
+
+async function openOrder(id){
   const o = orders.find(x=>x.id===id); if(!o) return;
+  const inPayout = payouts.some(p => p.status !== 'cancelled' && (p.payout_orders||[]).some(x => x.order_id === id));
+  let act = '';
+  if(o.status === 'pending_payment'){
+    act = `<div class="fr"><label for="payRef">${o.payment_method === 'bank_transfer' ? 'Bank transfer reference' : 'Agent receipt number'}</label>
+        <input id="payRef" placeholder="${o.payment_method === 'bank_transfer' ? 'As shown on the bank statement' : 'From the agent\'s receipt book'}"></div>
+      <div class="sub2" style="margin:-4px 0 12px;">Only mark it paid once the money is in the MaketPles account or held by the agent. Check the amount is <b>${k(o.total)}</b>.</div>
+      <div class="mact">
+        <button class="btn-o" onclick="closeModal()">Close</button>
+        <button class="btn" onclick="setOrderStatus('${o.id}','cancelled')">Cancel order</button>
+        <button class="btn g" onclick="markPaid('${o.id}')">Mark paid</button></div>`;
+  } else if(inPayout){
+    act = `<div class="okbox">This order is in a payout to the business. It can't be changed unless that payout is cancelled.</div>
+      <div class="mact"><button class="btn-o" onclick="closeModal()">Close</button></div>`;
+  } else if(['paid','processing','ready'].includes(o.status)){
+    act = `<div class="mact">
+        <button class="btn-o" onclick="closeModal()">Close</button>
+        <button class="btn" onclick="setOrderStatus('${o.id}','refunded')">Refunded</button>
+        <button class="btn-warn" onclick="setOrderStatus('${o.id}','disputed')">Mark disputed</button>
+        <button class="btn g" onclick="setOrderStatus('${o.id}','fulfilled')">Mark collected</button></div>`;
+  } else if(o.status === 'disputed'){
+    act = `<div class="mact">
+        <button class="btn-o" onclick="closeModal()">Close</button>
+        <button class="btn" onclick="setOrderStatus('${o.id}','refunded')">Refunded</button>
+        <button class="btn g" onclick="setOrderStatus('${o.id}','fulfilled')">Resolved — collected</button></div>`;
+  } else if(o.status === 'fulfilled'){
+    act = `<div class="mact">
+        <button class="btn-o" onclick="closeModal()">Close</button>
+        <button class="btn-warn" onclick="setOrderStatus('${o.id}','disputed')">Buyer has a problem</button></div>`;
+  } else {
+    act = `<div class="mact"><button class="btn-o" onclick="closeModal()">Close</button></div>`;
+  }
   document.getElementById('mTitle').textContent = o.order_number;
   document.getElementById('mBody').innerHTML = `
+    <div class="kv"><span class="k">Status</span><span class="v"><b>${esc(STATUS_LABEL[o.status] || o.status)}</b></span></div>
     <div class="kv"><span class="k">Business</span><span class="v">${esc(o.sme)}</span></div>
-    <div class="kv"><span class="k">Buyer</span><span class="v">${esc(o.buyer)}</span></div>
+    <div class="kv"><span class="k">Buyer</span><span class="v">${esc(o.buyer_name || o.buyer)}${o.buyer_phone ? ' · <span class="mono">'+esc(o.buyer_phone)+'</span>' : ''}</span></div>
+    ${o.gift ? `<div class="kv"><span class="k">Send home to</span><span class="v">${esc(o.recipient_name||'—')} · <span class="mono">${esc(o.recipient_phone||'')}</span></span></div>` : ''}
     <div class="kv"><span class="k">Route</span><span class="v">${esc(o.route)}</span></div>
     ${o.agent?`<div class="kv"><span class="k">Agent</span><span class="v">${esc(o.agent)}</span></div>`:''}
-    <div class="kv"><span class="k">Subtotal</span><span class="v mono">${k(o.subtotal)}</span></div>
+    <div class="kv"><span class="k">Payment</span><span class="v">${esc(PAY_LABEL[o.payment_method] || o.payment_method || '—')}
+      ${o.payment_ref ? ' · ref <span class="mono">'+esc(o.payment_ref)+'</span>' : ''}
+      ${o.paid_at ? '<br><span class="sub2">Marked paid by '+esc(who(o.paid_marked_by))+' · '+esc(relTime(o.paid_at))+'</span>' : ''}</span></div>
+    <div id="ordItems" class="kv"><span class="k">Items</span><span class="v sub2">${LIVE ? 'Loading…' : esc(o.items || '—')}</span></div>
+    <div class="kv"><span class="k">Items total</span><span class="v mono">${k(o.subtotal)}</span></div>
+    ${o.delivery_fee ? `<div class="kv"><span class="k">Delivery</span><span class="v mono">${k(o.delivery_fee)}</span></div>` : ''}
+    <div class="kv"><span class="k">Buyer pays</span><span class="v mono"><b>${k(o.total)}</b></span></div>
     <div class="kv"><span class="k">Platform fee</span><span class="v mono">−${k(o.platform_fee)}</span></div>
     ${o.agent_fee?`<div class="kv"><span class="k">Agent fee</span><span class="v mono">−${k(o.agent_fee)}</span></div>`:''}
-    <div class="kv"><span class="k">Owed to SME</span><span class="v mono"><b>${k(o.seller_net)}</b></span></div>
-    ${o.note?`<div class="warnbox"><b>Dispute:</b> ${esc(o.note)}</div>`:''}
-    <div class="warnbox" style="background:#E3ECFA;border-left-color:#1B4C8C;color:#1B4C8C;">
-      Payment status is set by the payment gateway, not from this panel. Refunds are issued through the gateway's own merchant dashboard.
-    </div>
-    <div class="mact">
-      <button class="btn-o" onclick="closeModal()">Close</button>
-      ${o.status==='disputed'?`<button class="btn g" onclick="resolveDispute('${o.id}')">Mark resolved</button>`:''}
-    </div>`;
+    <div class="kv"><span class="k">Owed to business</span><span class="v mono"><b>${k(o.seller_net)}</b></span></div>
+    ${o.note?`<div class="warnbox"><b>Note:</b> ${esc(o.note)}</div>`:''}
+    ${act}`;
   openModal();
-}
-async function resolveDispute(id){
-  const o = orders.find(x=>x.id===id);
   if(LIVE){
-    const {error} = await sb.from('orders').update({status:'fulfilled'}).eq('id', id);
-    if(error){ alert('Could not save: ' + error.message); return; }
+    const {data, error} = await sb.from('order_items').select('product_name, quantity, unit, line_total').eq('order_id', id);
+    const box = document.getElementById('ordItems'); if(!box) return;
+    box.querySelector('.v').innerHTML = error ? 'Could not load the items.'
+      : (data||[]).map(i => `${esc(i.product_name)} × ${i.quantity}${i.unit ? ' <span class="sub2">('+esc(i.unit)+')</span>' : ''} — <span class="mono">${k(i.line_total)}</span>`).join('<br>') || '—';
   }
-  o.status='fulfilled'; o.note=null;
-  activity.unshift({t:`Dispute on ${o.order_number} marked resolved`, w:"Just now", k:"ok"});
-  closeModal(); renderOrders();
+}
+async function markPaid(id){
+  const ref = (document.getElementById('payRef').value||'').trim();
+  if(!ref){ alert('Enter the agent receipt number or bank reference first.'); return; }
+  await setOrderStatus(id, 'paid', {payment_ref: ref});
+}
+async function setOrderStatus(id, status, extra){
+  const o = orders.find(x=>x.id===id);
+  const ask = {cancelled:'Cancel this order? Use this when the buyer will not pay.',
+               refunded:'Record this order as refunded? Make the refund to the buyer first.',
+               fulfilled:'Mark this order as collected or delivered?'}[status];
+  if(ask && !confirm(ask)) return;
+  if(LIVE){
+    const {error} = await sb.from('orders').update(Object.assign({status}, extra||{})).eq('id', id);
+    if(error){ alert('Could not save: ' + error.message); return; }
+    await Promise.all([loadOrders(), loadPayouts()]);
+  } else {
+    Object.assign(o, {status}, extra||{});
+  }
+  activity.unshift({t:`Order ${o.order_number}: ${STATUS_LABEL[status] || status}`, w:"Just now", k: status==='paid'||status==='fulfilled' ? 'ok' : 'warn'});
+  closeModal(); show(currentView);
 }
 
 function renderAgents(){
@@ -1620,29 +1864,120 @@ function renderProgress(){
     : `<div class="empty">Ready for launch.</div>`;
 }
 
+const PAYOUT_TAG = {draft:'<span class="tag a">Waiting for approval</span>', approved:'<span class="tag b">Approved — make the transfer</span>',
+  paid:'<span class="tag g">Paid</span>', cancelled:'<span class="tag">Cancelled</span>'};
+function payBalances(){
+  if(LIVE) return balances;
+  // preview: work it out from the sample orders
+  const by = {};
+  orders.forEach(o=>{
+    const s = smes.find(x=>x.registered_name===o.sme); if(!s) return;
+    const b = by[s.id] = by[s.id] || {sme_id:s.id, held:0, available:0, in_payout:0, paid_out:0};
+    if(['paid','processing','ready'].includes(o.status)) b.held += o.seller_net;
+    if(o.status==='fulfilled') b.available += o.seller_net;
+  });
+  return Object.values(by);
+}
 function renderPayouts(){
   badges();
-  const paid = orders.filter(o=>['paid','processing','ready','fulfilled'].includes(o.status));
-  const by = {};
-  paid.forEach(o=>{
-    by[o.sme] = by[o.sme] || {orders:0, gross:0, plat:0, ag:0, net:0,
-      district:(smes.find(s=>s.registered_name===o.sme)||{}).district || "—"};
-    by[o.sme].orders++; by[o.sme].gross += o.subtotal;
-    by[o.sme].plat += o.platform_fee; by[o.sme].ag += o.agent_fee; by[o.sme].net += o.seller_net;
-  });
-  const rows = Object.entries(by);
-  const total = rows.reduce((a,[,v])=>a+v.net,0);
-  document.getElementById('payTotal').textContent = "TOTAL OWED " + k(total);
-  document.getElementById('payRows').innerHTML = rows.length ? rows.map(([n,v])=>`
+  const rows = payBalances().filter(b => b.held || b.available || b.in_payout || b.paid_out)
+    .map(b => Object.assign({}, b, {sme: smes.find(s => s.id === b.sme_id) || {registered_name:'—', priv:{}}}))
+    .sort((x,y) => y.available - x.available);
+  const ready = rows.reduce((a,r)=>a+r.available,0);
+  document.getElementById('payTotal').textContent = "READY TO PAY " + k(ready);
+  document.getElementById('payRows').innerHTML = rows.length ? rows.map(r=>`
     <tr>
-      <td class="nm">${esc(n)}</td>
-      <td>${esc(v.district)}</td>
-      <td>${v.orders}</td>
-      <td class="mono">${k(v.gross)}</td>
-      <td class="mono">−${k(v.plat)}</td>
-      <td class="mono">${v.ag?'−'+k(v.ag):'—'}</td>
-      <td class="mono"><b>${k(v.net)}</b></td>
+      <td class="nm">${esc(r.sme.registered_name)}</td>
+      <td>${(r.sme.priv||{}).bank_verified ? '<span class="tag g">Verified</span>'
+           : (r.sme.priv||{}).account_number ? `<button class="btn-warn" onclick="openSme('${r.sme_id}')">Verify</button>` : '<span class="tag r">None yet</span>'}</td>
+      <td class="mono">${k(r.held)}</td>
+      <td class="mono"><b>${k(r.available)}</b></td>
+      <td class="mono">${r.in_payout ? k(r.in_payout) : '—'}</td>
+      <td class="mono">${r.paid_out ? k(r.paid_out) : '—'}</td>
+      <td>${r.available > 0 ? `<button class="btn btn-sm" onclick="preparePayout('${r.sme_id}')">Prepare payout</button>` : ''}</td>
     </tr>`).join('') : `<tr><td colspan="7"><div class="empty">No paid orders yet.</div></td></tr>`;
+
+  const open = payouts.filter(p => p.status === 'draft' || p.status === 'approved').length;
+  document.getElementById('runN').textContent = open ? open + " OPEN" : "";
+  document.getElementById('runRows').innerHTML = payouts.length ? payouts.map(p=>`
+    <tr>
+      <td class="sub2">${esc(relTime(p.created_at))}</td>
+      <td class="nm">${esc((smes.find(s=>s.id===p.sme_id)||{}).registered_name || '—')}</td>
+      <td class="mono"><b>${k(p.amount)}</b></td>
+      <td>${(p.payout_orders||[]).length}</td>
+      <td>${esc(who(p.created_by))}</td>
+      <td>${esc(who(p.approved_by))}</td>
+      <td>${PAYOUT_TAG[p.status] || esc(p.status)}</td>
+      <td><button class="btn-o btn-sm" onclick="openPayout('${p.id}')">Open</button></td>
+    </tr>`).join('') : `<tr><td colspan="8"><div class="empty">No payouts prepared yet.</div></td></tr>`;
+}
+async function preparePayout(smeId){
+  const s = smes.find(x=>x.id===smeId);
+  const b = payBalances().find(x=>x.sme_id===smeId);
+  if(!confirm(`Prepare a payout of ${k(b.available)} to ${s.registered_name}? Another officer must approve it.`)) return;
+  if(LIVE){
+    const {error} = await sb.rpc('prepare_payout', {p_sme: smeId});
+    if(error){ alert('Could not prepare the payout: ' + error.message); return; }
+    await loadPayouts();
+  } else {
+    payouts.unshift({id:'py'+Date.now(), sme_id:smeId, amount:b.available, status:'draft', created_by:currentUserId,
+      created_at:new Date().toISOString(), payout_orders:[]});
+    b.available = 0;
+  }
+  activity.unshift({t:`Payout of ${k(b.available)} prepared for ${s.registered_name}`, w:"Just now", k:"info"});
+  renderPayouts();
+}
+async function openPayout(id){
+  const p = payouts.find(x=>x.id===id); if(!p) return;
+  const s = smes.find(x=>x.id===p.sme_id) || {registered_name:'—', priv:{}};
+  const pr = s.priv || {};
+  const mine = p.created_by === currentUserId, verifiedByMe = pr.bank_verified_by && pr.bank_verified_by === currentUserId;
+  let act = '<div class="mact"><button class="btn-o" onclick="closeModal()">Close</button>';
+  if(p.status === 'draft'){
+    act += `<button class="btn" onclick="setPayout('${id}','cancelled')">Cancel payout</button>` +
+      (mine ? '' : verifiedByMe ? '' : `<button class="btn g" onclick="setPayout('${id}','approved')">Approve</button>`) + '</div>' +
+      (mine ? '<div class="sub2" style="text-align:right;margin-top:8px;">You prepared this payout, so another officer must approve it.</div>'
+            : verifiedByMe ? '<div class="sub2" style="text-align:right;margin-top:8px;">You verified this business\'s bank account, so another officer must approve it.</div>' : '');
+  } else if(p.status === 'approved'){
+    act = (pr.bank_verified ? `<div class="fr"><label for="bankRef">Bank transfer reference</label>
+             <input id="bankRef" placeholder="From the bank's confirmation"></div>`
+           : `<div class="warnbox">The bank account is no longer verified (the business changed its details). Verify it before paying.</div>`) +
+      act + `<button class="btn" onclick="setPayout('${id}','cancelled')">Cancel payout</button>` +
+      (pr.bank_verified ? `<button class="btn g" onclick="setPayout('${id}','paid')">Mark paid</button>` : '') + '</div>';
+  } else act += '</div>';
+  document.getElementById('mTitle').textContent = 'Payout to ' + s.registered_name;
+  document.getElementById('mBody').innerHTML = `
+    <div class="kv"><span class="k">Amount</span><span class="v mono"><b>${k(p.amount)}</b></span></div>
+    <div class="kv"><span class="k">Status</span><span class="v">${PAYOUT_TAG[p.status] || esc(p.status)}</span></div>
+    <div class="kv"><span class="k">Pay into</span><span class="v">${esc(pr.bank_name||'—')} · ${esc(pr.account_name||'—')} · <span class="mono">${esc(pr.account_number||'—')}</span>
+      ${pr.bank_verified ? ' <span class="tag g">Verified</span>' : ' <span class="tag r">Not verified</span>'}</span></div>
+    <div class="kv"><span class="k">Prepared</span><span class="v">${esc(who(p.created_by))} · ${esc(relTime(p.created_at))}</span></div>
+    ${p.approved_by ? `<div class="kv"><span class="k">Approved</span><span class="v">${esc(who(p.approved_by))} · ${esc(relTime(p.approved_at))}</span></div>` : ''}
+    ${p.paid_at ? `<div class="kv"><span class="k">Paid</span><span class="v">${esc(who(p.paid_by))} · ${esc(relTime(p.paid_at))} · ref <span class="mono">${esc(p.bank_reference||'')}</span></span></div>` : ''}
+    <div class="kv"><span class="k">Orders</span><span class="v">${(p.payout_orders||[]).map(x => {
+        const o = orders.find(y=>y.id===x.order_id);
+        return o ? `<span class="mono">${esc(o.order_number)}</span> — ${k(o.seller_net)}` : '';
+      }).join('<br>') || '—'}</span></div>
+    ${act}`;
+  openModal();
+}
+async function setPayout(id, status){
+  const p = payouts.find(x=>x.id===id);
+  const upd = {status};
+  if(status === 'paid'){
+    upd.bank_reference = (document.getElementById('bankRef').value||'').trim();
+    if(!upd.bank_reference){ alert('Enter the bank transfer reference first.'); return; }
+  }
+  if(status === 'cancelled' && !confirm('Cancel this payout? Its orders become ready to pay again.')) return;
+  if(LIVE){
+    const {error} = await sb.from('payouts').update(upd).eq('id', id);
+    if(error){ alert('Could not save: ' + error.message); return; }
+    await loadPayouts();
+  } else {
+    Object.assign(p, upd, status==='approved' ? {approved_by:currentUserId, approved_at:new Date().toISOString()} : {},
+                       status==='paid' ? {paid_by:currentUserId, paid_at:new Date().toISOString()} : {});
+  }
+  closeModal(); renderPayouts();
 }
 
 /* ============================================================

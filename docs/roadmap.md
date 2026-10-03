@@ -51,14 +51,14 @@ Use `docs/outreach/decisions.md` as the sign-off sheet.
 |---|---|---|---|
 | 6 | **Deploy setup** — publish only site files, `_headers`, `404.html`, `docs/deploy.md`; make the repo private | Claude (files) + You (private repo, Cloudflare) | **Files done** (`scripts/build-site.sh`, `_headers`, `404.html`); Cloudflare account and private repo still to do |
 | 7 | **Catalogue mode** — checkout that takes an order and offers *pay an agent* / *bank transfer with reference*; card button appears when a gateway is configured | Claude | **Done** — `place_order` + checkout |
-| 8 | **Seller money screens** — bank details with verification status, held vs available balance, payout statements; Division payout-run approval with two approvers | Claude | Database done (`sme_private`, `seller_balances`, `payouts`); screens to do |
+| 8 | **Seller money screens** — bank details with verification status, held vs available balance, payout statements; Division payout-run approval with two approvers | Claude | **Done** — seller portal *Money* and *My business*; Division panel *Payouts* |
 
 ## Priority 3 — Backend (starts when the Supabase plan is paid)
 
 | # | Task | Notes |
 |---|---|---|
 | 9 | Supabase in **Sydney** — **free project created, schema and security fixes applied, sample data loaded**, kept awake by a twice-weekly GitHub Action until Pro. Still: Pro plan before launch, phone-number sign-in (SMS) | `docs/supabase-setup.md` |
-| 10 | Shop, product and stall pages read live data (**done**); seller portal and Division panel get real logins (to do) | `config.js` |
+| 10 | Shop, product and stall pages read live data (**done**); seller portal and Division panel on real logins (**done** — the Division issues seller logins, by email or mobile number) | `docs/supabase-setup.md` §4a |
 | 11 | Gateway integration via the gateway's hosted payment page; **server-side** payment confirmation; settlement ledger | Needs task 1 approved |
 | 12 | Payout runs, refunds, disputes, daily reconciliation | Needs D2, D5 and task 2 |
 | 13 | SMS notifications (order placed, ready, Send home recipient) | Pick an SMS provider |
@@ -78,6 +78,9 @@ Use `docs/outreach/decisions.md` as the sign-off sheet.
 ## Already done
 
 - Free Supabase project with schema, security fixes (private bank/contact details, server-side order pricing, working application submission), settings, payouts tables, sample data; live Shop and catalogue-mode checkout
+- Seller portal and Division panel live: the Division issues seller logins; sellers manage
+  products (with photos), orders and bank details; the Division marks orders paid, verifies bank
+  accounts and runs two-person payouts (`db/accounts-and-payouts.sql`, `supabase/functions/seller-logins`)
 - Draft legal pages (`legal.html`), 404 page, security headers and a build step that publishes only the website
 - Plans written up: `docs/payments.md` (gateways, money flow, accounts), `docs/deploy.md` (Cloudflare Pages + maketples.com.pg)
 
