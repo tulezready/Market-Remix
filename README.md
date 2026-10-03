@@ -16,6 +16,9 @@ Built for the **Division of Commerce & Industry**, East New Britain Provincial A
 | `shop.html` | The full market. Filters live in the address, e.g. `shop.html?cat=crafts&district=Rabaul` | Buyers |
 | `about.html` | Help & about — how buying works, Send home, agents, selling, the Division, notices, contact | Buyers, sellers |
 | `site.css` / `site.js` | Shared styles, header behaviour, basket, checkout and phone shop bar for the three pages above | — |
+| `design-system/maketples-enb/MASTER.md` | The design system: palette and where each colour comes from, type, touch, motion and performance rules, pre-delivery checklist | Anyone changing the look |
+| `.claude/skills/ui-ux-pro-max/` | UI/UX rulebook and search tool (MIT) used by Claude Code when designing; it reads `MASTER.md` first | Claude Code sessions |
+| `logo-96.png` | Small logo for headers and footers (`logo.svg` is 137KB — keep it for print) | — |
 | `register.html` | Application form to join the platform | Businesses applying |
 | `seller.html` | Seller portal — listings, orders, payouts | Approved SMEs |
 | `admin.html` | Division panel — approvals, listing review, oversight, reporting. **Connects to Supabase** — see `docs/supabase-setup.md` | Division staff |

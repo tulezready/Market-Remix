@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#161214">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="site.css">
 </head>
 <body data-page="home">
@@ -25,7 +25,7 @@
 <header class="site">
   <div class="wrap hdr">
     <a class="brand" href="index.html">
-      <span class="logo-ring"><img src="logo.svg" alt="ENBPA Division of Commerce &amp; Industry"></span>
+      <span class="logo-ring"><img src="logo-96.png" width="96" height="96" alt="ENBPA Division of Commerce &amp; Industry"></span>
       <span>
         <span class="nm">MaketPles <b>ENB</b></span>
         <span class="dv">Division of Commerce &amp; Industry</span>
@@ -271,7 +271,7 @@
     <div class="fgrid">
       <div>
         <div class="fbrand">
-          <span class="logo-ring" style="width:38px;height:38px;"><img src="logo.svg" alt=""></span>
+          <span class="logo-ring" style="width:38px;height:38px;"><img src="logo-96.png" width="96" height="96" alt=""></span>
           <span class="nm">MaketPles <b>ENB</b></span>
         </div>
         <p class="fnote">Design preview only. “MaketPles ENB” is a working name. Products, SMEs, statistics, notices and contact details shown here are placeholders for design purposes and do not represent real businesses or listings. No payments are processed on this page.</p>
@@ -371,7 +371,7 @@ function renderSmes(){
     return `
     <article class="sme-card rv" style="--d:${k*70}ms">
       <a class="sme-link" href="sme.html?s=${s.id}" aria-label="Visit ${clean(s.n)}'s stall">
-        <div class="sme-cov" style="--c:${tint[s.d]||'var(--harbour)'}">${cover ? `<img src="${cover}" alt="" loading="lazy">` : ''}</div>
+        <div class="sme-cov" style="--c:${tint[s.d]||'var(--harbour)'}">${cover ? imgTag(s.photo, '') : ''}</div>
         <span class="sme-av">${clean(s.n).split(' ').map(w=>w[0]).slice(0,2).join('')}</span>
         <div class="sme-body">
           <h3>${s.n}</h3>
@@ -383,13 +383,17 @@ function renderSmes(){
   }).join('');
 }
 
+/* the hero arch, its slideshow and product tickets only show above 1024px */
+const wide = window.matchMedia('(min-width: 1025px)');
+
 /* two featured products float beside the hero arch */
 function renderPicks(){
+  if(!wide.matches){ document.getElementById('picks').innerHTML = ''; return; }  // hidden below 1024px: don't download
   const seen = new Set(), picks = [];
   P.forEach((p,i)=>{ if(picks.length<2 && p.ph && p.b && !seen.has(p.s)){ seen.add(p.s); picks.push({p,i}); } });
   document.getElementById('picks').innerHTML = picks.map(({p,i},k)=>`
     <div class="ticket t${k+1}">
-      <a class="th" href="product.html?p=${i}"><img src="${photoURL(p.ph)}" alt=""></a>
+      <a class="th" href="product.html?p=${i}" tabindex="-1" aria-hidden="true">${imgTag(p.ph, '')}</a>
       <div class="tx">
         <span class="tb">${p.b}</span>
         <h4><a href="product.html?p=${i}">${p.n}</a></h4>
@@ -451,8 +455,6 @@ function play(){ if(!reduce && !timer) timer = setInterval(tick, SLIDE_MS); }
 function stop(){ clearInterval(timer); timer = null; }
 function goSlide(k){ stop(); show(k); play(); }
 
-/* the slideshow only matters where it is visible (it is hidden below 1024px) */
-const wide = window.matchMedia('(min-width: 1025px)');
 
 function boot(){
   SLIDES = Shop.SLIDES; SLIDE_MS = Shop.CONFIG.slideMs || SLIDE_MS_DEFAULT;

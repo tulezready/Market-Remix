@@ -135,15 +135,34 @@ function mSearch(){
 
 /* ---------- categories, used by the home tiles and the shop chips ---------- */
 const CATS = [
-  {c:"produce",    n:"Fresh Produce",       bg:"#E2F0E2", fg:"#2E7D3A"},   // leaf green
-  {c:"foodcrops",  n:"Food Crops & Spices", bg:"#FBF0D2", fg:"#9A6F10"},   // kumul gold
-  {c:"crafts",     n:"Arts & Crafts",       bg:"#FBE1EC", fg:"#B8336E"},   // Sulka pink
-  {c:"tailoring",  n:"Tailoring",           bg:"#F8E0DA", fg:"#C8321E"},   // tubuan red
+  {c:"produce",    n:"Fresh Produce",       bg:"#E2F0E2", fg:"#24662F"},   // leaf green
+  {c:"foodcrops",  n:"Food Crops & Spices", bg:"#FBF0D2", fg:"#7D5A0C"},   // kumul gold
+  {c:"crafts",     n:"Arts & Crafts",       bg:"#FBE1EC", fg:"#9C2A5D"},   // Sulka pink
+  {c:"tailoring",  n:"Tailoring",           bg:"#F8E0DA", fg:"#A8281A"},   // tubuan red
   {c:"processing", n:"Processed Goods",     bg:"#F1E4D8", fg:"#5B3220"},   // Gazelle cocoa
   {c:"retail",     n:"Retail",              bg:"#DCEEEF", fg:"#0F5C68"},   // harbour teal
-  {c:"wholesale",  n:"Wholesale & Bulk",    bg:"#ECE8E3", fg:"#5E5750"},   // Tavurvur ash
+  {c:"wholesale",  n:"Wholesale & Bulk",    bg:"#ECE8E3", fg:"#4F4943"},   // Tavurvur ash
 ];
 const DISTRICT_NAMES = ["Rabaul","Kokopo","Gazelle","Pomio"];
+
+/* ---------- images sized for where they are shown ----------
+   Cards, thumbnails and covers use a 480px copy:
+     - local photos: photos/sm/<same filename>  (falls back to the full photo if missing)
+     - Unsplash: the same image requested at 480px wide
+   Full-size photos are kept for the product and stall pages. */
+function thumbURL(ref){
+  const full = photoURL(ref);
+  if(!full) return null;
+  if(/^https?:\/\/images\.unsplash\.com/i.test(full)) return {src: full.replace(/([?&])w=\d+/, '$1w=480'), full};
+  if(/^(data:|https?:)/i.test(full)) return {src: full, full};
+  return {src: full.replace(/([^/]+)$/, 'sm/$1'), full};
+}
+function imgTag(ref, alt){
+  const t = thumbURL(ref);
+  if(!t) return '';
+  const fallback = t.src !== t.full ? ` onerror="this.onerror=null;this.src='${esc(t.full)}'"` : '';
+  return `<img src="${esc(t.src)}" alt="${esc(alt||'')}" loading="lazy" decoding="async"${fallback}>`;
+}
 
 /* ---------- the product card, shared by every list of products ---------- */
 function cardHTML(p, i){
@@ -152,9 +171,9 @@ function cardHTML(p, i){
   const tag = (p.stock != null && p.stock <= 5) ? `<span class="stk low">Only ${p.stock} left</span>`
             : p.fresh ? `<span class="stk fresh">Fresh</span>` : '';
   return `<article class="card">
-    <a class="ph" href="product.html?p=${i}">
+    <a class="ph" href="product.html?p=${i}" tabindex="-1" aria-hidden="true">
       ${p.b ? `<span class="badge">${p.b}</span>` : ''}${tag}
-      ${img ? `<img src="${img}" alt="${clean(p.n)}" loading="lazy">` : catIcon(p.c)}
+      ${img ? imgTag(p.ph, clean(p.n)) : catIcon(p.c)}
     </a>
     <div class="bd">
       <a class="sme" href="sme.html?s=${p.s}">${s ? s.n : ''}</a>
@@ -179,7 +198,7 @@ function renderCart(){
   ['bcount','bcount2'].forEach(id=>{ const e = document.getElementById(id); if(e) e.textContent = cartCount(); });
   const it = document.getElementById('ditems'), ft = document.getElementById('dfoot');
   if(!cart.length){
-    it.innerHTML = '<div class="empty">Your basket is empty.<br><a href="shop.html" style="color:var(--red);font-weight:700;">Browse the market →</a></div>';
+    it.innerHTML = '<div class="empty">Your basket is empty.<br><a class="see" href="shop.html">Browse the market →</a></div>';
     ft.style.display='none'; return;
   }
   ft.style.display='block';
@@ -188,7 +207,7 @@ function renderCart(){
     const s = sme(p.s);
     const img = photoURL(p.ph);
     return `<div class="ditem">
-      <div class="th"><a href="product.html?p=${c.i}">${img ? `<img src="${img}" alt="">` : catIcon(p.c)}</a></div>
+      <div class="th"><a href="product.html?p=${c.i}" aria-label="${esc(clean(p.n))}">${img ? imgTag(p.ph, '') : catIcon(p.c)}</a></div>
       <div class="mt">
         <h4><a href="product.html?p=${c.i}">${p.n}</a></h4>
         <span class="sm">${s ? s.n : ''}</span>
