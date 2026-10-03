@@ -415,6 +415,34 @@
   .more{text-align:center;margin-top:30px;}
   .more .btn-o{background:#fff;}
 
+  /* ---------- checkout: payment choices, errors, confirmation ---------- */
+  .fr label small{text-transform:none;letter-spacing:0;font-family:'Plus Jakarta Sans',sans-serif;opacity:.8;}
+  .paychoice{border:none;padding:0;margin:4px 0 14px;}
+  .paychoice legend{font-family:'Space Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:var(--muted);margin-bottom:8px;padding:0;}
+  .pc{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--hair);border-radius:14px;background:#fff;margin-bottom:8px;cursor:pointer;transition:border-color .2s,background .2s;}
+  .pc:has(input:checked){border-color:var(--red);background:#FFF8F5;}
+  .pc:has(input:disabled){opacity:.55;cursor:not-allowed;}
+  .pc input{width:20px;height:20px;margin-top:2px;accent-color:var(--red);flex-shrink:0;}
+  .pc b{display:block;font-size:14px;}
+  .pc small{display:block;font-size:12.5px;color:var(--muted);line-height:1.45;margin-top:2px;}
+  .cosum{border-top:1px solid var(--hair);margin-top:6px;padding-top:12px;}
+  .cosum .mtot{margin-top:4px;}
+  .coerr{background:#FBE4DF;border:1px solid rgba(200,50,30,.35);color:var(--red-dp);border-radius:12px;padding:12px 14px;font-size:13.5px;font-weight:600;margin-top:8px;}
+  .co-btn:disabled{opacity:.7;cursor:wait;transform:none;}
+  .dnote{font-size:12px;color:var(--muted);margin:10px 0 0;}
+  #coDone{text-align:center;outline:none;}
+  .done-ok{width:64px;height:64px;border-radius:50%;margin:6px auto 12px;background:var(--leaf);color:#fff;font-size:32px;display:flex;align-items:center;justify-content:center;}
+  .done-h{font-family:'Unbounded',sans-serif;font-weight:700;font-size:20px;line-height:1.25;}
+  .done-sub{font-size:13.5px;color:var(--muted);margin:8px 0;}
+  .done-list{list-style:none;padding:0;margin:16px 0;text-align:left;border:1px solid var(--hair-2);border-radius:14px;background:#fff;}
+  .done-list li{display:flex;gap:8px;align-items:baseline;padding:12px 14px;border-top:1px solid var(--hair-2);font-size:13.5px;}
+  .done-list li:first-child{border-top:none;}
+  .done-list li span{margin-left:auto;font-family:'Space Mono',monospace;font-weight:700;}
+  .done-pay{text-align:left;background:var(--sand);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.6;}
+  .done-pay h4{font-size:14px;font-weight:800;margin-bottom:4px;}
+  .done-pay p{margin:0 0 6px;}
+  .bankbox{white-space:pre-wrap;font-family:'Space Mono',monospace;font-size:12.5px;background:#fff;border-radius:10px;padding:10px 12px;margin:8px 0 0;}
+
   /* ---------- multi-page pieces ---------- */
   .browse-all{text-align:center;margin-top:12px;}
   .chip small{font-size:12px;opacity:.55;margin-left:3px;font-weight:700;}

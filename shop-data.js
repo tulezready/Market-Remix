@@ -110,8 +110,14 @@ const INDUSTRY_LABEL = {
 /* ---------------------------------------------------------- */
 /* data loading — same data.json / sample fallback as before  */
 /* ---------------------------------------------------------- */
+const SETTINGS_DEFAULT = { platform_rate: 10, delivery_fee: 15, free_delivery_over: 150, min_order: 15,
+                           card_payments_enabled: false, bank_transfer_details: null };
+
 const Shop = {
-  SMES: [], P: [], SLIDES: [], CONFIG: CONFIG_DEFAULT, IS_SAMPLE: true,
+  SMES: [], P: [], SLIDES: [], CONFIG: CONFIG_DEFAULT, SETTINGS: SETTINGS_DEFAULT,
+  IS_SAMPLE: true,   // true = built-in sample data (no database reached)
+  LIVE: false,       // true = reading from Supabase; orders go to the database
+  HAS_SAMPLE_ROWS: false,
 };
 
 function photoURL(ref){
@@ -123,19 +129,73 @@ function photoURL(ref){
 }
 
 function getSme(id){ return Shop.SMES.find(s => s.id === id) || null; }
+/* Every product carries a permanent id: the database id when live,
+   or its position in the sample list. Links and the basket use it,
+   so adding a product never changes what is already in a basket. */
 function getProduct(id){
-  const i = parseInt(id, 10);
-  return (Number.isInteger(i) && Shop.P[i]) ? Shop.P[i] : null;
+  if(id == null) return null;
+  return Shop.P.find(p => p.id === String(id)) || null;
 }
 function productsForSme(smeId){
-  return Shop.P.map((p,i)=>({p,i})).filter(({p}) => p.s === smeId);
+  return Shop.P.filter(p => p.s === smeId).map(p => ({p, i: p.id}));
+}
+
+/* ---------- reading from Supabase ---------- */
+const DB = (window.MAKETPLES && window.MAKETPLES.supabaseUrl) ? window.MAKETPLES : null;
+
+function dbGet(path){
+  return fetch(DB.supabaseUrl.replace(/\/$/,'') + '/rest/v1/' + path, {
+    headers: { apikey: DB.supabaseKey, Accept: 'application/json' }
+  }).then(r => { if(!r.ok) throw new Error('database ' + r.status); return r.json(); });
+}
+function dbRpc(fn, args){
+  return fetch(DB.supabaseUrl.replace(/\/$/,'') + '/rest/v1/rpc/' + fn, {
+    method: 'POST',
+    headers: { apikey: DB.supabaseKey, 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(args || {})
+  }).then(async r => {
+    const body = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(body.message || ('The request failed (' + r.status + ').'));
+    return body;
+  });
+}
+
+const INDUSTRY_SHORT = { retail:'Retail', wholesale:'Wholesale', tailoring:'Tailoring', crafts:'Arts & crafts',
+  processing:'Processing', produce:'Fresh produce', foodcrops:'Food crops' };
+
+function loadFromDb(){
+  return Promise.all([
+    dbGet('public_smes?select=*&order=name'),
+    dbGet('public_catalogue?select=*&order=sort_key,created_at'),
+    dbGet('platform_settings?select=platform_rate,delivery_fee,free_delivery_over,min_order,card_payments_enabled,bank_transfer_details&limit=1')
+  ]).then(([smes, cat, settings]) => {
+    Shop.SMES = smes.map(s => ({
+      id: s.slug, n: s.name, d: s.district, llg: s.llg, about: s.description, photo: s.photo_ref,
+      f: [s.primary_industry, s.secondary_industry].filter(Boolean).map(x => INDUSTRY_SHORT[x] || x).join(' · '),
+      _uuid: s.id, sample: s.is_sample
+    }));
+    Shop.P = cat.map(r => ({
+      id: r.product_id, n: r.name, s: r.sme_slug, p: Number(r.price), c: r.category, b: r.badge || null,
+      ph: r.photo, u: r.unit, about: r.description, stock: r.stock, fresh: !!r.perishable
+    }));
+    Shop.SLIDES = smes.filter(s => s.featured && s.hero_photo_ref).map(s => ({
+      img: s.hero_photo_ref, biz: s.name, loc: s.district + ' District',
+      ind: [s.primary_industry, s.secondary_industry].filter(Boolean).map(x => INDUSTRY_SHORT[x] || x).join(' · ')
+    }));
+    if(settings && settings[0]) Shop.SETTINGS = Object.assign({}, SETTINGS_DEFAULT, settings[0]);
+    Shop.CONFIG = CONFIG_DEFAULT;
+    Shop.IS_SAMPLE = false;
+    Shop.LIVE = true;
+    Shop.HAS_SAMPLE_ROWS = smes.some(s => s.is_sample);
+    return Shop;
+  });
 }
 
 /* resolves with Shop populated; same object every time (singleton) */
 let _loadPromise = null;
 function loadShop(){
   if(_loadPromise) return _loadPromise;
-  _loadPromise = fetch('data.json', {cache:'no-store'})
+  const fromFile = () => fetch('data.json', {cache:'no-store'})
     .then(r => { if(!r.ok) throw new Error('no data.json'); return r.json(); })
     .then(d => {
       if(!d || !Array.isArray(d.SMES) || !Array.isArray(d.P)) throw new Error('bad data.json');
@@ -145,7 +205,9 @@ function loadShop(){
       Shop.CONFIG = Object.assign({}, CONFIG_DEFAULT, d.config || {});
       Shop.IS_SAMPLE = false;
       return Shop;
-    })
+    });
+  _loadPromise = (DB ? loadFromDb().catch(err => { console.warn('MaketPles: database unreachable, using fallback', err); return fromFile(); })
+                     : fromFile())
     .catch(() => {
       Shop.SMES = SAMPLE_SMES;
       Shop.P = SAMPLE_P;
@@ -155,6 +217,7 @@ function loadShop(){
       return Shop;
     })
     .then(shop => {
+      shop.P.forEach((p, i) => { if(p.id == null) p.id = String(i); else p.id = String(p.id); });
       shop.SMES.forEach(x => { x.c = shop.P.filter(p => p.s === x.id).length; });
       return shop;
     });
@@ -178,9 +241,10 @@ function saveCart(cart){
 }
 function cartAdd(i, qty){
   qty = qty || 1;
+  const key = String(i);
   const cart = getCart();
-  const e = cart.find(c => c.i === i);
-  if(e) e.q += qty; else cart.push({i, q: qty});
+  const e = cart.find(c => String(c.i) === key);
+  if(e) e.q += qty; else cart.push({i: key, q: qty});
   saveCart(cart);
   return cart;
 }
@@ -201,6 +265,7 @@ function cartCount(){
 function cartTotals(){
   const cart = getCart();
   const sub = cart.reduce((a,c) => { const p = getProduct(c.i); return a + (p ? p.p*c.q : 0); }, 0);
-  const del = (sub > 150 || sub === 0) ? 0 : 15;
+  const s = Shop.SETTINGS || SETTINGS_DEFAULT;
+  const del = (sub >= Number(s.free_delivery_over) || sub === 0) ? 0 : Number(s.delivery_fee);
   return { cart, sub, del, total: sub + del };
 }

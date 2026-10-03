@@ -535,6 +535,7 @@
   </div>
 </footer>
 
+<script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 /* ============================================================
@@ -553,8 +554,8 @@
    validates and shows the summary, but sends nothing.
    ============================================================ */
 const SUPABASE = {
-  URL: "",
-  KEY: "",
+  URL: (window.MAKETPLES || {}).supabaseUrl || "",   // set once, in config.js
+  KEY: (window.MAKETPLES || {}).supabaseKey || "",
   BUCKET: "applications"
 };
 
@@ -911,41 +912,39 @@ async function submitApp(){
 
   btn.textContent = 'Sending…';
   try{
-    const ins = await sb.from('seller_applications').insert({
-      business_name:    data.business_name,
-      district:         data.district,
-      llg:              data.llg || null,
-      primary_industry: data.primary_industry,
-      contact_name:     data.contact_name,
-      phone:            data.phone,
-      email:            data.email || null,
-      ipa_status:       data.ipa_status,
-      years_trading:    data.years_trading || null,
-      staff_count:      data.staff_count || null,
-      message:          data.message || null,
-      wants_help:       !!data.wants_help,
-      consent:          true,
-      submitted_from:   'web'
-    }).select('id, reference').single();
-    if(ins.error) throw ins.error;
-    const app = ins.data;
-
-    const rows = products.filter(p=>p.name.trim()).map((p,i)=>({
-      application_id: app.id,
+    // One server-side call saves the application and its products and
+    // returns the reference. (The public cannot read applications back, so a
+    // plain insert-then-select would be refused.)
+    const productRows = products.filter(p=>p.name.trim()).map((p,i)=>({
       name: p.name.trim(),
-      category: data.primary_industry,
-      price: parseFloat(p.price) || null,
-      unit: p.unit.trim() || null,
-      stock: p.stock.trim() || null,
-      description: p.description.trim() || null,
+      price: String(parseFloat(p.price) || ''),
+      unit: p.unit.trim(),
+      stock: p.stock.trim(),
+      description: p.description.trim(),
       sort_order: i
     }));
-    let saved = [];
-    if(rows.length){
-      const pr = await sb.from('application_products').insert(rows).select('id, name');
-      if(pr.error) throw pr.error;
-      saved = pr.data || [];
-    }
+    const res = await sb.rpc('submit_application', {
+      p_app: {
+        business_name:    data.business_name,
+        district:         data.district,
+        llg:              data.llg || '',
+        primary_industry: data.primary_industry,
+        contact_name:     data.contact_name,
+        phone:            data.phone,
+        email:            data.email || '',
+        ipa_status:       data.ipa_status,
+        years_trading:    data.years_trading || '',
+        staff_count:      data.staff_count || '',
+        message:          data.message || '',
+        wants_help:       !!data.wants_help,
+        consent:          true,
+        submitted_from:   'web'
+      },
+      p_products: productRows
+    });
+    if(res.error) throw res.error;
+    const app = { id: res.data.id, reference: res.data.reference };
+    const saved = res.data.products || [];
 
     btn.textContent = 'Sending photos…';
     const folder = app.reference || app.id;

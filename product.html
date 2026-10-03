@@ -165,6 +165,7 @@
   </div>
 </footer>
 
+<script src="config.js"></script>
 <script src="shop-data.js"></script>
 <script src="site.js"></script>
 <script>
@@ -202,7 +203,7 @@ function boot(){
     document.querySelector('.crumb-bar').style.display = 'none';
     return;
   }
-  currentId = parseInt(idRaw, 10);
+  currentId = p.id;
   const s = sme(p.s);
   const cat = CATS.find(x=>x.c===p.c);
 
@@ -249,7 +250,7 @@ function boot(){
     document.getElementById('relatedGrid').innerHTML = related.map(({p:rp,i}) => cardHTML(rp,i)).join('');
     document.getElementById('relatedWrap').style.display = 'block';
   }
-  const similar = P.map((x,i)=>({p:x,i})).filter(({p:x,i}) => x.c === p.c && x.s !== p.s && i !== currentId).slice(0, 8);
+  const similar = P.map(x=>({p:x,i:x.id})).filter(({p:x,i}) => x.c === p.c && x.s !== p.s && i !== currentId).slice(0, 8);
   if(similar.length){
     document.getElementById('similarTitle').textContent = 'More ' + (cat ? cat.n : 'like this');
     document.getElementById('similarSee').href = 'shop.html?cat=' + p.c;

@@ -647,6 +647,7 @@
   </div>
 </div>
 
+<script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 /* ============================================================
@@ -663,8 +664,8 @@
    data only, any email/password signs in, nothing is saved.
    ============================================================ */
 const SUPABASE = {
-  URL: "",
-  KEY: "",
+  URL: (window.MAKETPLES || {}).supabaseUrl || "",   // set once, in config.js
+  KEY: (window.MAKETPLES || {}).supabaseKey || "",
   APPLICATIONS_BUCKET: "applications",
   PHOTOS_BUCKET: "product-photos"
 };
@@ -980,7 +981,10 @@ async function loadListings(){
 }
 
 async function loadSmes(){
-  const {data, error} = await sb.from('smes').select('*').order('registered_name');
+  // contact details live in sme_private (Division and owner only), not on the public smes table
+  const {data, error} = await sb.from('smes')
+    .select('id, slug, registered_name, district, primary_industry, approved, featured, consent, sme_private(contact_name, phone)')
+    .order('registered_name');
   if(error){ console.error('loadSmes', error); return; }
   smes = (data||[]).map(r => ({
     id: r.id,
@@ -988,8 +992,8 @@ async function loadSmes(){
     registered_name: r.registered_name,
     district: r.district,
     primary_industry: r.primary_industry,
-    contact_name: r.contact_name,
-    phone: r.phone,
+    contact_name: (r.sme_private || {}).contact_name || '',
+    phone: (r.sme_private || {}).phone || '',
     approved: r.approved,
     featured: r.featured,
     consent: r.consent,

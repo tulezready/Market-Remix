@@ -49,55 +49,69 @@ const OVERLAYS = `<!-- BASKET -->
     <div class="srow"><span>Subtotal</span><span id="sub">K0.00</span></div>
     <div class="srow"><span>Delivery</span><span id="del">K0.00</span></div>
     <div class="srow tot"><span>Total</span><span id="tot">K0.00</span></div>
+    <p class="dnote" id="dnote"></p>
     <button class="co-btn" onclick="openCo()">Proceed to checkout</button>
   </div>
 </aside>
 
 <!-- CHECKOUT -->
 <div class="movl" id="movl">
-  <div class="modal" role="dialog" aria-label="Checkout">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="coTitle">
     <div class="mhd">
-      <h3>Checkout</h3>
+      <h3 id="coTitle">Checkout</h3>
       <button onclick="closeCo()" aria-label="Close">×</button>
     </div>
-    <div class="mbd">
-      <div class="tabs">
-        <button class="tab on" id="tSelf" onclick="tab('self')">For myself</button>
-        <button class="tab" id="tHome" onclick="tab('home')">Send home</button>
+
+    <form class="mbd" id="coForm" onsubmit="placeOrder(event)" novalidate>
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab on" id="tSelf" role="tab" aria-selected="true" onclick="tab('self')">For myself</button>
+        <button type="button" class="tab" id="tHome" role="tab" aria-selected="false" onclick="tab('home')">Send home</button>
       </div>
-      <div class="secnote"><svg class="icon" aria-hidden="true" style="flex-shrink:0;"><use href="#ic-lock"/></svg> <span>On the live platform, card details are entered on the bank's own secure payment page. MaketPles never sees or stores your card number.</span></div>
 
-      <div class="fr"><label>Full name</label><input type="text" placeholder="Your name"></div>
-      <div class="fr"><label>Mobile number</label><input type="text" placeholder="+675 7XX XXXXX"></div>
+      <div class="fr"><label for="coName">Your full name</label><input id="coName" autocomplete="name" required></div>
+      <div class="fr"><label for="coPhone">Mobile number</label><input id="coPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+675 7XX XXXXX" required></div>
+      <div class="fr"><label for="coEmail">Email <small>(optional)</small></label><input id="coEmail" type="email" autocomplete="email"></div>
 
-      <div id="rcp" style="display:none;">
-        <div class="fr"><label>Recipient name</label><input type="text" placeholder="Who is this for?"></div>
-        <div class="fr"><label>Recipient phone (PNG)</label><input type="text" placeholder="+675 7XX XXXXX"></div>
+      <div id="rcp" hidden>
+        <div class="fr"><label for="coRName">Who is it for?</label><input id="coRName" placeholder="Recipient's name"></div>
+        <div class="fr"><label for="coRPhone">Their mobile number (PNG)</label><input id="coRPhone" type="tel" inputmode="tel" placeholder="+675 7XX XXXXX"></div>
       </div>
 
       <div class="fr">
-        <label>Payment method</label>
-        <select>
-          <option>Visa / Mastercard — secure bank page</option>
-          <option>BSP Pay — mobile banking</option>
-          <option>Cash via local agent</option>
+        <label for="coFulfil">How will it be received?</label>
+        <select id="coFulfil" onchange="coUpdate()">
+          <option value="sme_pickup">Collect from the business</option>
+          <option value="agent_handoff">Collect from a local agent</option>
+          <option value="delivery">Delivery — Kokopo and Rabaul urban areas</option>
         </select>
       </div>
-      <div class="fr">
-        <label>Fulfilment</label>
-        <select>
-          <option>Collect from SME — Kokopo</option>
-          <option>Collect from SME — Rabaul</option>
-          <option>Agent handoff — nearest trade store</option>
-          <option>Delivery — Kokopo Urban</option>
-          <option>Delivery — Rabaul Urban</option>
-        </select>
+      <div id="coDelivery" hidden>
+        <div class="fr"><label for="coAddr">Delivery address</label><input id="coAddr" autocomplete="street-address" placeholder="Section, lot, street or landmark"></div>
+        <div class="fr"><label for="coDist">District</label>
+          <select id="coDist"><option>Kokopo</option><option>Rabaul</option><option>Gazelle</option><option>Pomio</option></select></div>
       </div>
 
-      <div class="mtot"><span>Total due today</span><span id="mtot">K0.00</span></div>
-      <button class="co-btn" onclick="pay()">Continue to secure payment</button>
-      <div class="mnote">DESIGN PREVIEW — NO PAYMENT WILL BE TAKEN</div>
-    </div>
+      <fieldset class="paychoice">
+        <legend>How will you pay?</legend>
+        <label class="pc"><input type="radio" name="coPay" value="agent_cash" checked onchange="coUpdate()">
+          <span><b>Cash through a local agent</b><small>Pay at a trade store or market agent. Your order number is all they need.</small></span></label>
+        <label class="pc"><input type="radio" name="coPay" value="bank_transfer" onchange="coUpdate()">
+          <span><b>Bank transfer</b><small>Pay into the MaketPles account using your order number as the reference.</small></span></label>
+        <label class="pc" id="coCardOpt"><input type="radio" name="coPay" value="card" disabled>
+          <span><b>Card or BSP Pay</b><small id="coCardNote">Coming soon.</small></span></label>
+      </fieldset>
+
+      <div class="cosum">
+        <div class="srow"><span>Items</span><span id="coSub">K0.00</span></div>
+        <div class="srow"><span>Delivery</span><span id="coDel">K0.00</span></div>
+        <div class="mtot"><span>Total</span><span id="mtot">K0.00</span></div>
+      </div>
+      <div class="coerr" id="coErr" role="alert" hidden></div>
+      <button class="co-btn" id="coBtn" type="submit">Place order</button>
+      <div class="mnote" id="coNote">You pay after the order is placed. Nothing is charged now.</div>
+    </form>
+
+    <div class="mbd" id="coDone" hidden tabindex="-1"></div>
   </div>
 </div>`;
 const MBAR = `
@@ -180,7 +194,7 @@ function cardHTML(p, i){
       <h3><a href="product.html?p=${i}">${p.n}</a></h3>
       <span class="dist">${s ? s.d + ' District' : ''}</span>
       <div class="pr-row"><span class="price">${money(p.p)}</span>${p.u ? `<span class="unit">${p.u}</span>` : ''}</div>
-      <button class="addb" onclick="add(${i})" aria-label="Add ${clean(p.n)} to basket"><svg class="icon" aria-hidden="true"><use href="#ic-bag"/></svg><span>Add to basket</span></button>
+      <button class="addb" onclick="add('${i}')" aria-label="Add ${clean(p.n)} to basket"><svg class="icon" aria-hidden="true"><use href="#ic-bag"/></svg><span>Add to basket</span></button>
     </div>
   </article>`;
 }
@@ -220,23 +234,128 @@ function renderCart(){
       <span class="pr">${money(p.p*c.q)}</span>
     </div>`;
   }).join('');
+  const s = Shop.SETTINGS || {};
   document.getElementById('sub').textContent = money(sub);
-  document.getElementById('del').textContent = del===0 ? 'Free' : money(del);
-  document.getElementById('tot').textContent = money(total);
-  document.getElementById('mtot').textContent = money(total);
+  document.getElementById('del').textContent = del === 0 ? 'Free' : money(del) + ' if delivered';
+  document.getElementById('tot').textContent = money(sub);
+  document.getElementById('dnote').textContent = (s.min_order && sub < Number(s.min_order))
+    ? `Minimum order is ${money(s.min_order)}.` : 'Collection is free. Delivery is chosen at checkout.';
 }
 function openCart(){document.getElementById('drawer').classList.add('on');document.getElementById('ovl').classList.add('on');}
 function closeCart(){document.getElementById('drawer').classList.remove('on');document.getElementById('ovl').classList.remove('on');}
-function openCo(){ if(cartCount()) document.getElementById('movl').classList.add('on'); }
+
+/* ---------- checkout ----------
+   Catalogue mode: the order is placed now and paid afterwards, through an
+   agent or by bank transfer. When a card gateway is switched on in
+   platform_settings, the card option becomes available. Prices, fees and
+   delivery are always recalculated by the database (place_order). */
+function coSelected(name){ const x = document.querySelector(`input[name="${name}"]:checked`); return x ? x.value : null; }
+function coUpdate(){
+  const { sub } = cartTotals();
+  const s = Shop.SETTINGS || {};
+  const fulfil = document.getElementById('coFulfil').value;
+  document.getElementById('coDelivery').hidden = fulfil !== 'delivery';
+  const del = (fulfil === 'delivery' && sub < Number(s.free_delivery_over || 150)) ? Number(s.delivery_fee || 15) : 0;
+  document.getElementById('coSub').textContent = money(sub);
+  document.getElementById('coDel').textContent = fulfil === 'delivery' ? (del ? money(del) : 'Free') : '—';
+  document.getElementById('mtot').textContent = money(sub + del);
+  const card = document.querySelector('input[name="coPay"][value="card"]');
+  card.disabled = !s.card_payments_enabled;
+  document.getElementById('coCardNote').textContent = s.card_payments_enabled ? 'Pay securely on the bank\'s own page.' : 'Coming soon.';
+}
+function openCo(){
+  if(!cartCount()) return;
+  document.getElementById('coForm').hidden = false;
+  document.getElementById('coDone').hidden = true;
+  document.getElementById('coErr').hidden = true;
+  document.getElementById('coNote').textContent = Shop.LIVE
+    ? 'You pay after the order is placed. Nothing is charged now.'
+    : 'Preview mode: no order will be sent.';
+  coUpdate();
+  document.getElementById('movl').classList.add('on');
+  setTimeout(()=>document.getElementById('coName').focus(), 50);
+}
 function closeCo(){document.getElementById('movl').classList.remove('on');}
 function tab(t){
-  document.getElementById('tSelf').classList.toggle('on', t==='self');
-  document.getElementById('tHome').classList.toggle('on', t==='home');
-  document.getElementById('rcp').style.display = t==='home' ? 'block' : 'none';
+  const home = t === 'home';
+  document.getElementById('tSelf').classList.toggle('on', !home);
+  document.getElementById('tHome').classList.toggle('on', home);
+  document.getElementById('tSelf').setAttribute('aria-selected', !home);
+  document.getElementById('tHome').setAttribute('aria-selected', home);
+  document.getElementById('rcp').hidden = !home;
 }
-function pay(){
-  closeCo(); closeCart(); cartClear(); renderCart();
-  alert('Design preview: on the live platform this redirects to the bank\'s secure payment page.');
+function coError(msg){
+  const e = document.getElementById('coErr');
+  e.textContent = msg; e.hidden = false;
+  e.scrollIntoView({block:'nearest'});
+}
+async function placeOrder(ev){
+  ev.preventDefault();
+  const v = id => document.getElementById(id).value.trim();
+  const gift = document.getElementById('tHome').classList.contains('on');
+  const fulfil = v('coFulfil');
+  if(v('coName').length < 2) return coError('Please enter your name.');
+  if(!/^\+?[0-9 ]{7,20}$/.test(v('coPhone'))) return coError('Please enter a valid mobile number.');
+  if(gift && (v('coRName').length < 2 || !/^\+?[0-9 ]{7,20}$/.test(v('coRPhone'))))
+    return coError('Please enter the name and mobile number of the person receiving the order.');
+  if(fulfil === 'delivery' && v('coAddr').length < 3) return coError('Please enter a delivery address.');
+
+  const order = {
+    buyer_name: v('coName'), buyer_phone: v('coPhone'), buyer_email: v('coEmail'),
+    is_gift: gift, recipient_name: gift ? v('coRName') : '', recipient_phone: gift ? v('coRPhone') : '',
+    fulfilment: fulfil, payment_method: coSelected('coPay'),
+    delivery_address: fulfil === 'delivery' ? v('coAddr') : '',
+    delivery_district: fulfil === 'delivery' ? v('coDist') : '',
+    items: getCart().map(c => ({ product_id: c.i, qty: c.q }))
+  };
+
+  const btn = document.getElementById('coBtn');
+  btn.disabled = true; btn.textContent = 'Placing your order…';
+  document.getElementById('coErr').hidden = true;
+  try{
+    let result;
+    if(Shop.LIVE){
+      result = await dbRpc('place_order', { p_order: order });
+    } else {
+      const { sub } = cartTotals();
+      result = { preview: true, total: sub, payment_method: order.payment_method,
+                 orders: [{ order_number: 'ENB-PREVIEW', business: 'Preview', total: sub }] };
+    }
+    try{ localStorage.setItem('mp_last_basket', JSON.stringify({ ref: result.basket_ref, at: Date.now() })); }catch(e){}
+    cartClear(); renderCart();
+    showDone(result, order);
+  }catch(err){
+    coError(err.message || 'Something went wrong. Please try again.');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Place order';
+  }
+}
+function showDone(r, order){
+  const s = Shop.SETTINGS || {};
+  const list = (r.orders || []).map(o => `<li><b>${esc(o.order_number)}</b> — ${esc(o.business)} <span>${money(o.total)}</span></li>`).join('');
+  const refs = (r.orders || []).map(o => o.order_number).join(', ');
+  const how = r.payment_method === 'bank_transfer'
+    ? `<h4>Pay by bank transfer</h4><p>Transfer <b>${money(r.total)}</b> and use <b>${esc(refs)}</b> as the reference.</p>` +
+      (s.bank_transfer_details ? `<pre class="bankbox">${esc(s.bank_transfer_details)}</pre>`
+                               : `<p>The Division will send you the account details by SMS.</p>`)
+    : `<h4>Pay through a local agent</h4><p>Take your order number${(r.orders||[]).length>1?'s':''} <b>${esc(refs)}</b> to a MaketPles agent at a trade store or market and pay <b>${money(r.total)}</b> in cash.</p>`;
+  const box = document.getElementById('coDone');
+  box.innerHTML = `
+    <div class="done-ok" aria-hidden="true">✓</div>
+    <h3 class="done-h">${r.preview ? 'Preview only — no order was sent' : 'Order placed. Tenkyu tru!'}</h3>
+    <p class="done-sub">${order.is_gift ? `For ${esc(order.recipient_name)}. ` : ''}We'll send updates to ${esc(order.buyer_phone)}.</p>
+    <ul class="done-list">${list}</ul>
+    <div class="done-pay">${how}</div>
+    <p class="done-sub">Each business prepares its own part of your order once payment is confirmed.</p>
+    <button class="co-btn" type="button" onclick="closeCo()">Done</button>`;
+  document.getElementById('coForm').hidden = true;
+  box.hidden = false; box.focus();
+}
+/* drop basket lines for products that no longer exist (e.g. after moving from samples to live data) */
+function pruneCart(){
+  const cart = getCart();
+  const kept = cart.filter(c => getProduct(c.i));
+  if(kept.length !== cart.length) saveCart(kept);
 }
 document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCo(); closeCart(); } });
 // keep every open tab's basket in step
@@ -330,6 +449,18 @@ function notice(showBar){
       'Load a data.json</button>' +
     '<button id="dismissBtn" aria-label="Dismiss" style="background:none;border:none;color:rgba(251,248,241,.5);' +
       'font-size:16px;cursor:pointer;line-height:1;">×</button>';
+  if(showBar === 'rows'){
+    // live database, but the businesses shown are still the placeholder set
+    bar.innerHTML =
+      '<span style="color:var(--gold);">SAMPLE LISTINGS</span>' +
+      '<span style="opacity:.8;letter-spacing:0;font-family:\'Plus Jakarta Sans\';">' +
+        'These businesses are placeholders until the launch cohort is loaded. Orders are recorded for testing only.</span>' +
+      '<button id="dismissBtn" aria-label="Dismiss" style="background:none;border:none;color:rgba(251,248,241,.6);' +
+        'font-size:18px;cursor:pointer;line-height:1;min-width:44px;min-height:44px;">×</button>';
+    document.body.appendChild(bar);
+    document.getElementById('dismissBtn').onclick = () => bar.remove();
+    return;
+  }
   document.body.appendChild(bar);
   const input = document.createElement('input');
   input.type = 'file'; input.accept = '.json,application/json'; input.style.display = 'none';
@@ -355,10 +486,12 @@ const Site = {
     initMetrics();
     loadShop().then(()=>{
       SMES = Shop.SMES; P = Shop.P;
+      pruneCart();
       boot();
       renderCart();
       observe();
       if(Shop.IS_SAMPLE) notice(true);
+      else if(Shop.HAS_SAMPLE_ROWS) notice('rows');
     });
   }
 };

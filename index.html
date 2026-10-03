@@ -295,6 +295,7 @@
   </div>
 </footer>
 
+<script src="config.js"></script>
 <script src="shop-data.js"></script>
 <script src="site.js"></script>
 <script>
@@ -323,7 +324,7 @@ function renderCats(){
 /* "Fresh in the maket" rail: badged and fresh items first */
 function renderRail(){
   const score = p => (p.b ? 2 : 0) + (p.fresh ? 1 : 0) + (p.ph ? 1 : 0);
-  const items = P.map((p,i)=>({p,i})).sort((a,b)=>score(b.p)-score(a.p)).slice(0,10);
+  const items = P.map(p=>({p,i:p.id})).sort((a,b)=>score(b.p)-score(a.p)).slice(0,10);
   document.getElementById('rail').innerHTML = items.map(({p,i})=>cardHTML(p,i)).join('');
   document.getElementById('browseAll').innerHTML = `Browse all ${P.length} products <span class="arr">→</span>`;
 }
@@ -390,7 +391,7 @@ const wide = window.matchMedia('(min-width: 1025px)');
 function renderPicks(){
   if(!wide.matches){ document.getElementById('picks').innerHTML = ''; return; }  // hidden below 1024px: don't download
   const seen = new Set(), picks = [];
-  P.forEach((p,i)=>{ if(picks.length<2 && p.ph && p.b && !seen.has(p.s)){ seen.add(p.s); picks.push({p,i}); } });
+  P.forEach(p=>{ if(picks.length<2 && p.ph && p.b && !seen.has(p.s)){ seen.add(p.s); picks.push({p,i:p.id}); } });
   document.getElementById('picks').innerHTML = picks.map(({p,i},k)=>`
     <div class="ticket t${k+1}">
       <a class="th" href="product.html?p=${i}" tabindex="-1" aria-hidden="true">${imgTag(p.ph, '')}</a>
@@ -399,7 +400,7 @@ function renderPicks(){
         <h4><a href="product.html?p=${i}">${p.n}</a></h4>
         <span class="pr">${money(p.p)}</span>
       </div>
-      <button class="add" onclick="add(${i})" aria-label="Add ${clean(p.n)} to basket">+</button>
+      <button class="add" onclick="add('${i}')" aria-label="Add ${clean(p.n)} to basket">+</button>
     </div>`).join('');
 }
 
