@@ -57,7 +57,7 @@ Use `docs/outreach/decisions.md` as the sign-off sheet.
 
 | # | Task | Notes |
 |---|---|---|
-| 9 | Supabase in **Sydney** — **free project created, schema and security fixes applied, sample data loaded**. Still: Pro plan before launch, phone-number sign-in (SMS) | `docs/supabase-setup.md` |
+| 9 | Supabase in **Sydney** — **free project created, schema and security fixes applied, sample data loaded**, kept awake by a twice-weekly GitHub Action until Pro. Still: Pro plan before launch, phone-number sign-in (SMS) | `docs/supabase-setup.md` |
 | 10 | Shop, product and stall pages read live data (**done**); seller portal and Division panel get real logins (to do) | `config.js` |
 | 11 | Gateway integration via the gateway's hosted payment page; **server-side** payment confirmation; settlement ledger | Needs task 1 approved |
 | 12 | Payout runs, refunds, disputes, daily reconciliation | Needs D2, D5 and task 2 |

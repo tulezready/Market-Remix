@@ -11,6 +11,7 @@
 | Plan | **Free** while building. Move to **Pro (US$25/month)** before launch: free projects pause after a week without activity |
 | Organisation | Currently in the project lead's own Supabase organisation. **Transfer it to an organisation owned by the merchant of record before handover** (Project Settings → General → Transfer project). |
 | Website connection | `config.js` (one file, used by every page) |
+| Keep-awake | `.github/workflows/supabase-keepalive.yml` queries the project every Monday and Thursday so the free plan does not pause it. **Delete it after the Pro upgrade** |
 | Data | 7 sample businesses and 24 sample products, flagged `is_sample` |
 
 **Done:** schema, security rules, storage buckets, ordering, applications, payouts, sample
@@ -20,6 +21,12 @@ data, security advisor clean except the functions that are public on purpose.
 1. Create the first Division admin login (section 4).
 2. Enter the bank transfer details buyers should pay into (section 5).
 3. Before launch: upgrade to Pro, transfer the project, remove sample data.
+
+**Keep-awake workflow.** GitHub runs it twice a week; you can also run it from the
+repository's **Actions** tab → *Keep Supabase awake* → **Run workflow**. A red run means
+the project did not answer — if it shows as paused in the Supabase dashboard, press
+**Restore**. GitHub switches scheduled workflows off after 60 days with no commits to the
+repository; if that happens the Actions tab shows a banner to re-enable it.
 
 ---
 
@@ -120,7 +127,7 @@ database cannot be reached, the shop falls back to the samples automatically.
 delete from smes where is_sample;
 ```
 
-Then: upgrade to Pro, transfer the project to the merchant of record's organisation,
+Then: upgrade to Pro (and delete `.github/workflows/supabase-keepalive.yml`), transfer the project to the merchant of record's organisation,
 add the live domain under Authentication → URL Configuration, and remove the eight
 legacy columns on `smes` (see the comment in `security-and-orders.sql`).
 

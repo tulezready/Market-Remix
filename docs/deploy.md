@@ -55,5 +55,6 @@ branch gets its own preview address for review before it goes live.
 - [ ] `_headers` file with security headers, and a `404.html` page
 - [ ] Legal pages linked in the footer: Terms of use, Refunds & returns, Privacy, Seller terms
 - [ ] `config.js` points at the production Supabase project
-- [ ] Supabase on the **Pro** plan (free projects pause after a week without activity)
+- [ ] Supabase on the **Pro** plan (free projects pause after a week without activity);
+      then delete `.github/workflows/supabase-keepalive.yml`
 - [ ] Sample data removed: `delete from smes where is_sample;`
