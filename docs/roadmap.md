@@ -3,9 +3,12 @@
 *Written 3 October 2026. Replaces the month-by-month order in `build-plan.md` Part C,
 which assumed the backend would start in August.*
 
-**Where we are:** the whole site is designed and live as a preview (Home, Shop, Help &
-about, product and stall pages, register, seller portal, Division panel). It runs on
-sample data. There is no database, login, payment or real listing yet.
+**Where we are:** the whole site is designed and live as a preview. A free Supabase
+project (Sydney) now runs behind it: the Shop reads live listings, checkout places real
+orders in catalogue mode (pay through an agent or by bank transfer), and the register
+form submits applications. Listings are still sample data; card payment, seller logins
+and payouts screens are not built yet. See `docs/payments.md`, `docs/deploy.md`,
+`docs/supabase-setup.md`.
 
 **Launch target:** November. The realistic November launch is **catalogue mode** —
 real businesses and products online, orders taken and paid through agents or bank
@@ -47,15 +50,15 @@ Use `docs/outreach/decisions.md` as the sign-off sheet.
 | # | Task | Owner | Status |
 |---|---|---|---|
 | 6 | **Deploy setup** — publish only site files, `_headers`, `404.html`, `docs/deploy.md`; make the repo private | Claude (files) + You (private repo, Cloudflare) | Next |
-| 7 | **Catalogue mode** — checkout that takes an order and offers *pay an agent* / *bank transfer with reference*; card button appears when a gateway is configured | Claude | To do |
-| 8 | **Seller money screens** (preview) — bank details with verification status, held vs available balance, payout statements; Division payout-run approval with two approvers | Claude | To do |
+| 7 | **Catalogue mode** — checkout that takes an order and offers *pay an agent* / *bank transfer with reference*; card button appears when a gateway is configured | Claude | **Done** — `place_order` + checkout |
+| 8 | **Seller money screens** — bank details with verification status, held vs available balance, payout statements; Division payout-run approval with two approvers | Claude | Database done (`sme_private`, `seller_balances`, `payouts`); screens to do |
 
 ## Priority 3 — Backend (starts when the Supabase plan is paid)
 
 | # | Task | Notes |
 |---|---|---|
-| 9 | Supabase Pro in **Sydney**; run `db/schema.sql`; phone-number sign-in (SMS) | `docs/supabase-setup.md` |
-| 10 | Shop, product and stall pages read live data; seller portal and Division panel get real logins | Replaces `shop-data.js` sample data |
+| 9 | Supabase in **Sydney** — **free project created, schema and security fixes applied, sample data loaded**. Still: Pro plan before launch, phone-number sign-in (SMS) | `docs/supabase-setup.md` |
+| 10 | Shop, product and stall pages read live data (**done**); seller portal and Division panel get real logins (to do) | `config.js` |
 | 11 | Gateway integration via the gateway's hosted payment page; **server-side** payment confirmation; settlement ledger | Needs task 1 approved |
 | 12 | Payout runs, refunds, disputes, daily reconciliation | Needs D2, D5 and task 2 |
 | 13 | SMS notifications (order placed, ready, Send home recipient) | Pick an SMS provider |
@@ -73,6 +76,9 @@ Use `docs/outreach/decisions.md` as the sign-off sheet.
 ---
 
 ## Already done
+
+- Free Supabase project with schema, security fixes (private bank/contact details, server-side order pricing, working application submission), settings, payouts tables, sample data; live Shop and catalogue-mode checkout
+- Plans written up: `docs/payments.md` (gateways, money flow, accounts), `docs/deploy.md` (Cloudflare Pages + maketples.com.pg)
 
 - Full redesign: East New Britain palette and motifs, shop-first layout, Home / Shop / Help & about split
 - Product, stall, register, seller and Division pages on the same design
