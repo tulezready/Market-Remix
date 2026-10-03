@@ -205,13 +205,14 @@
     background:
       radial-gradient(60% 50% at 56% 88%, rgba(255,194,46,0.55), transparent 70%),
       linear-gradient(180deg,#120B12 0%,#24122A 26%,#5A1A2C 50%,#B5301F 72%,#F07A22 90%,#FFB13B 100%);
-    padding:74px 0 0;
+    padding:52px 0 0;
   }
   .hero .wrap{position:relative;z-index:3;}
   .hero-grid{
-    display:grid;grid-template-columns:1.1fr 0.9fr;gap:48px;align-items:center;
-    padding-bottom:clamp(150px,17vw,250px);
+    display:grid;grid-template-columns:1.3fr 0.7fr;gap:48px;align-items:center;
+    padding-bottom:clamp(110px,10vw,170px);
   }
+  .hero-grid > div{min-width:0;}
   .live{
     display:inline-flex;align-items:center;gap:10px;
     background:rgba(251,246,238,0.08);border:1px solid rgba(251,246,238,0.2);
@@ -223,8 +224,8 @@
   .live .tp{color:var(--gold);}
   .hero h1{
     font-family:'Unbounded',sans-serif;font-weight:800;
-    font-size:clamp(36px,5.2vw,74px);line-height:1;letter-spacing:-0.03em;
-    margin:26px 0 0;text-shadow:0 4px 40px rgba(0,0,0,.35);
+    font-size:clamp(34px,4.6vw,64px);line-height:1.02;letter-spacing:-0.03em;
+    margin:22px 0 0;text-shadow:0 4px 40px rgba(0,0,0,.35);
   }
   .hero h1 .ln{display:block;overflow:hidden;padding-bottom:.06em;}
   .hero h1 .ln > span{display:block;transform:translateY(105%);animation:rise 1.05s cubic-bezier(.16,1,.3,1) forwards;animation-delay:var(--ld,0ms);}
@@ -233,13 +234,21 @@
     background:linear-gradient(100deg,#FFE08A 0%,var(--gold) 40%,var(--ember) 100%);
     -webkit-background-clip:text;background-clip:text;color:transparent;
   }
-  .hero .lede{font-size:17px;line-height:1.7;color:rgba(251,246,238,0.8);max-width:50ch;margin:26px 0 0;}
+  .hero .lede{font-size:17px;line-height:1.65;color:rgba(251,246,238,0.82);max-width:52ch;margin:18px 0 0;}
   .hero .lede b{color:#fff;font-weight:600;}
-  .hero-cta{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap;}
   .hero .btn-o{border-color:rgba(251,246,238,0.36);color:var(--ash);background:rgba(251,246,238,0.06);backdrop-filter:blur(8px);}
   .hero .btn-o:hover{background:var(--ash);color:var(--ink);border-color:var(--ash);}
 
-  .quick{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:28px;}
+  .hsearch{
+    display:flex;align-items:center;gap:10px;background:#fff;border-radius:100px;
+    padding:6px 6px 6px 22px;margin-top:26px;max-width:620px;
+    box-shadow:0 0 0 5px rgba(255,194,46,0.25),0 24px 50px -20px rgba(0,0,0,0.65);
+  }
+  .hsearch .icon{width:20px;height:20px;color:var(--muted);}
+  .hsearch input{flex:1;min-width:0;border:none;outline:none;background:none;font-size:15.5px;color:var(--ink);padding:10px 0;}
+  .hsearch input::-webkit-search-cancel-button{display:none;}
+  .hsearch .btn{padding:14px 26px;box-shadow:none;}
+  .quick{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:18px;}
   .quick .ql{font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(251,246,238,0.5);margin-right:4px;}
   .quick button{
     background:rgba(251,246,238,0.1);border:1px solid rgba(251,246,238,0.18);color:var(--ash);
@@ -248,9 +257,9 @@
   .quick button:hover{background:var(--ash);color:var(--ink);transform:translateY(-1px);}
 
   /* arch-framed slideshow */
-  .hero-fig{position:relative;justify-self:center;width:100%;max-width:470px;}
+  .hero-fig{position:relative;justify-self:center;width:100%;max-width:360px;}
   .arch{
-    position:relative;aspect-ratio:4/5;border-radius:999px 999px 26px 26px;overflow:hidden;
+    position:relative;aspect-ratio:1/1.15;border-radius:999px 999px 26px 26px;overflow:hidden;
     background:#2a1520;
     box-shadow:0 0 0 6px rgba(255,194,46,0.9),0 0 0 14px rgba(20,14,16,0.35),0 50px 90px -30px rgba(0,0,0,0.7);
   }
@@ -273,7 +282,7 @@
   }
   .scap .biz{display:block;font-family:'Unbounded',sans-serif;font-weight:700;font-size:21px;color:#fff;line-height:1.15;}
   .scap .loc{font-size:12px;color:rgba(251,246,238,0.7);margin-top:5px;}
-  .sdots{display:flex;gap:6px;justify-content:center;margin-top:30px;}
+  .sdots{display:flex;gap:6px;justify-content:center;margin-top:22px;}
   .sdot{
     width:30px;height:4px;border-radius:100px;border:none;padding:0;
     background:rgba(251,246,238,0.28);position:relative;overflow:hidden;
@@ -292,8 +301,8 @@
     box-shadow:0 24px 50px -18px rgba(0,0,0,0.6);
     animation:bob 6s ease-in-out infinite;
   }
-  .ticket.t1{left:-74px;top:16%;}
-  .ticket.t2{right:-56px;top:56%;animation-delay:-3s;}
+  .ticket.t1{left:-110px;top:14%;}
+  .ticket.t2{right:-50px;top:60%;animation-delay:-3s;}
   @keyframes bob{50%{transform:translateY(-10px);}}
   .ticket .th{width:52px;height:52px;border-radius:12px;overflow:hidden;flex-shrink:0;background:var(--sand);display:flex;align-items:center;justify-content:center;}
   .ticket .th img{width:100%;height:100%;object-fit:cover;}
@@ -305,7 +314,7 @@
   .ticket .add{width:32px;height:32px;}
 
   /* the caldera scene */
-  .scene{position:absolute;left:0;right:0;bottom:0;z-index:1;pointer-events:none;height:clamp(200px,24vw,360px);}
+  .scene{position:absolute;left:0;right:0;bottom:0;z-index:1;pointer-events:none;height:clamp(150px,16vw,250px);}
   .scene svg{width:100%;height:100%;display:block;}
   .plume circle{animation:drift 14s ease-in-out infinite;transform-box:fill-box;transform-origin:center;}
   .plume circle:nth-child(2){animation-delay:-3s;}
@@ -361,6 +370,48 @@
   .band-hd h2 em,.h2 em{font-style:normal;color:var(--red);}
   .band-hd .sub{font-size:15px;color:var(--muted);margin:14px 0 0;max-width:56ch;line-height:1.7;}
 
+  /* ---------- shop rows: categories + rail ---------- */
+  .row-hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:18px;}
+  .sec-t{font-family:'Unbounded',sans-serif;font-weight:700;font-size:clamp(22px,2.6vw,32px);letter-spacing:-0.02em;line-height:1.1;margin-top:10px;}
+  .see{font-size:13.5px;font-weight:700;color:var(--red);white-space:nowrap;}
+  .see:hover{text-decoration:underline;}
+  .cats{padding:40px 0 8px;}
+  .cats .sec-t{margin-top:0;}
+  .cat-row{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;}
+  .ctile{
+    background:#fff;border:1px solid var(--hair-2);border-radius:18px;padding:18px 10px 16px;
+    display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;color:var(--ink);
+    transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s,border-color .3s;
+  }
+  .ctile:hover{transform:translateY(-4px);border-color:var(--tc);box-shadow:0 16px 30px -18px rgba(20,14,16,.4);}
+  .ctile .ci{width:64px;height:64px;border-radius:50%;background:var(--t);color:var(--tc);display:flex;align-items:center;justify-content:center;margin-bottom:8px;transition:transform .3s;}
+  .ctile:hover .ci{transform:scale(1.08) rotate(-6deg);}
+  .ctile .cat-icon{width:30px;height:30px;color:currentColor;opacity:1;}
+  .ctile b{font-size:13px;font-weight:700;line-height:1.25;}
+  .ctile small{font-size:11.5px;color:var(--muted);}
+  .strip{padding:36px 0 12px;}
+  .sarrows{display:flex;gap:8px;}
+  .sarrows button{width:42px;height:42px;border-radius:50%;border:1px solid var(--hair);background:#fff;font-size:16px;transition:.2s;}
+  .sarrows button:hover{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .rail{
+    display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 4 * 18px) / 5);gap:18px;
+    overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 20px;scrollbar-width:none;
+  }
+  .rail::-webkit-scrollbar{display:none;}
+  .rail .card{scroll-snap-align:start;border:1px solid var(--hair-2);}
+  .rail .card:hover{transform:translateY(-4px);}
+  .mtool{display:flex;gap:12px;align-items:stretch;margin-bottom:16px;}
+  .msrch{flex:1;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--hair);border-radius:14px;padding:0 16px;transition:.2s;}
+  .msrch:focus-within{border-color:var(--red);box-shadow:0 0 0 4px rgba(210,35,28,0.1);}
+  .msrch .icon{color:var(--muted);}
+  .msrch input{flex:1;min-width:0;border:none;outline:none;background:none;font-size:15px;padding:13px 0;}
+  .mtool select{padding:0 14px;min-height:48px;border-radius:14px;border:1px solid var(--hair);background:#fff;font-size:13px;font-weight:600;color:var(--ink);}
+  .more{text-align:center;margin-top:30px;}
+  .more .btn-o{background:#fff;}
+
+  /* ---------- mobile shop bar ---------- */
+  .mbar{display:none;}
+
   /* ---------- districts ---------- */
   .districts{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
   .dcard{
@@ -388,8 +439,7 @@
   .d-pomio{background:linear-gradient(165deg,#0A2416 0%,#14532F 55%,var(--leaf) 100%);}
 
   /* ---------- market ---------- */
-  #market{background:var(--sand);}
-  #market::before{content:"";position:absolute;left:0;right:0;top:0;height:12px;}
+  #market{background:var(--sand);padding-top:56px;margin-top:28px;}
   .frow{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;align-items:center;scrollbar-width:none;}
   .frow::-webkit-scrollbar{display:none;}
   .flabel{font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);padding-right:10px;flex-shrink:0;}
@@ -439,8 +489,19 @@
   .card h3 a:hover{text-decoration:underline;}
   .card .dist{font-size:11.5px;color:var(--leaf);font-weight:700;display:flex;align-items:center;gap:5px;}
   .card .dist::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;}
-  .card .foot{margin-top:auto;padding-top:14px;display:flex;align-items:center;justify-content:space-between;}
-  .card .price{font-family:'Unbounded',sans-serif;font-size:17px;font-weight:700;color:var(--ink);}
+  .card .pr-row{margin-top:auto;padding-top:12px;display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;}
+  .card .price{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:700;color:var(--ink);}
+  .card .unit{font-size:11.5px;color:var(--muted);}
+  .addb{
+    margin-top:12px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--ink);color:#fff;border:none;border-radius:12px;padding:11px 10px;
+    font-size:13px;font-weight:700;transition:background .2s,transform .15s;
+  }
+  .addb:hover{background:var(--red);}
+  .addb:active{transform:scale(.97);}
+  .stk{position:absolute;left:12px;bottom:12px;z-index:2;font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:100px;}
+  .stk.low{background:var(--red);color:#fff;}
+  .stk.fresh{background:var(--leaf);color:#fff;}
   .add{
     background:var(--ink);color:#fff;border:none;width:38px;height:38px;border-radius:50%;
     font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center;transition:.25s;flex-shrink:0;
@@ -703,8 +764,10 @@
     .grid{grid-template-columns:repeat(3,1fr);}
     .districts{grid-template-columns:repeat(2,1fr);}
     .notices{grid-template-columns:repeat(2,1fr);}
-    .hero-grid{grid-template-columns:1fr;gap:56px;}
-    .hero-fig{max-width:420px;}
+    .hero-grid{grid-template-columns:1fr;gap:0;}
+    .hero-fig{display:none;}
+    .cat-row{grid-template-columns:repeat(4,1fr);}
+    .rail{grid-auto-columns:calc((100% - 2 * 16px) / 3);gap:16px;}
     .cross{left:auto;right:8%;top:6%;}
     .hero-trust .wrap{grid-template-columns:repeat(2,1fr);}
     .hero-trust .it:nth-child(3){border-left:none;padding-left:0;}
@@ -731,18 +794,51 @@
     .gov .wrap{justify-content:center;text-align:center;}
     .gov span:last-child{display:none;}
 
-    .hero{padding-top:38px;}
-    .hero h1{margin-top:20px;}
-    .hero .lede{font-size:15.5px;margin-top:18px;}
-    .hero-cta{margin-top:24px;}
-    .hero-cta .btn,.hero-cta .btn-o{flex:1;justify-content:center;padding:15px 16px;}
-    .hero-grid{gap:44px;padding-bottom:150px;}
-    .hero-fig{max-width:330px;}
-    .ticket{width:200px;padding:7px 8px 7px 7px;gap:9px;}
-    .ticket .th{width:44px;height:44px;}
-    .ticket.t1{left:-14px;top:8%;}
-    .ticket.t2{right:-14px;top:62%;}
-    .scap .biz{font-size:17px;}
+    .hero{padding-top:26px;}
+    .hero h1{margin-top:0;font-size:31px;}
+    .hero .lede{font-size:15px;margin-top:12px;}
+    .hsearch{padding:5px 5px 5px 16px;margin-top:20px;gap:8px;}
+    .hsearch input{font-size:15px;}
+    .hsearch .btn{padding:12px 16px;}
+    .hero-grid{padding-bottom:84px;}
+    .scene{height:130px;}
+    .quick{margin-top:14px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:-16px;padding-right:16px;}
+    .quick::-webkit-scrollbar{display:none;}
+    .quick button{flex:0 0 auto;}
+    .live{display:none;}
+    .sec-t{font-size:20px;}
+    .see{font-size:12.5px;}
+
+    .cats{padding:26px 0 4px;}
+    .row-hd{margin-bottom:14px;}
+    .cat-row{display:flex;overflow-x:auto;gap:10px;margin:0 -16px;padding:2px 16px 8px;scroll-snap-type:x proximity;scrollbar-width:none;}
+    .cat-row::-webkit-scrollbar{display:none;}
+    .ctile{flex:0 0 104px;padding:14px 8px 12px;border-radius:16px;scroll-snap-align:start;}
+    .ctile .ci{width:52px;height:52px;margin-bottom:6px;}
+    .ctile .cat-icon{width:26px;height:26px;}
+    .ctile b{font-size:12px;}
+    .strip{padding:24px 0 4px;}
+    .sarrows{display:none;}
+    .rail{grid-auto-columns:46%;gap:10px;margin:0 -16px;padding:2px 16px 16px;scroll-padding:0 16px;}
+    #market{padding-top:36px;margin-top:16px;}
+    .mtool{flex-direction:column;gap:8px;}
+    .mtool select{min-height:44px;}
+    .addb{padding:10px 6px;font-size:12px;gap:6px;border-radius:10px;}
+    .card .price{font-size:15px;}
+    .card .unit{font-size:10.5px;}
+    .stk{left:9px;bottom:9px;font-size:9.5px;padding:4px 8px;}
+
+    .mbar{
+      display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:165;
+      background:rgba(20,14,16,0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      padding:6px 6px calc(6px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,194,46,0.3);
+    }
+    .mbar button{background:none;border:none;color:rgba(251,246,238,0.8);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;font-weight:600;padding:6px 0;position:relative;}
+    .mbar button:active{color:var(--gold);}
+    .mbar .icon{width:22px;height:22px;}
+    .mbar .bcount{position:absolute;top:0;left:calc(50% + 4px);min-width:17px;height:17px;font-size:9px;}
+    body{padding-bottom:68px;}
+    #previewBar{bottom:calc(62px + env(safe-area-inset-bottom)) !important;}
     .hero-trust .wrap{grid-template-columns:1fr 1fr;}
     .hero-trust .it{padding:16px 10px;font-size:12px;}
     .hero-trust .it:nth-child(odd){padding-left:0;border-left:none;}
@@ -800,11 +896,10 @@
   @media (max-width:400px){
     .wrap{padding:0 13px;}
     .brand .dv{display:none;}
-    .hero-cta{flex-direction:column;}
-    .ticket{display:none;}
-    .grid{grid-template-columns:1fr;}
-    .card .ph{aspect-ratio:16/10;}
+    .hsearch .btn{padding:12px 14px;font-size:13.5px;}
     .frow{margin:0 -13px;padding:0 13px 10px;}
+    .cat-row,.rail{margin:0 -13px;padding-left:13px;padding-right:13px;}
+    .quick{margin-right:-13px;padding-right:13px;}
   }
   @media (hover:none){
     .card:hover,.sme-card:hover,.notice:hover,.dcard:hover{transform:none;}
@@ -825,6 +920,7 @@
 <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
   <symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
   <symbol id="ic-bag" viewBox="0 0 24 24"><path d="M6 8h12l-1.2 12.5a1 1 0 0 1-1 .5H8.2a1 1 0 0 1-1-.5L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></symbol>
+  <symbol id="ic-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></symbol>
   <symbol id="ic-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
   <symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.2 7.5 9.5 4.3-1.3 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m8.8 12 2.2 2.2 4.3-4.4"/></symbol>
   <symbol id="ic-card" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="6.5" y1="14.5" x2="10" y2="14.5"/></symbol>
@@ -858,16 +954,16 @@
       </span>
     </a>
     <nav class="main" aria-label="Sections">
+      <a href="#cats">Categories</a>
       <a href="#market">Market</a>
       <a href="#districts">Districts</a>
-      <a href="#smes">Our SMEs</a>
       <a href="#send-home">Send home</a>
       <a href="#how">Sell with us</a>
     </nav>
     <div class="hdr-act">
       <div class="srch">
         <svg class="icon" aria-hidden="true" style="color:var(--muted);"><use href="#ic-search"/></svg>
-        <input type="text" id="q" placeholder="Search cocoa, bilum, vanilla…" oninput="render()" aria-label="Search">
+        <input type="text" id="q" placeholder="Search cocoa, bilum, vanilla…" oninput="syncQ(this)" aria-label="Search">
       </div>
       <button class="basket" onclick="openCart()"><svg class="icon" aria-hidden="true"><use href="#ic-bag"/></svg> Basket <span class="bcount" id="bcount">0</span></button>
     </div>
@@ -889,18 +985,17 @@
   <div class="wrap">
     <div class="hero-grid">
       <div>
-        <span class="live rv"><i></i> <span><span class="tp">Kam baim!</span> &nbsp;Verified local sellers, now online</span></span>
+        <span class="live rv"><i></i> <span><span class="tp">Kam baim!</span> &nbsp;Grown in volcanic soil · made by island hands</span></span>
         <h1>
-          <span class="ln"><span style="--ld:60ms">Grown in</span></span>
-          <span class="ln"><span style="--ld:160ms">volcanic soil.</span></span>
-          <span class="ln"><span style="--ld:260ms" class="hot">Made by</span></span>
-          <span class="ln"><span style="--ld:360ms" class="hot">island hands.</span></span>
+          <span class="ln"><span style="--ld:60ms">Shop the best of</span></span>
+          <span class="ln"><span style="--ld:160ms" class="hot">East New Britain.</span></span>
         </h1>
-        <p class="lede rv" style="--d:120ms">Cocoa from the <b>Gazelle</b>, vanilla from <b>Kokopo</b>’s gardens, bilum from <b>Rabaul</b>’s weavers, honey from the <b>Pomio</b> forest — straight from the businesses of East New Britain to you, wherever you are.</p>
-        <div class="hero-cta rv" style="--d:200ms">
-          <button class="btn" onclick="go('market')">Shop the maket <span class="arr">→</span></button>
-          <a class="btn-o" href="register.html">Sell with us</a>
-        </div>
+        <p class="lede rv" style="--d:120ms">Cocoa, vanilla, coffee, bilum and fresh garden food from verified local businesses — collected, delivered, or sent home to family.</p>
+        <form class="hsearch rv" style="--d:200ms" role="search" onsubmit="heroSearch(event)">
+          <svg class="icon" aria-hidden="true"><use href="#ic-search"/></svg>
+          <input type="search" id="heroQ" placeholder="What are you looking for? Try cocoa, bilum…" oninput="syncQ(this)" aria-label="Search the market" autocomplete="off">
+          <button class="btn" type="submit">Search</button>
+        </form>
         <div class="quick rv" style="--d:280ms">
           <span class="ql">Popular</span>
           <button onclick="quick('Cocoa')">Cocoa</button>
@@ -986,46 +1081,57 @@
   </div>
 </section>
 
-<div class="hero-trust">
+<!-- ======================= CATEGORIES ======================= -->
+<section class="cats" id="cats">
   <div class="wrap">
-    <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-shield"/></svg><span><b>Verified sellers</b>Every SME checked by the Division</span></div>
-    <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-card"/></svg><span><b>Pay your way</b>Card, BSP Pay or cash via an agent</span></div>
-    <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-home"/></svg><span><b>Send it home</b>Buy from anywhere for family in ENB</span></div>
-    <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-people"/></svg><span><b>Money stays local</b>Paid straight to the business</span></div>
+    <div class="row-hd">
+      <h2 class="sec-t">Shop by category</h2>
+      <a class="see" href="#market">See all products →</a>
+    </div>
+    <div class="cat-row" id="catTiles"></div>
   </div>
-</div>
-<div class="tambu" aria-hidden="true"></div>
+</section>
 
-<div class="marq-wrap" aria-hidden="true">
-  <div class="marq"><div class="marq-track" id="marq"></div></div>
-</div>
-
-<!-- ======================= DISTRICTS ======================= -->
-<section class="band" id="districts">
+<!-- ======================= FRESH RAIL ======================= -->
+<section class="strip" id="fresh">
   <div class="wrap">
-    <div class="band-hd rv">
+    <div class="row-hd">
       <div>
-        <span class="eyebrow"><span class="tp">Fopela distrik, wanpela maket</span></span>
-        <h2>Four districts. <em>One maket.</em></h2>
-        <p class="sub">From the smoking cone of Tavurvur to the rivers of Pomio, every corner of the province has something to sell. Pick a district to see what it grows and makes.</p>
+        <span class="eyebrow"><span class="tp">Nupela long maket</span>&nbsp;· Featured</span>
+        <h2 class="sec-t">Fresh in the maket</h2>
+      </div>
+      <div class="sarrows">
+        <button onclick="scrollRail(-1)" aria-label="Scroll back">←</button>
+        <button onclick="scrollRail(1)" aria-label="Scroll forward">→</button>
       </div>
     </div>
-    <div class="districts" id="districtGrid"></div>
+    <div class="rail" id="rail"></div>
   </div>
 </section>
 
 <!-- ======================= MARKET ======================= -->
 <section class="band" id="market">
   <div class="wrap">
-    <div class="band-hd rv">
+    <div class="row-hd">
       <div>
-        <span class="eyebrow"><span class="tp">Maket</span>&nbsp;· Browse</span>
-        <h2>Fresh in the <em>maket</em></h2>
-        <p class="sub">Every listing comes from an SME verified by the Division. Filter by industry or district, or search by product and business name.</p>
+        <span class="eyebrow"><span class="tp">Maket</span>&nbsp;· All products</span>
+        <h2 class="sec-t">Browse the market</h2>
       </div>
     </div>
 
-    <div class="rv">
+    <div>
+      <div class="mtool">
+        <label class="msrch">
+          <svg class="icon" aria-hidden="true"><use href="#ic-search"/></svg>
+          <input type="search" id="mq" placeholder="Search products or businesses" oninput="syncQ(this)" aria-label="Search products" autocomplete="off">
+        </label>
+        <select id="sort" onchange="setSort(this.value)" aria-label="Sort products">
+          <option value="feat">Sort: Featured</option>
+          <option value="lo">Price: low to high</option>
+          <option value="hi">Price: high to low</option>
+          <option value="az">Name: A to Z</option>
+        </select>
+      </div>
       <div class="frow" id="catRow">
         <span class="flabel">Industry</span>
         <button class="chip on" data-c="all" onclick="setCat('all',this)">All industries</button>
@@ -1052,6 +1158,35 @@
     </div>
 
     <div class="grid" id="grid"></div>
+    <div class="more" id="moreWrap" style="display:none;"><button class="btn-o" id="moreBtn" onclick="showAll=true;render();"></button></div>
+  </div>
+</section>
+
+<div class="hero-trust">
+  <div class="wrap">
+    <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-shield"/></svg><span><b>Verified sellers</b>Every SME checked by the Division</span></div>
+    <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-card"/></svg><span><b>Pay your way</b>Card, BSP Pay or cash via an agent</span></div>
+    <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-home"/></svg><span><b>Send it home</b>Buy from anywhere for family in ENB</span></div>
+    <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-people"/></svg><span><b>Money stays local</b>Paid straight to the business</span></div>
+  </div>
+</div>
+<div class="tambu" aria-hidden="true"></div>
+
+<div class="marq-wrap" aria-hidden="true">
+  <div class="marq"><div class="marq-track" id="marq"></div></div>
+</div>
+
+<!-- ======================= DISTRICTS ======================= -->
+<section class="band" id="districts">
+  <div class="wrap">
+    <div class="band-hd rv">
+      <div>
+        <span class="eyebrow"><span class="tp">Fopela distrik, wanpela maket</span></span>
+        <h2>Four districts. <em>One maket.</em></h2>
+        <p class="sub">From the smoking cone of Tavurvur to the rivers of Pomio, every corner of the province has something to sell. Pick a district to see what it grows and makes.</p>
+      </div>
+    </div>
+    <div class="districts" id="districtGrid"></div>
   </div>
 </section>
 <div class="bilum" aria-hidden="true"></div>
@@ -1267,6 +1402,14 @@
   </div>
 </footer>
 
+<!-- MOBILE SHOP BAR -->
+<nav class="mbar" aria-label="Shop">
+  <button onclick="go('top')"><svg class="icon" aria-hidden="true"><use href="#ic-retail"/></svg>Home</button>
+  <button onclick="go('cats')"><svg class="icon" aria-hidden="true"><use href="#ic-grid"/></svg>Categories</button>
+  <button onclick="mSearch()"><svg class="icon" aria-hidden="true"><use href="#ic-search"/></svg>Search</button>
+  <button onclick="openCart()"><svg class="icon" aria-hidden="true"><use href="#ic-bag"/></svg>Basket<span class="bcount" id="bcount2">0</span></button>
+</nav>
+
 <!-- BASKET -->
 <div class="ovl" id="ovl" onclick="closeCart()"></div>
 <aside class="drawer" id="drawer" aria-label="Basket">
@@ -1343,7 +1486,8 @@
 /* SMES, P, SLIDES, CONFIG now live in shop-data.js, shared with
    sme.html and product.html. This page reads them via Shop.* once
    loadShop() resolves — see boot() near the end of this script. */
-let SMES = [], P = [], cat = 'all', dist = 'all';
+let SMES = [], P = [], cat = 'all', dist = 'all', sortMode = 'feat', showAll = false;
+const PAGE = 12;  // products shown before "Show all"
 const sme = getSme;  // alias kept so the rest of this file reads the same as before
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1362,8 +1506,81 @@ function go(id){
 function ph(msg){ alert(msg); }
 function quick(term){
   clearAll();  // a popular-search chip starts from the whole market, not the last filter
-  document.getElementById('q').value = term;
-  render(); go('market');
+  setQuery(term);
+  go('market');
+}
+
+/* ---------- search: header, hero and market boxes stay in step ---------- */
+const QIDS = ['q','heroQ','mq'];
+function setQuery(v, from){
+  QIDS.forEach(id=>{ const x = document.getElementById(id); if(x && x !== from) x.value = v; });
+  render();
+}
+function syncQ(el){ setQuery(el.value, el); }
+function heroSearch(e){ e.preventDefault(); go('market'); }
+function mSearch(){
+  go('market');
+  setTimeout(()=>document.getElementById('mq').focus({preventScroll:true}), reduce ? 0 : 500);
+}
+function setSort(v){ sortMode = v; render(); }
+
+/* ---------- category tiles ---------- */
+const CATS = [
+  {c:"produce",    n:"Fresh Produce",       bg:"#E3F4E8", fg:"#1D8A4B"},
+  {c:"foodcrops",  n:"Food Crops & Spices", bg:"#FFF1CC", fg:"#B37400"},
+  {c:"crafts",     n:"Arts & Crafts",       bg:"#FBE3DC", fg:"#C2361E"},
+  {c:"tailoring",  n:"Tailoring",           bg:"#E7E4F6", fg:"#5A46A8"},
+  {c:"processing", n:"Processed Goods",     bg:"#F3E6DA", fg:"#5B3220"},
+  {c:"retail",     n:"Retail",              bg:"#DDF0F0", fg:"#0A4F5C"},
+  {c:"wholesale",  n:"Wholesale & Bulk",    bg:"#ECE8E2", fg:"#4A3A33"},
+];
+function renderCats(){
+  document.getElementById('catTiles').innerHTML = CATS.map(x=>{
+    const n = P.filter(p=>p.c===x.c).length;
+    return `<button class="ctile" style="--t:${x.bg};--tc:${x.fg}" onclick="byCat('${x.c}')">
+      <span class="ci">${catIcon(x.c)}</span>
+      <b>${x.n}</b><small>${n} item${n===1?'':'s'}</small>
+    </button>`;
+  }).join('');
+}
+function byCat(c){
+  clearAll();
+  const b = document.querySelector(`#catRow .chip[data-c="${c}"]`);
+  if(b) setCat(c, b);
+  go('market');
+}
+
+/* ---------- product card, shared by the rail and the grid ---------- */
+const money = n => 'K' + Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2});
+function cardHTML(p, i){
+  const s = sme(p.s);
+  const img = photoURL(p.ph);
+  const tag = (p.stock != null && p.stock <= 5) ? `<span class="stk low">Only ${p.stock} left</span>`
+            : p.fresh ? `<span class="stk fresh">Fresh</span>` : '';
+  return `<article class="card">
+    <a class="ph" href="product.html?p=${i}">
+      ${p.b ? `<span class="badge">${p.b}</span>` : ''}${tag}
+      ${img ? `<img src="${img}" alt="${clean(p.n)}" loading="lazy">` : catIcon(p.c)}
+    </a>
+    <div class="bd">
+      <a class="sme" href="sme.html?s=${p.s}">${s ? s.n : ''}</a>
+      <h3><a href="product.html?p=${i}">${p.n}</a></h3>
+      <span class="dist">${s ? s.d + ' District' : ''}</span>
+      <div class="pr-row"><span class="price">${money(p.p)}</span>${p.u ? `<span class="unit">${p.u}</span>` : ''}</div>
+      <button class="addb" onclick="add(${i})" aria-label="Add ${clean(p.n)} to basket"><svg class="icon" aria-hidden="true"><use href="#ic-bag"/></svg><span>Add to basket</span></button>
+    </div>
+  </article>`;
+}
+
+/* ---------- "Fresh in the maket" rail: badged and fresh items first ---------- */
+function renderRail(){
+  const score = p => (p.b ? 2 : 0) + (p.fresh ? 1 : 0) + (p.ph ? 1 : 0);
+  const items = P.map((p,i)=>({p,i})).sort((a,b)=>score(b.p)-score(a.p)).slice(0,10);
+  document.getElementById('rail').innerHTML = items.map(({p,i})=>cardHTML(p,i)).join('');
+}
+function scrollRail(d){
+  const r = document.getElementById('rail');
+  r.scrollBy({left: d * r.clientWidth * 0.9, behavior: reduce ? 'auto' : 'smooth'});
 }
 
 /* ---------- districts ---------- */
@@ -1408,7 +1625,7 @@ function renderPicks(){
       <div class="tx">
         <span class="tb">${p.b}</span>
         <h4><a href="product.html?p=${i}">${p.n}</a></h4>
-        <span class="pr">K${p.p.toFixed(2)}</span>
+        <span class="pr">${money(p.p)}</span>
       </div>
       <button class="add" onclick="add(${i})" aria-label="Add ${clean(p.n)} to basket">+</button>
     </div>`).join('');
@@ -1539,7 +1756,7 @@ function notice(showBar){
 
 function boot(){
   render(); renderSmes(); renderCart();
-  renderDistricts(); renderPicks();
+  renderDistricts(); renderPicks(); renderCats(); renderRail();
   buildStage();
   stop();
   if(reduce){
@@ -1576,29 +1793,22 @@ function render(){
     vis.length + (vis.length === 1 ? ' PRODUCT' : ' PRODUCTS') + (filtered ? ' MATCHING' : ' LISTED');
   document.getElementById('fclearWrap').style.display = filtered ? 'inline' : 'none';
 
+  const more = document.getElementById('moreWrap');
   if(!vis.length){
     g.innerHTML = '<div class="none">No products match those filters.<br>Try a different industry or district.</div>';
+    more.style.display = 'none';
     return;
   }
-  g.innerHTML = vis.map(({p,i})=>{
-    const s = sme(p.s);
-    const img = photoURL(p.ph);
-    return `<article class="card">
-      <a class="ph" href="product.html?p=${i}">
-        ${p.b ? `<span class="badge">${p.b}</span>` : ''}
-        ${img ? `<img src="${img}" alt="${clean(p.n)}" loading="lazy">` : catIcon(p.c)}
-      </a>
-      <div class="bd">
-        <a class="sme" href="sme.html?s=${p.s}">${s ? s.n : ''}</a>
-        <h3><a href="product.html?p=${i}">${p.n}</a></h3>
-        <span class="dist">${s ? s.d + ' District' : ''}</span>
-        <div class="foot">
-          <span class="price">K${p.p.toFixed(2)}</span>
-          <button class="add" onclick="add(${i})" aria-label="Add to basket">+</button>
-        </div>
-      </div>
-    </article>`;
-  }).join('');
+  const by = {
+    lo: (a,b)=>a.p.p-b.p.p,
+    hi: (a,b)=>b.p.p-a.p.p,
+    az: (a,b)=>clean(a.p.n).localeCompare(clean(b.p.n)),
+  }[sortMode];
+  const list = by ? vis.slice().sort(by) : vis;
+  const shown = (filtered || showAll) ? list : list.slice(0, PAGE);
+  g.innerHTML = shown.map(({p,i})=>cardHTML(p,i)).join('');
+  more.style.display = shown.length < list.length ? 'block' : 'none';
+  document.getElementById('moreBtn').textContent = `Show all ${list.length} products`;
 }
 
 function renderSmes(){
@@ -1639,7 +1849,7 @@ function byDist(d){
 }
 function clearAll(){
   cat='all'; dist='all';
-  document.getElementById('q').value='';
+  QIDS.forEach(id=>{ const x = document.getElementById(id); if(x) x.value=''; });
   document.querySelectorAll('#catRow .chip').forEach(x=>x.classList.remove('on'));
   document.querySelector('#catRow .chip[data-c="all"]').classList.add('on');
   document.querySelectorAll('#distRow .chip').forEach(x=>x.classList.remove('on'));
@@ -1666,6 +1876,7 @@ function chg(idx,d){
 function renderCart(){
   const { cart, sub, del, total } = cartTotals();
   document.getElementById('bcount').textContent = cartCount();
+  document.getElementById('bcount2').textContent = cartCount();
   const it = document.getElementById('ditems'), ft = document.getElementById('dfoot');
   if(!cart.length){
     it.innerHTML = '<div class="empty">Your basket is empty.<br>Add something from the market.</div>';
