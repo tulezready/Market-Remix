@@ -1,0 +1,23 @@
+# Security headers for Cloudflare Pages. Applies to every page and file.
+# If a new outside service is added (an SMS widget, a payment page script),
+# add its address to the Content-Security-Policy below or the browser will block it.
+# A card gateway that is reached by posting a form needs its address in form-action.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+
+# The Division panel and seller portal should never be indexed or cached.
+/admin*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+/seller*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+
+# Photos rarely change; let browsers keep them for a week.
+/photos/*
+  Cache-Control: public, max-age=604800

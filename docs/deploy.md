@@ -33,7 +33,9 @@ domain record. The site must never depend on one person's login.
    (Add a domain → Free plan). Note the two nameservers Cloudflare assigns.
 3. **Create the Pages project**: Workers & Pages → Create → Pages → Connect to Git →
    choose the repository → production branch `main` → *Framework preset: None*,
-   *Build command: none*, *Build output directory: `/`* → Save and deploy.
+   *Build command:* `sh scripts/build-site.sh`, *Build output directory:* `dist` →
+   Save and deploy. The build copies only the website into `dist/`, so `docs/`, `db/`
+   and the design files are never published even if the repository is public.
 4. **Add custom domains** in the Pages project: `maketples.com.pg` and
    `www.maketples.com.pg`.
 5. **Apply to Unitech** with the two Cloudflare nameservers and the K300 receipt —
@@ -49,11 +51,15 @@ branch gets its own preview address for review before it goes live.
 
 ## Before going public
 
-- [ ] Repository private; only site files published (pages, `site.css`, `site.js`,
-      `shop-data.js`, `config.js`, `logo*.{svg,png}`, `photos/`, `tools/` if the intake
-      tool should be reachable)
-- [ ] `_headers` file with security headers, and a `404.html` page
-- [ ] Legal pages linked in the footer: Terms of use, Refunds & returns, Privacy, Seller terms
+- [x] Only site files published — `scripts/build-site.sh` (pages, styles, scripts,
+      `config.js`, logos, photo images, `tools/intake.html`, `tools/sme-form.pdf`)
+- [ ] Repository private
+- [x] `_headers` with security headers (a content security policy listing every outside
+      service the site uses — update it when adding one) and a `404.html` page
+- [x] Legal pages drafted and linked from every footer, checkout and the register form
+      (`legal.html`)
+- [ ] Legal pages reviewed, placeholders decided (decisions D6), merchant of record named,
+      and the "Draft for review" note removed
 - [ ] `config.js` points at the production Supabase project
 - [ ] Supabase on the **Pro** plan (free projects pause after a week without activity);
       then delete `.github/workflows/supabase-keepalive.yml`

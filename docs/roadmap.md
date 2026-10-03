@@ -43,13 +43,13 @@ Use `docs/outreach/decisions.md` as the sign-off sheet.
 | 2 | **Ruling on holding SME funds** (National Payment System Act 2013) — Division finance/legal, and Bank of PNG if needed | You + Division | Draft ready | `docs/outreach/holding-funds-ruling.md` |
 | 3 | **Domain** — Cloudflare account in the merchant-of-record's name, then Unitech `.com.pg` application with Cloudflare nameservers (K300) | You | Details ready | `docs/outreach/domain-application.md` |
 | 4 | **SME data and photography** — templates to the districts, photo trips booked. *The build plan's biggest risk: 150+ photos, must start by early October* | Division | Not started | Templates: `tools/sme-form.pdf`, `tools/intake.html`; photo guide `photos/README.md` |
-| 5 | **Legal pages** — Terms of use, Refunds & returns, Privacy, Seller terms. Gateways ask to see these before approving | Claude drafts → Division legal reviews | Next | Must name the D1 entity |
+| 5 | **Legal pages** — Terms of use, Refunds & returns, Privacy, Seller terms. Gateways ask to see these before approving | Claude drafts → Division legal reviews | **Drafted** — `legal.html`, linked from every footer, checkout and the register form | Placeholders listed in decisions D6; must name the D1 entity |
 
 ## Priority 2 — Build now (not blocked)
 
 | # | Task | Owner | Status |
 |---|---|---|---|
-| 6 | **Deploy setup** — publish only site files, `_headers`, `404.html`, `docs/deploy.md`; make the repo private | Claude (files) + You (private repo, Cloudflare) | Next |
+| 6 | **Deploy setup** — publish only site files, `_headers`, `404.html`, `docs/deploy.md`; make the repo private | Claude (files) + You (private repo, Cloudflare) | **Files done** (`scripts/build-site.sh`, `_headers`, `404.html`); Cloudflare account and private repo still to do |
 | 7 | **Catalogue mode** — checkout that takes an order and offers *pay an agent* / *bank transfer with reference*; card button appears when a gateway is configured | Claude | **Done** — `place_order` + checkout |
 | 8 | **Seller money screens** — bank details with verification status, held vs available balance, payout statements; Division payout-run approval with two approvers | Claude | Database done (`sme_private`, `seller_balances`, `payouts`); screens to do |
 
@@ -78,6 +78,7 @@ Use `docs/outreach/decisions.md` as the sign-off sheet.
 ## Already done
 
 - Free Supabase project with schema, security fixes (private bank/contact details, server-side order pricing, working application submission), settings, payouts tables, sample data; live Shop and catalogue-mode checkout
+- Draft legal pages (`legal.html`), 404 page, security headers and a build step that publishes only the website
 - Plans written up: `docs/payments.md` (gateways, money flow, accounts), `docs/deploy.md` (Cloudflare Pages + maketples.com.pg)
 
 - Full redesign: East New Britain palette and motifs, shop-first layout, Home / Shop / Help & about split

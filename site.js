@@ -109,6 +109,7 @@ const OVERLAYS = `<!-- BASKET -->
       <div class="coerr" id="coErr" role="alert" hidden></div>
       <button class="co-btn" id="coBtn" type="submit">Place order</button>
       <div class="mnote" id="coNote">You pay after the order is placed. Nothing is charged now.</div>
+      <div class="mnote coterms">By placing an order you agree to the <a href="legal.html#terms">Terms of use</a> and <a href="legal.html#refunds">Refunds policy</a>. <a href="legal.html#privacy">How we use your details</a>.</div>
     </form>
 
     <div class="mbd" id="coDone" hidden tabindex="-1"></div>

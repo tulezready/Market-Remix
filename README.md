@@ -15,6 +15,11 @@ Built for the **Division of Commerce & Industry**, East New Britain Provincial A
 | `index.html` | Home page — search, categories, featured products, districts, sellers | Buyers |
 | `shop.html` | The full market. Filters live in the address, e.g. `shop.html?cat=crafts&district=Rabaul` | Buyers |
 | `about.html` | Help & about — how buying works, Send home, agents, selling, the Division, notices, contact | Buyers, sellers |
+| `legal.html` | Terms of use, Refunds & returns, Privacy, Seller terms — **draft for review** | Buyers, sellers, payment gateways |
+| `404.html` | Page-not-found page | — |
+| `_headers` | Security headers for Cloudflare Pages | — |
+| `scripts/build-site.sh` | Copies only the public website into `dist/` for Cloudflare Pages | Deploy |
+| `.github/workflows/supabase-keepalive.yml` | Keeps the free Supabase project from pausing; delete after the Pro upgrade | — |
 | `site.css` / `site.js` | Shared styles, header behaviour, basket, checkout and phone shop bar for the three pages above | — |
 | `design-system/maketples-enb/MASTER.md` | The design system: palette and where each colour comes from, type, touch, motion and performance rules, pre-delivery checklist | Anyone changing the look |
 | `.claude/skills/ui-ux-pro-max/` | UI/UX rulebook and search tool (MIT) used by Claude Code when designing; it reads `MASTER.md` first | Claude Code sessions |

@@ -46,7 +46,7 @@ Bank and account type that receives buyer payments: ____________________________
 | Delivery charge (currently K15, free over K150) | ______________________ |
 | Minimum order (currently K15, a placeholder) | K______ |
 | Informal (unregistered) sellers allowed? On what terms? | ______________________ |
-| Refund window for buyers | ______ days |
+| Refund window for buyers | see D6 |
 
 ### D5. Named responsibilities
 
@@ -60,6 +60,29 @@ Payouts must be approved by someone who **cannot** change SME bank details.
 | Changes / verifies SME bank details | ______________________ |
 | Handles buyer complaints and disputes | ______________________ |
 | Platform operator after handover | ______________________ |
+
+### D6. Policy details (the highlighted words on `legal.html`)
+
+The draft Terms of use, Refunds, Privacy and Seller terms are written. These are
+the placeholders in them; the draft value is shown.
+
+| Item | Draft | Decision |
+|---|---|---|
+| Unpaid orders cancelled after | 3 days | ______ |
+| Collection window — fresh produce / other goods | 2 days / 14 days | ______ |
+| Report non-delivery within | 7 days | ______ |
+| Report damaged / wrong items within (fresh produce) | 48 hours (24 hours) | ______ |
+| Refund decision given within | 5 working days | ______ |
+| Refund paid within (after approval) | 10 working days | ______ |
+| Seller must confirm or decline an order within | 24 hours | ______ |
+| Seller eligibility | IPA registration and a bank account in the business name | ______ |
+| Order and payment records kept for | 7 years | ______ |
+| Unsuccessful applications deleted after | 12 months | ______ |
+| Reply to privacy requests within | 30 days | ______ |
+| Contact for complaints and privacy requests (phone, email) | — | ______________________ |
+
+Legal review: the policies must be checked by the Division's legal adviser before they
+come into force, including against the ICCC Act and any data-protection requirements.
 
 ---
 
