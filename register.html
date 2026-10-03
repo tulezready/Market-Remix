@@ -6,16 +6,20 @@
 <title>Register your business — MaketPles ENB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   .icon{width:1em;height:1em;display:inline-block;vertical-align:-0.15em;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
   :root{
-    --red:#7E0F12; --red-lt:#A81B1F; --red-dp:#560A0C;
-    --green:#00702F; --green-br:#12A94B; --green-gl:#1FD066;
-    --ink:#0C0B0A; --ink-2:#1A1815;
-    --bone:#FBF8F1; --bone-2:#F2ECDF; --bone-3:#E5DDCC;
-    --muted:#79715F;
-    --hair:rgba(12,11,10,0.13); --hair-2:rgba(12,11,10,0.06);
+    /* the East New Britain blend — see site.css for where each colour comes from */
+    --red:#C8321E; --red-lt:#D9472F; --red-dp:#9E2414;          /* tubuan red */
+    --green:#2E7D3A; --green-br:#3A9A49; --green-gl:#7FD48F;    /* leaf green */
+    --amber:#B8871A; --amber-lt:#E9B949;                        /* kumul gold */
+    --gold:#E9B949; --pink:#E2508E; --pink-dp:#B8336E;          /* Sulka pink */
+    --harbour:#0F5C68; --cocoa:#5B3220;
+    --ink:#161214; --ink-2:#241C1A;                             /* black sand */
+    --bone:#FAF4EA; --bone-2:#F3E6CC; --bone-3:#E6D3B0;         /* bark cloth, tambu shell */
+    --muted:#786B60;
+    --hair:rgba(22,18,20,0.13); --hair-2:rgba(22,18,20,0.06);
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
@@ -28,11 +32,15 @@
   a{color:var(--red);}
   :focus-visible{outline:2px solid var(--green-br);outline-offset:2px;}
 
-  .ribbon{height:5px;background:repeating-linear-gradient(115deg,
-    var(--red) 0 20px, transparent 20px 23px, var(--green) 23px 43px,
-    transparent 43px 46px, var(--ink) 46px 66px, transparent 66px 69px);
-    background-color:var(--bone-2);}
-  .gov{background:var(--ink);color:rgba(251,248,241,.72);font-family:'Space Mono',monospace;
+  .ribbon{height:12px;
+    background:
+      linear-gradient(135deg, var(--red) 25%, transparent 25%) -4px 0 / 8px 7px repeat-x,
+      linear-gradient(225deg, var(--red) 25%, transparent 25%) -4px 0 / 8px 7px repeat-x,
+      repeating-linear-gradient(90deg, var(--gold) 0 8px, var(--pink) 8px 16px) 0 5px / 100% 2px no-repeat,
+      linear-gradient(315deg, var(--green) 25%, transparent 25%) 0 100% / 8px 7px repeat-x,
+      linear-gradient(45deg,  var(--green) 25%, transparent 25%) 0 100% / 8px 7px repeat-x;
+    background-color:var(--ink);}
+  .gov{background:var(--ink);color:rgba(250,244,234,.72);font-family:'Space Mono',monospace;
     font-size:10px;letter-spacing:.12em;padding:10px 20px;text-transform:uppercase;text-align:center;}
   .gov b{color:#fff;font-weight:400;}
 
@@ -40,7 +48,7 @@
   .hdr{max-width:940px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;gap:12px;}
   .hdr img{width:42px;height:42px;border-radius:50%;background:#fff;padding:2px;
     box-shadow:0 0 0 1.5px var(--red);flex-shrink:0;}
-  .hdr .nm{font-family:'Bodoni Moda',serif;font-size:22px;line-height:1;}
+  .hdr .nm{font-family:'Unbounded',sans-serif;letter-spacing:-0.015em;font-size:22px;line-height:1;}
   .hdr .dv{font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.15em;
     text-transform:uppercase;color:var(--muted);margin-top:4px;}
   .hdr .lnk{margin-left:auto;font-size:13px;font-weight:700;}
@@ -51,13 +59,13 @@
   .intro{padding:44px 0 30px;}
   .eyebrow{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.22em;
     text-transform:uppercase;color:var(--red-lt);font-weight:700;}
-  .intro h1{font-family:'Bodoni Moda',serif;font-size:clamp(30px,5.4vw,50px);line-height:1.02;
+  .intro h1{font-family:'Unbounded',sans-serif;letter-spacing:-0.015em;font-size:clamp(30px,5.4vw,50px);line-height:1.02;
     letter-spacing:-.025em;margin:16px 0 0;}
   .intro h1 i{font-style:italic;color:var(--red);}
-  .intro p{font-size:16px;line-height:1.7;color:#413B31;max-width:56ch;margin:18px 0 0;}
+  .intro p{font-size:16px;line-height:1.7;color:#4A3D36;max-width:56ch;margin:18px 0 0;}
   .helpbox{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0 0;}
   .help{background:var(--bone);border:1px solid var(--hair-2);border-radius:13px;padding:18px;}
-  .help .n{font-family:'Bodoni Moda',serif;font-size:22px;color:var(--green);line-height:1;}
+  .help .n{font-family:'Unbounded',sans-serif;letter-spacing:-0.015em;font-size:22px;color:var(--green);line-height:1;}
   .help h3{font-size:14px;font-weight:800;margin:9px 0 5px;}
   .help p{font-size:12.5px;color:var(--muted);line-height:1.6;margin:0;}
 
@@ -73,7 +81,7 @@
 
   .card{background:var(--bone);border:1px solid var(--hair-2);border-radius:16px;
     padding:28px;margin-bottom:22px;}
-  .card h2{font-family:'Bodoni Moda',serif;font-size:24px;margin-bottom:6px;}
+  .card h2{font-family:'Unbounded',sans-serif;letter-spacing:-0.015em;font-size:24px;margin-bottom:6px;}
   .card .lead{font-size:13.5px;color:var(--muted);margin-bottom:22px;line-height:1.6;}
 
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
@@ -86,17 +94,17 @@
     border-radius:10px;background:#fff;outline:none;transition:.18s;}
   .fr textarea{resize:vertical;min-height:92px;}
   .fr input:focus,.fr select:focus,.fr textarea:focus{
-    border-color:var(--green);box-shadow:0 0 0 4px rgba(0,112,47,.09);}
+    border-color:var(--green);box-shadow:0 0 0 4px rgba(46,125,58,.09);}
   .fr input.bad,.fr select.bad,.fr textarea.bad{
-    border-color:var(--red);box-shadow:0 0 0 4px rgba(126,15,18,.08);}
+    border-color:var(--red);box-shadow:0 0 0 4px rgba(200,50,30,.08);}
   .hint{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.55;}
-  .hint.warn{color:#6B4A05;background:#FBF0D8;border-radius:8px;padding:10px 12px;}
+  .hint.warn{color:#8A6410;background:#FBF0D2;border-radius:8px;padding:10px 12px;}
 
   .radios{display:grid;gap:9px;}
   .radio{display:flex;gap:11px;align-items:flex-start;padding:13px 15px;
     border:1px solid var(--hair);border-radius:11px;background:#fff;cursor:pointer;transition:.18s;}
   .radio:hover{border-color:var(--ink);}
-  .radio.sel{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,112,47,.09);}
+  .radio.sel{border-color:var(--green);box-shadow:0 0 0 3px rgba(46,125,58,.09);}
   .radio input{width:auto;margin-top:3px;flex-shrink:0;}
   .radio .t{font-size:13.5px;font-weight:700;}
   .radio .d{font-size:12px;color:var(--muted);line-height:1.55;margin-top:2px;}
@@ -130,7 +138,7 @@
   .pic .im{aspect-ratio:1;position:relative;background:var(--bone-3);}
   .pic .im img{width:100%;height:100%;object-fit:cover;display:block;}
   .pic .rm{position:absolute;top:5px;right:5px;width:23px;height:23px;border-radius:50%;
-    background:rgba(12,11,10,.72);color:#fff;border:none;font-size:13px;line-height:1;
+    background:rgba(22,18,20,.72);color:#fff;border:none;font-size:13px;line-height:1;
     display:flex;align-items:center;justify-content:center;padding:0;}
   .pic .rm:hover{background:var(--red);}
   .pic select{width:100%;border:none;border-top:1px solid var(--hair-2);border-radius:0;
@@ -138,7 +146,7 @@
   .busy{font-size:12.5px;color:var(--green);font-weight:700;margin-top:10px;display:none;}
   .busy.on{display:block;}
 
-  .err{background:#FBE4E4;color:var(--red-dp);border-radius:11px;padding:13px 16px;
+  .err{background:#F8E0DA;color:var(--red-dp);border-radius:11px;padding:13px 16px;
     font-size:13px;margin-bottom:18px;display:none;line-height:1.6;}
   .err.show{display:block;}
   .err ul{margin:7px 0 0;padding-left:19px;}
@@ -165,8 +173,8 @@
   .done .tick{width:66px;height:66px;border-radius:50%;background:var(--green);
     color:#fff;font-size:31px;display:flex;align-items:center;justify-content:center;
     margin:0 auto 20px;}
-  .done h2{font-family:'Bodoni Moda',serif;font-size:32px;margin-bottom:12px;}
-  .done p{font-size:15px;color:#413B31;max-width:48ch;margin:0 auto 10px;line-height:1.7;}
+  .done h2{font-family:'Unbounded',sans-serif;letter-spacing:-0.015em;font-size:32px;margin-bottom:12px;}
+  .done p{font-size:15px;color:#4A3D36;max-width:48ch;margin:0 auto 10px;line-height:1.7;}
   .refbox{background:var(--ink);color:var(--bone);border-radius:13px;padding:20px;
     margin:24px auto;max-width:340px;}
   .refbox .k{font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.18em;
@@ -182,10 +190,10 @@
   .next p{font-size:12.5px;color:var(--muted);line-height:1.6;margin:0;}
 
   .banner{padding:11px 20px;font-size:12.5px;text-align:center;}
-  .banner.warn{background:#FDF3DC;color:#6B4A05;border-bottom:1px solid #E8D08A;}
+  .banner.warn{background:#FBF0D2;color:#8A6410;border-bottom:1px solid #E8D08A;}
   .banner b{font-weight:800;}
 
-  footer{background:var(--ink);color:rgba(251,248,241,.55);padding:34px 20px;margin-top:40px;
+  footer{background:var(--ink);color:rgba(250,244,234,.55);padding:34px 20px;margin-top:40px;
     font-size:12px;text-align:center;line-height:1.7;}
   footer .l{max-width:620px;margin:0 auto;}
 
@@ -207,7 +215,7 @@
   .btn:hover::after{transform:translateX(120%);transition:transform .75s cubic-bezier(.16,1,.3,1);}
 
   .panel,.card,.stat{transition:box-shadow .3s,border-color .3s;}
-  .stat:hover{box-shadow:0 10px 26px -18px rgba(12,11,10,.4);}
+  .stat:hover{box-shadow:0 10px 26px -18px rgba(22,18,20,.4);}
 
   tbody tr{transition:background .2s;}
 
@@ -263,6 +271,12 @@
     .radio:hover{border-color:var(--hair);}
     .radio:active{border-color:var(--ink);}
   }
+
+  /* brand + display type, matched to the shop pages */
+  .nm b{color:var(--red);font-weight:inherit;}
+  h1,h2,h3{font-weight:700;}
+  .login a{color:var(--red);}
+  .hdr img,.login .brand img{box-shadow:0 0 0 2px var(--gold),0 0 0 4px var(--red);}
 </style>
 </head>
 <body>
@@ -280,7 +294,7 @@
   <div class="hdr">
     <img src="logo.svg" alt="">
     <div>
-      <div class="nm">MaketPles ENB</div>
+      <div class="nm">MaketPles <b>ENB</b></div>
       <div class="dv">Division of Commerce &amp; Industry</div>
     </div>
     <span class="lnk">
