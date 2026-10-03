@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shop — MaketPles ENB</title>
+<meta name="description" content="Browse every product from verified East New Britain businesses — filter by category or district.">
+<meta name="theme-color" content="#161214">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+</head>
+<body data-page="shop">
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<div class="gov">
+  <div class="wrap">
+    <span>An official initiative of the <b>East New Britain Provincial Administration</b></span>
+    <span class="r">Division of Commerce &amp; Industry</span>
+  </div>
+</div>
+
+<header class="site">
+  <div class="wrap hdr">
+    <a class="brand" href="index.html">
+      <span class="logo-ring"><img src="logo.svg" alt="ENBPA Division of Commerce &amp; Industry"></span>
+      <span>
+        <span class="nm">MaketPles <b>ENB</b></span>
+        <span class="dv">Division of Commerce &amp; Industry</span>
+      </span>
+    </a>
+    <nav class="main" aria-label="Main">
+      <a href="shop.html" data-p="shop">Shop</a>
+      <a href="index.html#districts" data-p="districts">Districts</a>
+      <a href="about.html#send-home" data-p="send">Send home</a>
+      <a href="about.html" data-p="about">Help &amp; about</a>
+      <a href="register.html">Sell with us</a>
+    </nav>
+    <div class="hdr-act">
+      <form class="srch" action="shop.html" role="search">
+        <svg class="icon" aria-hidden="true" style="color:var(--muted);"><use href="#ic-search"/></svg>
+        <input type="search" name="q" id="q" placeholder="Search the market…" aria-label="Search the market" autocomplete="off">
+      </form>
+      <button class="basket" onclick="openCart()"><svg class="icon" aria-hidden="true"><use href="#ic-bag"/></svg> Basket <span class="bcount" id="bcount">0</span></button>
+    </div>
+  </div>
+</header>
+
+<!-- ======================= PAGE HEAD ======================= -->
+<section class="page-hd">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span>/</span><span id="crumbNow">Shop</span></nav>
+    <span class="eyebrow"><span class="tp">Maket</span>&nbsp;· Verified sellers only</span>
+    <h1 id="shopTitle">The whole maket</h1>
+    <p id="shopSub">Everything listed by East New Britain businesses verified by the Division.</p>
+  </div>
+</section>
+<div class="bilum" aria-hidden="true"></div>
+
+<!-- ======================= MARKET ======================= -->
+<section class="band shop-body" id="market">
+  <div class="wrap">
+    <div>
+      <div class="mtool">
+        <label class="msrch">
+          <svg class="icon" aria-hidden="true"><use href="#ic-search"/></svg>
+          <input type="search" id="mq" placeholder="Search products or businesses" oninput="syncQ(this)" aria-label="Search products" autocomplete="off">
+        </label>
+        <select id="sort" onchange="setSort(this.value)" aria-label="Sort products">
+          <option value="feat">Sort: Featured</option>
+          <option value="lo">Price: low to high</option>
+          <option value="hi">Price: high to low</option>
+          <option value="az">Name: A to Z</option>
+        </select>
+      </div>
+      <div class="frow" id="catRow"></div>
+      <div class="frow" id="distRow"></div>
+      <div class="fmeta">
+        <span id="fcount">—</span>
+        <span id="fclearWrap" style="display:none;"><button onclick="clearAll()">Clear filters ×</button></span>
+      </div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+    <div class="more" id="moreWrap" style="display:none;"><button class="btn-o" id="moreBtn" onclick="shown += PAGE; render();"></button></div>
+  </div>
+</section>
+
+<div class="hero-trust">
+  <div class="wrap">
+    <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-shield"/></svg><span><b>Verified sellers</b>Every SME checked by the Division</span></div>
+    <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-card"/></svg><span><b>Pay your way</b>Card, BSP Pay or cash via an agent</span></div>
+    <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-home"/></svg><span><b>Send it home</b>Buy from anywhere for family in ENB</span></div>
+    <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-people"/></svg><span><b>Money stays local</b>Paid straight to the business</span></div>
+  </div>
+</div>
+<div class="tambu" aria-hidden="true"></div>
+
+<div class="bilum" aria-hidden="true"></div>
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div>
+        <div class="fbrand">
+          <span class="logo-ring" style="width:38px;height:38px;"><img src="logo.svg" alt=""></span>
+          <span class="nm">MaketPles <b>ENB</b></span>
+        </div>
+        <p class="fnote">Design preview only. “MaketPles ENB” is a working name. Products, SMEs, statistics, notices and contact details shown here are placeholders for design purposes and do not represent real businesses or listings. No payments are processed on this page.</p>
+      </div>
+      <div class="flinks">
+        <a href="shop.html">Shop</a>
+        <a href="index.html#districts">Districts</a>
+        <a href="index.html#smes">Our SMEs</a>
+        <a href="about.html#how">How it works</a>
+        <a href="about.html#send-home">Send home</a>
+        <a href="about.html#agents">Agents</a>
+        <a href="register.html">Sell with us</a>
+        <a href="about.html#contact">Contact</a>
+        <a href="seller.html">Seller sign-in</a>
+      </div>
+    </div>
+    <div class="fbase">
+      <span>© 2026 East New Britain Provincial Administration — Division of Commerce &amp; Industry</span>
+      <span>Rabaul · Kokopo · Gazelle · Pomio</span>
+    </div>
+  </div>
+</footer>
+
+<script src="shop-data.js"></script>
+<script src="site.js"></script>
+<script>
+/* ============================================================
+   SHOP — the full catalogue.
+   Filters live in the address (shop.html?cat=crafts&district=Rabaul&q=bilum&sort=lo)
+   so any view can be bookmarked, shared or linked from the home page.
+   ============================================================ */
+const PAGE = 24;   // products per "Show more"
+let cat = 'all', dist = 'all', sortMode = 'feat', shown = PAGE;
+const QIDS = ['q','mq'];
+const params = new URLSearchParams(location.search);
+
+function chipRows(){
+  const count = c => P.filter(p=>p.c===c).length;
+  const dcount = d => P.filter(p=>{ const s = sme(p.s); return s && s.d===d; }).length;
+  document.getElementById('catRow').innerHTML =
+    '<span class="flabel">Category</span>' +
+    `<button class="chip${cat==='all'?' on':''}" data-c="all" onclick="setCat('all')">All <small>${P.length}</small></button>` +
+    CATS.map(x=>`<button class="chip${cat===x.c?' on':''}" data-c="${x.c}" onclick="setCat('${x.c}')">${x.n} <small>${count(x.c)}</small></button>`).join('');
+  document.getElementById('distRow').innerHTML =
+    '<span class="flabel">District</span>' +
+    `<button class="chip dist${dist==='all'?' on':''}" data-d="all" onclick="setDist('all')">All districts</button>` +
+    DISTRICT_NAMES.map(d=>`<button class="chip dist${dist===d?' on':''}" data-d="${d}" onclick="setDist('${d}')">${d} <small>${dcount(d)}</small></button>`).join('');
+}
+
+function query(){ return (document.getElementById('mq').value || '').trim(); }
+function visible(){
+  const t = clean(query().toLowerCase());
+  return P.map((p,i)=>({p,i})).filter(({p})=>{
+    if(cat !== 'all' && p.c !== cat) return false;
+    const s = sme(p.s);
+    if(dist !== 'all' && (!s || s.d !== dist)) return false;
+    if(t){
+      const hay = clean((p.n + ' ' + (s ? s.n + ' ' + s.d : '')).toLowerCase());
+      if(!hay.includes(t)) return false;
+    }
+    return true;
+  });
+}
+
+function syncURL(){
+  const u = new URLSearchParams();
+  if(cat !== 'all') u.set('cat', cat);
+  if(dist !== 'all') u.set('district', dist);
+  if(query()) u.set('q', query());
+  if(sortMode !== 'feat') u.set('sort', sortMode);
+  const s = u.toString();
+  history.replaceState(null, '', s ? '?' + s : location.pathname);
+}
+
+function heading(){
+  const c = CATS.find(x=>x.c===cat);
+  let title = c ? c.n : 'The whole maket';
+  if(dist !== 'all') title = c ? `${c.n} from ${dist}` : `Shop ${dist} District`;
+  if(query()) title = `Results for “${query()}”`;
+  document.getElementById('shopTitle').textContent = title;
+  document.getElementById('crumbNow').textContent = (c || dist !== 'all' || query()) ? title : 'Shop';
+  document.title = (title === 'The whole maket' ? 'Shop' : title) + ' — MaketPles ENB';
+}
+
+function render(){
+  const vis = visible();
+  const g = document.getElementById('grid');
+  const filtered = cat!=='all' || dist!=='all' || query();
+  document.getElementById('fcount').textContent =
+    vis.length + (vis.length === 1 ? ' PRODUCT' : ' PRODUCTS') + (filtered ? ' MATCHING' : ' LISTED');
+  document.getElementById('fclearWrap').style.display = filtered ? 'inline' : 'none';
+  heading(); syncURL();
+
+  const more = document.getElementById('moreWrap');
+  if(!vis.length){
+    g.innerHTML = `<div class="none">Nothing matches that yet.<br>Try another category or district — or <a href="#" onclick="clearAll();return false;" style="color:var(--red);font-weight:700;">see everything</a>.</div>`;
+    more.style.display = 'none';
+    return;
+  }
+  const by = {
+    lo: (a,b)=>a.p.p-b.p.p,
+    hi: (a,b)=>b.p.p-a.p.p,
+    az: (a,b)=>clean(a.p.n).localeCompare(clean(b.p.n)),
+  }[sortMode];
+  const list = by ? vis.slice().sort(by) : vis;
+  const page = list.slice(0, shown);
+  g.innerHTML = page.map(({p,i})=>cardHTML(p,i)).join('');
+  more.style.display = page.length < list.length ? 'block' : 'none';
+  document.getElementById('moreBtn').textContent = `Show more (${list.length - page.length} left)`;
+}
+
+function setQuery(v, from){
+  QIDS.forEach(id=>{ const x = document.getElementById(id); if(x && x !== from) x.value = v; });
+  shown = PAGE; render();
+}
+function syncQ(el){ setQuery(el.value, el); }
+function setSort(v){ sortMode = v; render(); }
+function setCat(c){ cat = c; shown = PAGE; chipRows(); render(); }
+function setDist(d){ dist = d; shown = PAGE; chipRows(); render(); }
+function clearAll(){
+  cat = 'all'; dist = 'all'; shown = PAGE;
+  QIDS.forEach(id=>{ const x = document.getElementById(id); if(x) x.value=''; });
+  chipRows(); render();
+}
+
+/* on this page the header search filters live instead of navigating */
+document.querySelector('header .srch').addEventListener('submit', e=>{ e.preventDefault(); go('market'); });
+document.getElementById('q').addEventListener('input', e=>syncQ(e.target));
+
+function boot(){
+  const c = params.get('cat'), d = params.get('district'), q = params.get('q'), s = params.get('sort');
+  if(c && CATS.some(x=>x.c===c)) cat = c;
+  if(d && DISTRICT_NAMES.includes(d)) dist = d;
+  if(s && ['lo','hi','az'].includes(s)){ sortMode = s; document.getElementById('sort').value = s; }
+  if(q) QIDS.forEach(id=>{ document.getElementById(id).value = q; });
+  chipRows(); render();
+  if(params.get('focus') === 'search') setTimeout(()=>document.getElementById('mq').focus(), 50);
+}
+Site.start(boot);
+</script>
+
+</body>
+</html>

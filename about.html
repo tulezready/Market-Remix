@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Help & about — MaketPles ENB</title>
+<meta name="description" content="How buying, Send home, agents and selling work on MaketPles ENB, and the Division that stands behind it.">
+<meta name="theme-color" content="#161214">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+</head>
+<body data-page="about">
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<div class="gov">
+  <div class="wrap">
+    <span>An official initiative of the <b>East New Britain Provincial Administration</b></span>
+    <span class="r">Division of Commerce &amp; Industry</span>
+  </div>
+</div>
+
+<header class="site">
+  <div class="wrap hdr">
+    <a class="brand" href="index.html">
+      <span class="logo-ring"><img src="logo.svg" alt="ENBPA Division of Commerce &amp; Industry"></span>
+      <span>
+        <span class="nm">MaketPles <b>ENB</b></span>
+        <span class="dv">Division of Commerce &amp; Industry</span>
+      </span>
+    </a>
+    <nav class="main" aria-label="Main">
+      <a href="shop.html" data-p="shop">Shop</a>
+      <a href="index.html#districts" data-p="districts">Districts</a>
+      <a href="about.html#send-home" data-p="send">Send home</a>
+      <a href="about.html" data-p="about">Help &amp; about</a>
+      <a href="register.html">Sell with us</a>
+    </nav>
+    <div class="hdr-act">
+      <form class="srch" action="shop.html" role="search">
+        <svg class="icon" aria-hidden="true" style="color:var(--muted);"><use href="#ic-search"/></svg>
+        <input type="search" name="q" id="q" placeholder="Search the market…" aria-label="Search the market" autocomplete="off">
+      </form>
+      <button class="basket" onclick="openCart()"><svg class="icon" aria-hidden="true"><use href="#ic-bag"/></svg> Basket <span class="bcount" id="bcount">0</span></button>
+    </div>
+  </div>
+</header>
+
+<!-- ======================= PAGE HEAD ======================= -->
+<section class="page-hd">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span>/</span><span>Help &amp; about</span></nav>
+    <span class="eyebrow"><span class="tp">Olsem wanem?</span>&nbsp;· Help &amp; about</span>
+    <h1>How MaketPles works</h1>
+    <p>Buying, sending home, paying through an agent, selling — and the Division that stands behind it all.</p>
+  </div>
+</section>
+<nav class="subnav" aria-label="On this page">
+  <div class="wrap">
+    <a href="#how">How to buy</a>
+    <a href="#send-home">Send home</a>
+    <a href="#agents">Agents</a>
+    <a href="#sell">Sell with us</a>
+    <a href="#division">The Division</a>
+    <a href="#notices">Notices</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<!-- ======================= HOW ======================= -->
+<section class="band" id="how">
+  <div class="wrap">
+    <div class="band-hd rv">
+      <div>
+        <span class="eyebrow"><span class="tp">Olsem wanem em i wok</span></span>
+        <h2>Two doors, <em>one maket</em></h2>
+        <p class="sub">One platform — whether you’re here to buy or to sell.</p>
+      </div>
+    </div>
+    <div class="tracks">
+      <div class="track rv">
+        <div class="track-hd"><span class="pill">For buyers</span><h3>Shop with confidence</h3></div>
+        <div class="row"><span class="n">01</span><div><h4>Browse verified SMEs</h4><p>Every seller is a registered ENB business. Listings show the business name and district.</p></div></div>
+        <div class="row"><span class="n">02</span><div><h4>Pay your way</h4><p>Card, BSP Pay, or cash through a local agent. Card details are entered on the bank’s secure page — never stored here.</p></div></div>
+        <div class="row"><span class="n">03</span><div><h4>Collect or have it delivered</h4><p>Pick up from the SME, an agent, or choose delivery within serviced areas.</p></div></div>
+        <div class="row"><span class="n">04</span><div><h4>Track to your door</h4><p>Order confirmation and status updates by SMS until it’s in your hands.</p></div></div>
+        <a class="btn red" href="shop.html">Start shopping <span class="arr">→</span></a>
+      </div>
+      <div class="track sell rv" style="--d:110ms">
+        <div class="track-hd"><span class="pill">For SMEs</span><h3>Take your business online</h3></div>
+        <div class="row"><span class="n">01</span><div><h4>Register with the Division</h4><p>Sign up through your district commerce office — support available for IPA and IRC registration if you’re not yet formalised.</p></div></div>
+        <div class="row"><span class="n">02</span><div><h4>List your products</h4><p>Add products and photos through your own seller portal. You set the prices.</p></div></div>
+        <div class="row"><span class="n">03</span><div><h4>Sell and get paid</h4><p>Payments settle to your own bank account. Fees are shown transparently on every sale.</p></div></div>
+        <div class="row"><span class="n">04</span><div><h4>Grow with support</h4><p>Financial literacy, certification and export guidance through the Division and its partners.</p></div></div>
+        <a class="btn-o" href="register.html">Register your SME →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= SEND HOME ======================= -->
+<section class="band home" id="send-home">
+  <div class="wrap two">
+    <div class="rv">
+      <span class="eyebrow"><span class="tp">Salim i go long haus</span></span>
+      <h2 class="h2">Far from home? <em>Send it home.</em></h2>
+      <p class="big">Working in Moresby, Lae, or overseas? Buy on your card from anywhere, name a recipient here in East New Britain, and they collect from the SME or receive local delivery. Built for the wantok system — supporting family shouldn’t need a money transfer office.</p>
+      <a class="btn" href="shop.html">Choose something to send <span class="arr">→</span></a>
+    </div>
+    <div class="flow rv" style="--d:110ms">
+      <div class="sh-row"><span class="sh-d">1</span><div><h4>Fill your basket</h4><p>Browse and add products as normal.</p></div></div>
+      <div class="sh-row"><span class="sh-d">2</span><div><h4>Choose “Send home” at checkout</h4><p>Enter your recipient’s name and PNG mobile number.</p></div></div>
+      <div class="sh-row"><span class="sh-d">3</span><div><h4>Pay from anywhere</h4><p>Card checkout works from any country. No PNG account needed on your side.</p></div></div>
+      <div class="sh-row"><span class="sh-d">4</span><div><h4>They’re notified by SMS</h4><p>Your recipient collects from the SME or receives delivery.</p></div></div>
+    </div>
+  </div>
+</section>
+<div class="tambu" aria-hidden="true"></div>
+
+<!-- ======================= AGENTS ======================= -->
+<section class="band agents" id="agents">
+  <div class="wrap">
+    <div class="band-hd rv">
+      <div>
+        <span class="eyebrow"><span class="tp">Ol agen</span>&nbsp;· Inclusion</span>
+        <h2>No card? <em>No problem.</em></h2>
+        <p class="sub">No smartphone either? A trusted local agent completes the order on the buyer’s behalf — and earns a commission for doing it.</p>
+      </div>
+    </div>
+    <div class="two">
+      <div class="steps rv">
+        <div class="row"><span class="n">01</span><div><h3>Order through someone you trust</h3><p>Agents take orders in person at trade stores, market stalls and community houses, then complete checkout for the buyer.</p></div></div>
+        <div class="row"><span class="n">02</span><div><h3>Cash in, goods out</h3><p>Buyers pay the agent in cash or by EFTPOS; the agent settles the payment digitally through the platform.</p></div></div>
+        <div class="row"><span class="n">03</span><div><h3>A livelihood, not just a service</h3><p>Every completed order pays the agent a commission — designed for people already trusted in their own communities.</p></div></div>
+      </div>
+      <div class="panel rv" style="--d:110ms">
+        <div class="r"><span class="n">120+</span><span class="t">agents targeted across Rabaul and Kokopo at launch</span></div>
+        <div class="r"><span class="n">4</span><span class="t">districts in the rollout plan, expanding province-wide</span></div>
+        <div class="r"><span class="n">1 in 3</span><span class="t">orders expected through an agent, based on comparable PNG platforms</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div style="height:96px"></div>
+<!-- ======================= SELL CTA ======================= -->
+<section class="sellcta" id="sell">
+  <div class="wrap">
+    <div class="box rv">
+      <div>
+        <span class="eyebrow">Got something to sell?</span>
+        <h2>Put your business in front of the whole country.</h2>
+        <p>Gardens, workshops, nurseries, trade stores — if you’re a business in East New Britain, MaketPles gives you a stall that never closes. Registration is handled with your district commerce office.</p>
+      </div>
+      <div class="acts">
+        <a class="btn" href="register.html">Register your SME <span class="arr">→</span></a>
+        <a class="btn-o" href="seller.html">Seller sign-in</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="bilum" aria-hidden="true"></div>
+<!-- ======================= MANDATE + NUMBERS ======================= -->
+<section class="mandate" id="mandate">
+  <svg class="fstars" viewBox="0 0 120 90" aria-hidden="true">
+    <path d="M60 4l2.6 6.8 7.2.3-5.6 4.5 2 7-6.2-4-6.2 4 2-7-5.6-4.5 7.2-.3z"/>
+    <path d="M22 34l2.2 5.6 6 .3-4.6 3.7 1.6 5.8-5.2-3.4-5.2 3.4 1.6-5.8-4.6-3.7 6-.3z"/>
+    <path d="M98 38l2.2 5.6 6 .3-4.6 3.7 1.6 5.8-5.2-3.4-5.2 3.4 1.6-5.8-4.6-3.7 6-.3z"/>
+    <path d="M60 62l2.6 6.8 7.2.3-5.6 4.5 2 7-6.2-4-6.2 4 2-7-5.6-4.5 7.2-.3z"/>
+  </svg>
+  <div class="wrap">
+    <div class="rv">
+      <span class="eyebrow">Our mandate</span>
+      <p class="stmt">To give every verified local business a <u>direct, secure route to market</u> — at home, across Papua New Guinea, and abroad.</p>
+    </div>
+    <div class="m-grid rv" style="--d:100ms">
+      <div class="metric"><div class="n" data-to="35">0</div><div class="t">SMEs in the launch cohort</div></div>
+      <div class="metric"><div class="n" data-to="7">0</div><div class="t">industries represented</div></div>
+      <div class="metric"><div class="n" data-to="4">0</div><div class="t">districts across the province</div></div>
+      <div class="metric"><div class="n" data-pre="K" data-to="15">0</div><div class="t">minimum order, matched to everyday spending</div></div>
+    </div>
+  </div>
+</section>
+<div class="bilum" aria-hidden="true"></div>
+
+<!-- ======================= DIVISION ======================= -->
+<section class="band division" id="division">
+  <div class="wrap">
+    <div class="two" style="align-items:start;">
+      <div class="rv">
+        <span class="eyebrow">The Division</span>
+        <h2 class="h2" style="margin-bottom:22px;">Who stands behind this</h2>
+        <p>The Division of Commerce &amp; Industry is the arm of the East New Britain Provincial Administration responsible for growing the province’s business sector — from business inspections and licensing through to SME development and economic data.</p>
+        <p>MaketPles ENB extends that mandate online, with the Division standing behind seller verification and fair trading — supported by the national agencies and financial institutions working alongside the province’s SME programme.</p>
+        <div class="partners">
+          <span>IPA</span><span>IRC</span><span>BPNG</span><span>CEFI</span><span>NICIT</span>
+          <span>BSP</span><span>KINA BANK</span><span>ENBSL</span><span>KPML</span>
+          <span>DEPT. COMMERCE &amp; INDUSTRY</span><span>INTERNATIONAL TRADE OFFICE</span>
+        </div>
+      </div>
+      <div class="contact rv" id="contact" style="--d:110ms">
+        <h3>Contact the Division</h3>
+        <div class="crow"><span class="k">Office</span><span class="v">Division of Commerce &amp; Industry, ENB Provincial Administration, Kokopo, East New Britain Province</span></div>
+        <div class="crow"><span class="k">Phone</span><span class="v">+675 XXX XXXX <em>(to be confirmed)</em></span></div>
+        <div class="crow"><span class="k">Email</span><span class="v">commerce@enbpa.gov.pg <em>(to be confirmed)</em></span></div>
+        <div class="crow"><span class="k">Hours</span><span class="v">Monday – Friday, 8:00am – 4:06pm</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= NOTICES ======================= -->
+<section class="band" id="notices">
+  <div class="wrap">
+    <div class="band-hd rv">
+      <div>
+        <span class="eyebrow"><span class="tp">Toksave</span>&nbsp;· From the Division</span>
+        <h2>Notices</h2>
+        <p class="sub">Official announcements and programme updates.</p>
+      </div>
+    </div>
+    <div class="notices">
+      <a class="notice rv" href="#" onclick="ph('Full notice pages come with the live build.');return false;">
+        <span class="dt">ONBOARDING</span>
+        <h3>SME listing opens across all four districts</h3>
+        <p>Districts are identifying and supporting businesses across seven industries to join the launch cohort, with registration handled through district commerce offices.</p>
+        <span class="more">Read more →</span>
+      </a>
+      <a class="notice rv" style="--d:90ms" href="#" onclick="ph('Full notice pages come with the live build.');return false;">
+        <span class="dt">PAYMENTS</span>
+        <h3>Secure card checkout in preparation</h3>
+        <p>The Division is finalising merchant gateway arrangements so buyers can pay by Visa and Mastercard, with settlement direct to SME bank accounts.</p>
+        <span class="more">Read more →</span>
+      </a>
+      <a class="notice rv" style="--d:180ms" href="#" onclick="ph('Full notice pages come with the live build.');return false;">
+        <span class="dt">EVENT</span>
+        <h3>Meet the SMEs at the bi-annual conference</h3>
+        <p>The launch cohort will exhibit alongside IPA, IRC, BPNG, NICIT and partner banks — covering registration, compliance, financing and export licensing.</p>
+        <span class="more">Read more →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="bilum" aria-hidden="true"></div>
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div>
+        <div class="fbrand">
+          <span class="logo-ring" style="width:38px;height:38px;"><img src="logo.svg" alt=""></span>
+          <span class="nm">MaketPles <b>ENB</b></span>
+        </div>
+        <p class="fnote">Design preview only. “MaketPles ENB” is a working name. Products, SMEs, statistics, notices and contact details shown here are placeholders for design purposes and do not represent real businesses or listings. No payments are processed on this page.</p>
+      </div>
+      <div class="flinks">
+        <a href="shop.html">Shop</a>
+        <a href="index.html#districts">Districts</a>
+        <a href="index.html#smes">Our SMEs</a>
+        <a href="about.html#how">How it works</a>
+        <a href="about.html#send-home">Send home</a>
+        <a href="about.html#agents">Agents</a>
+        <a href="register.html">Sell with us</a>
+        <a href="about.html#contact">Contact</a>
+        <a href="seller.html">Seller sign-in</a>
+      </div>
+    </div>
+    <div class="fbase">
+      <span>© 2026 East New Britain Provincial Administration — Division of Commerce &amp; Industry</span>
+      <span>Rabaul · Kokopo · Gazelle · Pomio</span>
+    </div>
+  </div>
+</footer>
+
+<script src="shop-data.js"></script>
+<script src="site.js"></script>
+<script>
+/* ============================================================
+   HELP & ABOUT — the questions page. Highlights the section in view.
+   ============================================================ */
+(function(){
+  const links = [...document.querySelectorAll('.subnav a')];
+  const map = new Map(links.map(a=>[a.getAttribute('href').slice(1), a]));
+  if(!('IntersectionObserver' in window)) return;
+  const so = new IntersectionObserver(es=>{
+    es.forEach(e=>{
+      if(!e.isIntersecting) return;
+      links.forEach(a=>a.classList.remove('on'));
+      const a = map.get(e.target.id);
+      if(a){ a.classList.add('on'); a.scrollIntoView({block:'nearest', inline:'center'}); }
+    });
+  }, {rootMargin:'-45% 0px -50% 0px'});
+  map.forEach((a,id)=>{ const el = document.getElementById(id); if(el) so.observe(el); });
+})();
+function boot(){}
+Site.start(boot);
+</script>
+
+</body>
+</html>
