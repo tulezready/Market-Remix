@@ -495,6 +495,7 @@
   .lg-table td{padding:11px 14px;border-top:1px solid var(--hair-2);vertical-align:top;color:var(--ink-2);}
   .lg-table td:first-child{font-weight:700;color:var(--ink);}
   .flegal{display:flex;gap:6px 18px;flex-wrap:wrap;}
+  .prod-trust a{color:var(--harbour);font-weight:700;text-decoration:underline;text-underline-offset:2px;}
   .coterms{margin-top:6px;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:0;line-height:1.55;font-size:12.5px;}
   .coterms a{color:var(--harbour);font-weight:700;text-decoration:underline;text-underline-offset:2px;}
   .flegal a{color:rgba(251,246,238,0.78);}
