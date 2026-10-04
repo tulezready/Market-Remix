@@ -175,9 +175,19 @@ function thumbURL(ref){
 function imgTag(ref, alt){
   const t = thumbURL(ref);
   if(!t) return '';
-  const fallback = t.src !== t.full ? ` onerror="this.onerror=null;this.src='${esc(t.full)}'"` : '';
-  return `<img src="${esc(t.src)}" alt="${esc(alt||'')}" loading="lazy" decoding="async"${fallback}>`;
+  const full = t.src !== t.full ? ` data-full="${esc(t.full)}"` : '';
+  return `<img src="${esc(t.src)}" alt="${esc(alt||'')}" loading="lazy" decoding="async"${full}>`;
 }
+/* A photo that will not load: try the full-size copy once, then hide it so the
+   patterned tile (and the category icon placed after it) shows instead of a
+   broken-image icon and spilled alt text. Works for every <img> on the page. */
+document.addEventListener('error', e => {
+  const img = e.target;
+  if(!img || img.tagName !== 'IMG') return;
+  const full = img.dataset.full;
+  if(full && img.getAttribute('src') !== full){ delete img.dataset.full; img.src = full; return; }
+  img.classList.add('broken');
+}, true);
 
 /* ---------- the product card, shared by every list of products ---------- */
 function cardHTML(p, i){
@@ -188,29 +198,79 @@ function cardHTML(p, i){
   return `<article class="card">
     <a class="ph" href="product.html?p=${i}" tabindex="-1" aria-hidden="true">
       ${p.b ? `<span class="badge">${p.b}</span>` : ''}${tag}
-      ${img ? imgTag(p.ph, clean(p.n)) : catIcon(p.c)}
+      ${img ? imgTag(p.ph, clean(p.n)) : ''}${catIcon(p.c)}
     </a>
     <div class="bd">
       <a class="sme" href="sme.html?s=${p.s}">${s ? s.n : ''}</a>
       <h3><a href="product.html?p=${i}">${p.n}</a></h3>
       <span class="dist">${s ? s.d + ' District' : ''}</span>
       <div class="pr-row"><span class="price">${money(p.p)}</span>${p.u ? `<span class="unit">${p.u}</span>` : ''}</div>
-      <button class="addb" onclick="add('${i}')" aria-label="Add ${clean(p.n)} to basket"><svg class="icon" aria-hidden="true"><use href="#ic-bag"/></svg><span>Add to basket</span></button>
+      <div class="cta" data-cta="${i}">${ctaHTML(i, p)}</div>
     </div>
   </article>`;
 }
 
+/* the card's button: "Add to basket", or a − / + counter once it is in the basket */
+function inBasket(i){ const c = getCart().find(x => String(x.i) === String(i)); return c ? c.q : 0; }
+function ctaHTML(i, p){
+  p = p || getProduct(i);
+  const name = p ? clean(p.n) : 'this product';
+  const q = inBasket(i);
+  if(!q) return `<button class="addb" onclick="add('${i}')" aria-label="Add ${esc(name)} to basket"><svg class="icon" aria-hidden="true"><use href="#ic-bag"/></svg><span>Add to basket</span></button>`;
+  return `<div class="qstep" role="group" aria-label="${esc(name)} in your basket">
+      <button onclick="step('${i}',-1)" aria-label="One less ${esc(name)}">−</button>
+      <span aria-live="polite"><b>${q}</b> in basket</span>
+      <button onclick="step('${i}',1)" aria-label="One more ${esc(name)}">+</button></div>`;
+}
+function syncCTAs(){
+  document.querySelectorAll('[data-cta]').forEach(el => {
+    const html = ctaHTML(el.dataset.cta);
+    if(el.innerHTML !== html){
+      const hadFocus = el.contains(document.activeElement);
+      const which = hadFocus && document.activeElement.textContent.trim();
+      el.innerHTML = html;
+      if(hadFocus){   // keep keyboard focus on the matching control after redrawing
+        const btns = [...el.querySelectorAll('button')];
+        (btns.find(b => b.textContent.trim() === which) || btns[btns.length-1] || btns[0]).focus();
+      }
+    }
+  });
+}
+
 /* ---------- basket ---------- */
-function add(i){
-  cartAdd(i, 1);
-  renderCart(); openCart();
+function bump(){
   const c = document.getElementById('bcount');
   if(c && !reduce){ c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); }
 }
+function add(i){
+  cartAdd(i, 1);
+  renderCart(); bump();
+  const p = getProduct(i);
+  toast(`<b>${p ? p.n : 'Item'}</b> added to your basket`);
+}
+function step(i, d){
+  const idx = getCart().findIndex(x => String(x.i) === String(i));
+  if(idx < 0){ if(d > 0) cartAdd(i, d); } else cartChange(idx, d);
+  renderCart(); if(d > 0) bump();
+}
+let toastTimer;
+function toast(html){
+  let t = document.getElementById('toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'toast'; t.className = 'toast'; t.setAttribute('role', 'status');
+    document.body.appendChild(t);
+  }
+  t.innerHTML = `<span class="tx">${html}</span><button onclick="openCart();hideToast()">View basket</button>`;
+  t.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 3800);
+}
+function hideToast(){ const t = document.getElementById('toast'); if(t) t.classList.remove('on'); }
 function chg(idx,d){ cartChange(idx, d); renderCart(); }
 function renderCart(){
   const { cart, sub, del, total } = cartTotals();
   ['bcount','bcount2'].forEach(id=>{ const e = document.getElementById(id); if(e) e.textContent = cartCount(); });
+  syncCTAs();
   const it = document.getElementById('ditems'), ft = document.getElementById('dfoot');
   if(!cart.length){
     it.innerHTML = '<div class="empty">Your basket is empty.<br><a class="see" href="shop.html">Browse the market →</a></div>';
@@ -222,7 +282,7 @@ function renderCart(){
     const s = sme(p.s);
     const img = photoURL(p.ph);
     return `<div class="ditem">
-      <div class="th"><a href="product.html?p=${c.i}" aria-label="${esc(clean(p.n))}">${img ? imgTag(p.ph, '') : catIcon(p.c)}</a></div>
+      <div class="th"><a href="product.html?p=${c.i}" aria-label="${esc(clean(p.n))}">${img ? imgTag(p.ph, '') : ''}${catIcon(p.c)}</a></div>
       <div class="mt">
         <h4><a href="product.html?p=${c.i}">${p.n}</a></h4>
         <span class="sm">${s ? s.n : ''}</span>
@@ -479,15 +539,35 @@ function notice(showBar){
   };
 }
 
+/* ---------- grey placeholder cards while the products load ---------- */
+function skeletons(){
+  document.querySelectorAll('[data-skel]').forEach(el => {
+    if(el.children.length) return;
+    const n = +el.dataset.skel || 4, kind = el.dataset.skelKind || 'card';
+    el.setAttribute('aria-busy', 'true');
+    el.innerHTML = Array.from({length:n}, () => kind === 'sme'
+      ? '<div class="skel skel-sme" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i></div>'
+      : '<div class="skel skel-card" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i></div>').join('');
+  });
+}
+function unskeleton(){
+  document.querySelectorAll('[aria-busy="true"]').forEach(el => {
+    el.removeAttribute('aria-busy');
+    el.querySelectorAll(':scope > .skel').forEach(x => x.remove());
+  });
+}
+
 /* ---------- start: load the shop data once, then run the page ---------- */
 const Site = {
   start(boot){
     pageBoot = boot;
+    skeletons();
     renderCart();
     initMetrics();
     loadShop().then(()=>{
       SMES = Shop.SMES; P = Shop.P;
       pruneCart();
+      unskeleton();
       boot();
       renderCart();
       observe();

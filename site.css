@@ -640,6 +640,43 @@
   /* ---------- mobile shop bar ---------- */
   .mbar{display:none;}
 
+  /* ---------- photo that failed to load: show the tile and category icon instead ---------- */
+  img.broken{display:none !important;}
+  img:not(.broken) ~ .cat-icon{display:none;}
+
+  /* ---------- the card's basket counter ---------- */
+  .cta{margin-top:12px;position:relative;z-index:2;}
+  .cta .addb{margin-top:0;}
+  .qstep{display:flex;align-items:center;justify-content:space-between;gap:6px;
+    border:2px solid var(--ink);border-radius:12px;background:#fff;min-height:42px;padding:0 3px;}
+  .qstep span{font-size:13px;font-weight:600;color:var(--ink-3);white-space:nowrap;}
+  .qstep b{font-family:'Unbounded',sans-serif;color:var(--ink);font-size:14px;}
+  .qstep button{width:36px;height:36px;border:none;border-radius:9px;background:var(--sand);color:var(--ink);
+    font-size:19px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+  .qstep button:hover{background:var(--gold);}
+
+  /* ---------- "added to your basket" note ---------- */
+  .toast{position:fixed;left:50%;bottom:24px;z-index:180;transform:translate(-50%,140%);opacity:0;
+    display:flex;align-items:center;gap:14px;max-width:calc(100% - 32px);width:max-content;
+    background:var(--ink);color:var(--ash);border-radius:14px;padding:10px 10px 10px 18px;
+    box-shadow:0 18px 40px -16px rgba(20,14,16,.6);font-size:13.5px;
+    transition:transform .35s cubic-bezier(.16,1,.3,1),opacity .25s;pointer-events:none;}
+  .toast.on{transform:translate(-50%,0);opacity:1;pointer-events:auto;}
+  .toast .tx{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+  .toast button{flex-shrink:0;border:none;border-radius:10px;background:var(--gold);color:var(--ink);
+    font-weight:800;font-size:13px;padding:0 14px;min-height:40px;}
+
+  /* ---------- grey placeholder cards while products load ---------- */
+  .skel{border-radius:18px;background:#fff;overflow:hidden;display:flex;flex-direction:column;gap:10px;padding-bottom:18px;
+    border:1px solid var(--hair-2);}
+  .skel i{display:block;border-radius:8px;margin:0 17px;height:12px;
+    background:linear-gradient(90deg,var(--sand-2) 0%,var(--sand) 50%,var(--sand-2) 100%) 0 0 / 200% 100%;
+    animation:skel 1.4s ease-in-out infinite;}
+  .skel-card i.a{margin:0 0 6px;border-radius:0;height:auto;aspect-ratio:1/1;}
+  .skel-card i.b{width:55%;} .skel-card i.c{width:85%;height:16px;} .skel-card i.d{height:40px;border-radius:12px;margin-top:10px;}
+  .skel-sme i.a{margin:0;border-radius:0;height:120px;} .skel-sme i.b{width:70%;height:18px;margin-top:14px;} .skel-sme i.c{width:45%;}
+  @keyframes skel{to{background-position:-200% 0;}}
+
   /* ---------- districts ---------- */
   .districts{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
   .dcard{
@@ -1028,6 +1065,15 @@
   }
   @media (max-width:640px){
     .wrap{padding:0 16px;}
+    /* Meet the makers: a sideways row instead of seven stacked cards */
+    .smes{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;
+      margin:0 -16px;padding:2px 16px 16px;scroll-padding:0 16px;scrollbar-width:none;}
+    .smes::-webkit-scrollbar{display:none;}
+    .smes > *{flex:0 0 80%;min-width:0;scroll-snap-align:start;}
+    .qstep{min-height:44px;}
+    .qstep button{width:40px;height:40px;}
+    .qstep span{font-size:12px;}
+    .toast{bottom:calc(84px + env(safe-area-inset-bottom));}
     .hdr{padding-top:10px;padding-bottom:10px;gap:12px;}
     .srch{display:none;}
     .logo-ring{width:38px;height:38px;}
@@ -1152,7 +1198,8 @@
     .brand .dv{display:none;}
     .hsearch .btn{padding:12px 14px;font-size:13.5px;}
     .frow{margin:0 -13px;padding:0 13px 10px;}
-    .cat-row,.rail{margin:0 -13px;padding-left:13px;padding-right:13px;}
+    .cat-row,.rail,.smes{margin:0 -13px;padding-left:13px;padding-right:13px;}
+    .smes{scroll-padding:0 13px;}
     .prod-actions{margin-left:-13px;margin-right:-13px;padding-left:13px;padding-right:13px;}
     .quick{margin-right:-13px;padding-right:13px;}
   }
@@ -1188,6 +1235,8 @@
     .btn:hover,.btn-o:hover{transform:none;}
   }
   @media (prefers-reduced-motion:reduce){
+    .skel i{animation:none;}
+    .toast{transition:none;}
     *{animation:none!important;transition:none!important;}
     .rv{opacity:1;transform:none;}
     .hero h1 .ln > span{transform:none;}
