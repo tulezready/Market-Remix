@@ -36,6 +36,12 @@ domain record. The site must never depend on one person's login.
    *Build command:* `sh scripts/build-site.sh`, *Build output directory:* `dist` →
    Save and deploy. The build copies only the website into `dist/`, so `docs/`, `db/`
    and the design files are never published even if the repository is public.
+   **If Connect to Git keeps sending you back to GitHub's settings page** (common on phones),
+   publish with GitHub Actions instead — `.github/workflows/cloudflare-pages.yml` builds and
+   uploads the site on every push to `main`. It needs two repository secrets
+   (Settings → Secrets and variables → Actions): `CLOUDFLARE_API_TOKEN` (Cloudflare → My Profile →
+   API Tokens → Create Token → Custom token → *Account · Cloudflare Pages · Edit*) and
+   `CLOUDFLARE_ACCOUNT_ID`. The first run creates the `maketples` Pages project.
 4. **Add custom domains** in the Pages project: `maketples.com.pg` and
    `www.maketples.com.pg`.
 5. **Apply to Unitech** with the two Cloudflare nameservers and the K300 receipt —
