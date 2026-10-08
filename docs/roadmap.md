@@ -29,7 +29,7 @@ Use `docs/outreach/decisions.md` as the sign-off sheet.
 
 | # | Decision | Owner | Why it blocks |
 |---|---|---|---|
-| D1 | **Who is the merchant of record** — the Division/ENBPA, or the operator's company — and who owns the platform after handover | You + Division | The gateway contract, bank account, domain registrant and legal pages all name this entity |
+| D1 | **Merchant of record** — **agreed: the Division (ENBPA)**; it owns the merchant account, bank account and domain; signature pending | Division | The gateway contract, bank account, domain registrant and legal pages all name it |
 | D2 | Platform fee %, agent commission %, payout frequency, holding period before payout | Division | Built into the database and every statement |
 | D3 | **Go/no-go on catalogue mode for November** | You + Division | Decides what gets built in October |
 | D4 | Delivery zones and charges, minimum order (K15 is a placeholder), informal sellers allowed? | Division | Shown at checkout |
@@ -42,8 +42,13 @@ Use `docs/outreach/decisions.md` as the sign-off sheet.
 | 1 | **Payment gateway enquiries** — Cloudcode (KumulPay/IPG), BSP IPG, Kina Bank IPG | You | Draft ready | `docs/outreach/gateway-enquiry.md` |
 | 2 | **Ruling on holding SME funds** (National Payment System Act 2013) — Division finance/legal, and Bank of PNG if needed | You + Division | Draft ready | `docs/outreach/holding-funds-ruling.md` |
 | 3 | **Domain** — Cloudflare account in the merchant-of-record's name, then Unitech `.com.pg` application with Cloudflare nameservers (K300) | You | Details ready | `docs/outreach/domain-application.md` |
+| 3a | **Content to confirm with Abuta Agro** — its description, stock figures (4,800 seedlings; 9 block packs) and the three-week lead time are demo text, not confirmed by the owners | You | Not started | Check before showing it to the Division as fact |
 | 4 | **SME data and photography** — templates to the districts, photo trips booked. *The build plan's biggest risk: 150+ photos, must start by early October* | Division | Not started | Templates: `tools/sme-form.pdf`, `tools/intake.html`; photo guide `photos/README.md` |
-| 5 | **Legal pages** — Terms of use, Refunds & returns, Privacy, Seller terms. Gateways ask to see these before approving | Claude drafts → Division legal reviews | **Drafted** — `legal.html`, linked from every footer, checkout and the register form | Placeholders listed in decisions D6; must name the D1 entity |
+| 5 | **Legal pages** — Terms of use, Refunds & returns, Privacy, Seller terms. Gateways ask to see these before approving | Claude drafts → Division legal reviews | **Drafted** — `legal.html`, linked from every footer, checkout and the register form | Placeholders listed in decisions D6; names the Division as operator |
+
+**Also open (from the planning handoff, 8 Oct):** confirm whether the BSP, Kina Bank and
+PNGUoT letters have been sent; collect the Division's supply list (decision sheet D7); settle
+the domain's DNS host (`docs/outreach/domain-application.md`).
 
 ## Priority 2 — Build now (not blocked)
 

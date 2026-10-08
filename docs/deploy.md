@@ -7,8 +7,8 @@
 | | Choice | Cost |
 |---|---|---|
 | **Hosting** | **Cloudflare Pages**, connected to the GitHub repository | Free plan: unlimited bandwidth, 500 deploys a month, HTTPS included |
-| **Domain** | **maketples.com.pg**, registered with Unitech | K300, then K100 every two years |
-| **DNS** | Cloudflare (free), which Unitech's nameserver requirement needs anyway | Free |
+| **Domain** | **maketples.com.pg**, registered with PNGUoT (Unitech); registrant: the Division | K300, then K100 every two years |
+| **DNS** | Cloudflare if PNGUoT's "zone first" rule can be met; otherwise another DNS host pointing at Cloudflare Pages — see `docs/outreach/domain-application.md` | Free |
 | **Database** | Supabase project `maketples-enb`, Sydney region | Free while building; Pro (US$25/month) before launch |
 
 **Why not stay on GitHub Pages:** GitHub's own rules say Pages may not be used to run an
@@ -20,7 +20,7 @@ fallback if Cloudflare is not possible.
 
 ## Accounts — set these up in the organisation's name
 
-Use a shared work email for the merchant of record (decision D1), turn on two-factor
+Use a shared work email for the Division (the merchant of record, decision D1), turn on two-factor
 sign-in, and add at least **two** admins to each: Cloudflare, GitHub, Supabase, Unitech
 domain record. The site must never depend on one person's login.
 
@@ -29,8 +29,9 @@ domain record. The site must never depend on one person's login.
 1. **Make the GitHub repository private** (Settings → General → Danger zone → Change
    visibility). Cloudflare Pages works with private repositories. Internal documents
    (`docs/`, `db/`) should not be public.
-2. **Create the Cloudflare account** and **add the domain** `maketples.com.pg`
-   (Add a domain → Free plan). Note the two nameservers Cloudflare assigns.
+2. **Create the Cloudflare account.** Adding the domain to it comes later: Cloudflare only
+   accepts a domain that is already registered, which clashes with PNGUoT wanting the zone
+   first. The ways through are in `docs/outreach/domain-application.md`.
 3. **Create the Pages project**: Workers & Pages → Create → Pages → Connect to Git →
    choose the repository → production branch `main` → *Framework preset: None*,
    *Build command:* `sh scripts/build-site.sh`, *Build output directory:* `dist` →
@@ -42,12 +43,11 @@ domain record. The site must never depend on one person's login.
    (Settings → Secrets and variables → Actions): `CLOUDFLARE_API_TOKEN` (Cloudflare → My Profile →
    API Tokens → Create Token → Custom token → *Account · Cloudflare Pages · Edit*) and
    `CLOUDFLARE_ACCOUNT_ID`. The first run creates the `maketples` Pages project.
-4. **Add custom domains** in the Pages project: `maketples.com.pg` and
-   `www.maketples.com.pg`.
-5. **Apply to Unitech** with the two Cloudflare nameservers and the K300 receipt —
-   details and form fields in `docs/outreach/domain-application.md`.
-6. When Unitech activates the domain, Cloudflare shows it as **Active** and issues the
-   HTTPS certificate automatically.
+4. **Register the domain** with PNGUoT — nameservers, payment, the signed and sealed form:
+   `docs/outreach/domain-application.md`.
+5. **Add custom domains** in the Pages project once the domain is active:
+   `maketples.com.pg` and `www.maketples.com.pg`.
+6. Cloudflare issues the HTTPS certificate automatically.
 7. **Tell Supabase about the domain**: Authentication → URL Configuration → Site URL
    `https://maketples.com.pg`, and add it to the redirect URLs.
 8. **Switch GitHub Pages off** (Settings → Pages → Unpublish) so only one copy is public.
@@ -64,7 +64,7 @@ branch gets its own preview address for review before it goes live.
       service the site uses — update it when adding one) and a `404.html` page
 - [x] Legal pages drafted and linked from every footer, checkout and the register form
       (`legal.html`)
-- [ ] Legal pages reviewed, placeholders decided (decisions D6), merchant of record named,
+- [ ] Legal pages reviewed and placeholders decided (decisions D6) — the Division is named as operator,
       and the "Draft for review" note removed
 - [ ] `config.js` points at the production Supabase project
 - [ ] Supabase on the **Pro** plan (free projects pause after a week without activity);

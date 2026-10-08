@@ -25,7 +25,7 @@ should be structured.
 **Proposed flow**
 1. A buyer pays once for a basket (possibly from several SMEs) through a licensed
    payment gateway ([gateway]).
-2. The money settles into **one account** held by [entity from D1].
+2. The money settles into **one account** held by the Division of Commerce & Industry, ENBPA (the merchant of record).
 3. The platform records, per order, what each SME is owed: the sale value less a
    platform fee of [x]% and any agent commission of [y]%.
 4. After delivery and a [n]-day holding period, the SMEs are paid by bank transfer

@@ -7,9 +7,9 @@
 | | |
 |---|---|
 | Project | **maketples-enb** (`pqdstiwpqonvxuocelav`) |
-| Region | **Sydney (ap-southeast-2)** — the closest Supabase region to PNG |
+| Region | **Sydney (ap-southeast-2)** — the closest Supabase region to PNG. *Decided 8 Oct 2026 to keep Sydney rather than start a new Singapore project; the region cannot be changed after a project is created.* |
 | Plan | **Free** while building. Move to **Pro (US$25/month)** before launch: free projects pause after a week without activity |
-| Organisation | Currently in the project lead's own Supabase organisation. **Transfer it to an organisation owned by the merchant of record before handover** (Project Settings → General → Transfer project). |
+| Organisation | Currently in the project lead's own Supabase organisation. **When payment is arranged:** upgrade to Pro and transfer it to an organisation under a project-dedicated email owned by the Division (Project Settings → General → Transfer project). |
 | Website connection | `config.js` (one file, used by every page) |
 | Keep-awake | `.github/workflows/supabase-keepalive.yml` queries the project every Monday and Thursday so the free plan does not pause it. **Delete it after the Pro upgrade** |
 | Data | 7 sample businesses and 24 sample products, flagged `is_sample` |
@@ -130,7 +130,7 @@ When SMS sign-in is added (Pro plan + an SMS provider), mobile-number logins can
 ## 5. Bank transfer details for buyers
 
 Until card payment is live, buyers can pay by bank transfer. Enter the account they
-should pay into (the merchant of record's account, decision D1):
+should pay into (the Division's settlement account, decision D1):
 
 ```sql
 update platform_settings set bank_transfer_details =
@@ -167,7 +167,7 @@ database cannot be reached, the shop falls back to the samples automatically.
 delete from smes where is_sample;
 ```
 
-Then: upgrade to Pro (turn on leaked-password protection under Authentication, and delete `.github/workflows/supabase-keepalive.yml`), transfer the project to the merchant of record's organisation,
+Then: upgrade to Pro (turn on leaked-password protection under Authentication, and delete `.github/workflows/supabase-keepalive.yml`), transfer the project to the Division's organisation,
 add the live domain under Authentication → URL Configuration, and remove the eight
 legacy columns on `smes` (see the comment in `security-and-orders.sql`).
 

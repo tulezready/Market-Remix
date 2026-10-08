@@ -5,7 +5,7 @@
 - **BSP** — ask for the **Internet Payment Gateway (IPG)** for merchants — 3201212 / 70301212, servicebsp@bsp.com.pg
 - **Kina Bank** — **Internet Payment Gateway (IPG)** — via https://www.kinabank.com.pg business banking
 
-Fill the [brackets] from the signed decision sheet (D1) before sending.
+Fill the [brackets] before sending. The merchant is the Division (decision D1).
 
 ---
 
@@ -13,7 +13,7 @@ Fill the [brackets] from the signed decision sheet (D1) before sending.
 
 Dear [Merchant Services / Business Banking team],
 
-[Entity name from D1] is preparing to launch **MaketPles ENB**, the official online
+The Division of Commerce & Industry, East New Britain Provincial Administration, is preparing to launch **MaketPles ENB**, the official online
 marketplace of the East New Britain Provincial Administration's Division of Commerce
 & Industry. It lets verified small and medium businesses in the province sell
 products online to buyers in East New Britain, elsewhere in Papua New Guinea and
