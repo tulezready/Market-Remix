@@ -29,7 +29,8 @@ Built for the **Division of Commerce & Industry**, East New Britain Provincial A
 | `seller.html` | Seller portal — products and photos, orders, money, business and bank details | Approved SMEs |
 | `admin.html` | Division panel — approvals, listing review, oversight, reporting. **Connects to Supabase** — see `docs/supabase-setup.md` | Division staff |
 | `tools/intake.html` | Offline data collection tool | District officers, conference desk |
-| `tools/sme-form.pdf` | Printable one-page field form | Taken to businesses on visits |
+| `tools/forms/` | Printable forms for LLG Business Development Officers: officer guide, two-page SME entry form (one per LLG with the LLG pre-printed, `by-llg/`; all LLGs in `all-llgs.pdf`), and the Division's tracking sheet. Rebuild with `python3 tools/build-form.py` | LLG officers, Division |
+| `tools/sme-form.pdf` | The blank entry form | Taken to businesses on visits |
 | `db/schema.sql` | Core database schema, tested | Run once on a new Supabase project |
 | `db/public-submissions.sql` | Public application support | Run second |
 | `db/security-and-orders.sql` | Private business details, server-side ordering (`place_order`), applications, settings, payouts | Run third |
