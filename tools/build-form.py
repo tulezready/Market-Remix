@@ -10,6 +10,7 @@ Writes into tools/forms/:
   print-guides-single-sided.pdf  the 18 officer guides, one page each
   print-forms-double-sided.pdf   the 18 entry forms, two pages each: print double-sided, one sheet per LLG
   llg-tracking-sheet.pdf     for the Division: which LLGs have returned a business
+  instructions.pdf           3 pages: printing and handing out, entering online, reviewing entries
 and copies the blank form to tools/sme-form.pdf (the file the README and register page point to).
 
 Designed to photocopy well in black and white: white paper, dark text, firm lines.
@@ -139,7 +140,7 @@ class Page:
             c.drawRightString(self.w - M, M, f"Page {page_no} of {pages}")
 
 
-def header(p, title, subtitle, llg=None, district=None, show_form_no=True):
+def header(p, title, subtitle, llg=None, district=None, show_form_no=True, show_box=True):
     c = p.c
     top = p.h - M
     c.setFont("Helvetica-Bold", 19); c.setFillColor(INK)
@@ -151,6 +152,9 @@ def header(p, title, subtitle, llg=None, district=None, show_form_no=True):
     c.drawString(M, top - 17.5 * mm, subtitle)
 
     # right-hand box: where this form belongs
+    if not show_box:
+        p.ribbon(top - 22.5 * mm); p.y = top - 30 * mm
+        return
     bw, bh = 74 * mm, 21 * mm
     bx, by = M + CW - bw, top - bh
     c.setStrokeColor(INK); c.setLineWidth(0.9); c.setFillColor(TINT)
@@ -413,6 +417,158 @@ def tracking_sheet(path):
     c.showPage(); c.save()
 
 
+
+# ---------------------------------------------------------------- instructions (3 pages)
+def instructions(path):
+    c = doc(path, "LLG trial — instructions — MaketPles ENB")
+
+    def page_top(p, title, sub):
+        header(p, title, sub, None, None, show_form_no=False, show_box=False)
+
+    def h(p, text):
+        p.y -= 1.5 * mm
+        p.c.setFont("Helvetica-Bold", 12); p.c.setFillColor(RED)
+        p.c.drawString(M, p.y, text); p.y -= 6 * mm
+
+    def items(p, rows, numbered=True, size=9.6):
+        for i, it in enumerate(rows, 1):
+            p.c.setFont("Helvetica-Bold" if numbered else "Helvetica", size); p.c.setFillColor(INK)
+            p.c.drawString(M + 1 * mm, p.y, f"{i}." if numbered else "•")
+            p.para(it, x=M + 7 * mm, width=CW - 7 * mm, size=size)
+            p.y -= 1.2 * mm
+        p.y -= 2 * mm
+
+    def table(p, head, rows, widths, size=9):
+        x0, rh = M, 7.5 * mm
+        c.setFillColor(INK); c.rect(M, p.y - 2.4 * mm, CW, 7 * mm, stroke=0, fill=1)
+        x = x0
+        for t, w in zip(head, widths):
+            c.setFont("Helvetica-Bold", 8); c.setFillColor(white); c.drawString(x + 2 * mm, p.y, t.upper()); x += CW * w
+        p.y -= 2.4 * mm
+        for i, r in enumerate(rows):
+            lines = [p.wrap(cell, "Helvetica", size, CW * w - 4 * mm) for cell, w in zip(r, widths)]
+            hgt = max(len(l) for l in lines) * size * 1.35 + 3.5 * mm
+            if i % 2:
+                c.setFillColor(TINT); c.rect(M, p.y - hgt, CW, hgt, stroke=0, fill=1)
+            x = x0
+            for ls, w in zip(lines, widths):
+                yy = p.y - 3 * mm - size * 0.8
+                for ln in ls:
+                    c.setFont("Helvetica", size); c.setFillColor(INK); c.drawString(x + 2 * mm, yy, ln); yy -= size * 1.35
+                x += CW * w
+            p.y -= hgt
+            p.rule(M, p.y, M + CW, color=SOFT, w=0.5)
+        p.y -= 5 * mm
+
+    # ---- page 1: what, print, hand out
+    p = Page(c)
+    page_top(p, "LLG trial — instructions", "Getting the first businesses onto MaketPles ENB through the LLGs")
+    p.para("Every LLG Business Development Officer finds at least one business in their LLG, fills in the paper form "
+           "with the owner, and enters it online with photos. The entry goes straight to the Division for review. "
+           "There are 18 LLGs and the launch target is 35 businesses, so ask each officer for two where they can.",
+           size=9.8)
+    p.y -= 2 * mm
+    h(p, "1. Print")
+    table(p, ["File", "How to print", "Sheets"], [
+        ["print-guides-single-sided.pdf", "A4, single-sided", "18 — one officer guide per LLG"],
+        ["print-forms-double-sided.pdf", "A4, double-sided, flip on long edge", "18 — each LLG's form on one sheet"],
+        ["sme-entry-form.pdf", "A4, double-sided — a few spares", "For an officer's second business"],
+        ["llg-tracking-sheet.pdf", "A4 landscape, single-sided", "1 — kept by the Division"],
+    ], [0.36, 0.34, 0.30])
+    p.para("Each guide and form already shows its LLG and district. The by-llg folder has the same for one LLG at a "
+           "time, if you need to reprint just one. Photocopies in black and white are fine.", size=8.8, color=MUTED)
+    h(p, "2. Before handing out")
+    items(p, [
+        "Fill in the return box on every guide: the return date, who it goes to at the Division, where to send "
+        "photos, and a phone for questions. Allow about three weeks before the conference for review.",
+        "Check the LLG names against the Division's list.",
+        "Give each officer their LLG's guide and form, plus a spare form.",
+        "Write each officer's name and mobile on the tracking sheet.",
+    ])
+    h(p, "3. What the officer does")
+    items(p, [
+        "Chooses a business and visits it (the guide explains who to choose and what to tell the owner).",
+        "Fills in the paper form with the owner, takes the photos, and both sign.",
+        "Enters the form online with the photos (page 2 of these instructions).",
+        "Writes the online reference (for example ENB-A1234) on the paper form and keeps it for their records.",
+    ])
+    p.footer(FOOT, 1, 3)
+    c.showPage()
+
+    # ---- page 2: officer online entry
+    p = Page(c)
+    page_top(p, "Entering a business online", "For LLG Business Development Officers — on a phone")
+    c.setFillColor(TINT); c.setStrokeColor(INK); c.setLineWidth(0.9)
+    c.rect(M, p.y - 15 * mm, CW, 15 * mm, stroke=1, fill=1)
+    c.setFont("Helvetica-Bold", 9); c.setFillColor(MUTED); c.drawString(M + 4 * mm, p.y - 5 * mm, "OPEN THIS ADDRESS")
+    c.setFont("Helvetica-Bold", 13); c.setFillColor(INK); c.drawString(M + 4 * mm, p.y - 11.5 * mm, ONLINE_URL)
+    p.y -= 22 * mm
+    p.para("Save it to the phone's home screen. Type it exactly, including ?officer at the end — that adds the "
+           "officer's section and tells the Division the entry came from an LLG officer.", size=9.4)
+    p.y -= 1 * mm
+    h(p, "Step by step — copy from the paper form")
+    items(p, [
+        "About the business: name, district, \"LLG, ward or village\", how long trading, staff, what it mainly "
+        "sells, and the owner's description from section 4.",
+        "Contact: the owner's name, mobile and email if any.",
+        "Registration: IPA status, and the IPA number if they have one.",
+        "What they sell: each product with its price in kina, what the price is for (each, per kg, per bundle), "
+        "and how many they have.",
+        "Photos: up to 12. They are made smaller automatically so they send on a weak signal. Under each photo, "
+        "choose what it shows — a product, the owner at work, or the front-page photo.",
+        "Check and send: check everything, enter your own name, mobile and the paper form number, tick that "
+        "the owner signed the paper form, and press Send.",
+        "Write the reference shown (for example ENB-A1234) on the paper form. Press \"Register another "
+        "business\" for the next one — your name and mobile are remembered on that phone.",
+    ])
+    h(p, "If there is no signal")
+    items(p, [
+        "If sending fails, stay on the page and press Send again when the signal returns. Nothing is lost while "
+        "the page stays open.",
+        "If there is no coverage at all, keep the paper form and enter it later where there is signal — or return "
+        "the form and photos to the Division as the guide's return box says.",
+    ], numbered=False)
+    h(p, "Good to know")
+    items(p, [
+        "Nothing appears on the website until the Division has checked and approved it.",
+        "Never type a bank account number or PIN into the form.",
+    ], numbered=False)
+    p.footer(FOOT, 2, 3)
+    c.showPage()
+
+    # ---- page 3: Division review
+    p = Page(c)
+    page_top(p, "Reviewing entries", "For Division staff — in the Division panel (admin.html)")
+    h(p, "Each new entry")
+    items(p, [
+        "Division panel (" + ONLINE_URL.split("/register")[0] + "/admin.html) → Business applications. Entries from officers are labelled \"LLG officer\"; the note "
+        "shows the officer's name, mobile, paper form number and the IPA number.",
+        "Phone the owner on the number given. Confirm the details, that they agreed to be listed, and the prices. "
+        "Aim to do this within 2 working days so officers see results.",
+        "Open the entry, check the photos, and set each photo's label if needed (me / my stall, front page, a product).",
+        "Approve & create account — or Return to applicant with a note saying what is needed.",
+        "Listing review: check each product (photo, description, price) and Publish it.",
+        "Businesses → open the business → Seller login → Create login. Give the owner the login and temporary "
+        "password in person or by phone; they choose their own at first sign-in.",
+        "Tick the business off on the tracking sheet.",
+    ])
+    h(p, "Each week")
+    items(p, [
+        "Launch progress screen: shows how many businesses per industry (target 5 in each of 7) and per district. "
+        "Tell officers what is missing — for example \"we need tailoring from Pomio\".",
+        "Phone officers whose LLG has nothing yet.",
+    ], numbered=False)
+    h(p, "Keep in mind")
+    items(p, [
+        "The officer's address is open to anyone with the link, but nothing goes public without Division approval. "
+        "Reject anything you cannot confirm by phone.",
+        "Unregistered businesses can be approved during the pilot, case by case.",
+        "Sample businesses on the site are placeholders; they are removed before launch.",
+    ], numbered=False)
+    p.footer(FOOT, 3, 3)
+    c.showPage()
+    c.save()
+
 # ---------------------------------------------------------------- build everything
 def doc(path, title):
     c = canvas.Canvas(path, pagesize=A4)
@@ -447,6 +603,7 @@ def main():
     allc.save(); guides.save(); forms.save()
 
     tracking_sheet(os.path.join(OUT, "llg-tracking-sheet.pdf"))
+    instructions(os.path.join(OUT, "instructions.pdf"))
     print("Wrote", OUT)
 
 
