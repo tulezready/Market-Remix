@@ -64,6 +64,7 @@ the domain's DNS host (`docs/outreach/domain-application.md`).
 |---|---|---|
 | 9 | Supabase in **Sydney** — **free project created, schema and security fixes applied, sample data loaded**, kept awake by a twice-weekly GitHub Action until Pro. Still: Pro plan before launch, phone-number sign-in (SMS) | `docs/supabase-setup.md` |
 | 10 | Shop, product and stall pages read live data (**done**); seller portal and Division panel on real logins (**done** — the Division issues seller logins, by email or mobile number) | `docs/supabase-setup.md` §4a |
+| 10a | **Self-service seller logins (after the trial)** — sellers set their own password when they apply, it works once the Division approves them, and "Forgot password" works without the Division. Needs an email service connected to Supabase (its free email can't reach sellers); SMS sign-in later. Until then the Division issues logins | Decided 8 Oct: build after the LLG trial |
 | 11 | Gateway integration via the gateway's hosted payment page; **server-side** payment confirmation; settlement ledger | Needs task 1 approved |
 | 12 | Payout runs, refunds, disputes, daily reconciliation | Needs D2, D5 and task 2 |
 | 13 | SMS notifications (order placed, ready, Send home recipient) | Pick an SMS provider |

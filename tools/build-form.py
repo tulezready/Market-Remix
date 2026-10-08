@@ -6,7 +6,9 @@ Writes into tools/forms/:
   officer-guide.pdf          one page for the officer: who to pick, what to do, how to return it
   sme-entry-form.pdf         the two-page form, LLG left blank
   by-llg/<District>-<LLG>.pdf  guide + form with the LLG and district already printed (one per LLG)
-  all-llgs.pdf               every LLG's guide + form in one file, for printing in one go
+  all-llgs.pdf               every LLG's guide + form in one file (for reading on screen)
+  print-guides-single-sided.pdf  the 18 officer guides, one page each
+  print-forms-double-sided.pdf   the 18 entry forms, two pages each: print double-sided, one sheet per LLG
   llg-tracking-sheet.pdf     for the Division: which LLGs have returned a business
 and copies the blank form to tools/sme-form.pdf (the file the README and register page point to).
 
@@ -432,13 +434,17 @@ def main():
     entry_form(c); c.save()
     shutil.copy(os.path.join(OUT, "sme-entry-form.pdf"), os.path.join(HERE, "sme-form.pdf"))
 
+    # Print files: guides single-sided (18 sheets); forms double-sided, one sheet per LLG (18 sheets).
     allc = doc(os.path.join(OUT, "all-llgs.pdf"), "SME Entry Forms, all LLGs — MaketPles ENB")
+    guides = doc(os.path.join(OUT, "print-guides-single-sided.pdf"), "Officer guides, all LLGs — MaketPles ENB")
+    forms = doc(os.path.join(OUT, "print-forms-double-sided.pdf"), "SME Entry Forms, all LLGs — MaketPles ENB")
     for d, llgs in LLGS.items():
         for l in llgs:
             c = doc(os.path.join(OUT, "by-llg", f"{d}-{slug(l)}.pdf"), f"{l} — SME Entry Form — MaketPles ENB")
             officer_guide(c, l, d + " District"); entry_form(c, l, d + " District"); c.save()
             officer_guide(allc, l, d + " District"); entry_form(allc, l, d + " District")
-    allc.save()
+            officer_guide(guides, l, d + " District"); entry_form(forms, l, d + " District")
+    allc.save(); guides.save(); forms.save()
 
     tracking_sheet(os.path.join(OUT, "llg-tracking-sheet.pdf"))
     print("Wrote", OUT)
