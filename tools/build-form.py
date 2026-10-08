@@ -41,6 +41,9 @@ LLGS = {
 INDUSTRIES = ["Retail", "Wholesale", "Tailoring", "Arts & crafts", "Fresh produce",
               "Food crops — rice & spices", "Downstream processing (copra oil, cocoa, coffee, honey)"]
 
+# Where officers enter the form online. Change this when the site moves to its own domain.
+ONLINE_URL = "tulezready.github.io/Market-Remix/register.html?officer"
+
 W, H = A4
 M = 14 * mm
 CW = W - 2 * M
@@ -205,6 +208,8 @@ def officer_guide(c, llg=None, district=None):
         "(each, per kg, per bundle).",
         "Take the photos listed in section 5 with your phone, in daylight.",
         "The owner signs section 7. You sign the officer's part. Without both signatures we cannot list them.",
+        f"Enter the form online on your phone at  {ONLINE_URL}  and add the photos there. "
+        "Keep the signed paper form for your records.",
     ], numbered=True)
     block("What to tell the owner — honestly", [
         "Joining is free. When selling starts, a small fee is taken from each sale. The Division will explain it "
@@ -220,7 +225,7 @@ def officer_guide(c, llg=None, district=None):
     c.setStrokeColor(INK); c.setLineWidth(0.9); c.setFillColor(TINT)
     c.rect(M, p.y - bh, CW, bh, stroke=1, fill=1)
     c.setFont("Helvetica-Bold", 11); c.setFillColor(INK)
-    c.drawString(M + 4 * mm, p.y - 6.5 * mm, "Return the signed form and the photos")
+    c.drawString(M + 4 * mm, p.y - 6.5 * mm, "If you can't enter it online, return the form and photos")
     half = (CW - 12 * mm) / 2
     p.field(M + 4 * mm, p.y - 13 * mm, half, "Return by (date)")
     p.field(M + 8 * mm + half, p.y - 13 * mm, half, "To (name at the Division)")

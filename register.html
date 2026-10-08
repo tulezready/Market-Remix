@@ -114,6 +114,8 @@
   .chk.bad{border-color:var(--red);}
   .chk input{width:auto;margin-top:3px;flex-shrink:0;}
   .chk span{font-size:13px;line-height:1.6;}
+  #officerBox{margin-top:20px;padding:16px;border:1px solid var(--hair);border-radius:12px;background:#fff;}
+  .obox-h{font-size:15px;font-weight:800;margin:0 0 12px;}
   .chk a{color:var(--harbour,#0F5C68);font-weight:700;text-decoration:underline;text-underline-offset:2px;}
   footer a{color:rgba(250,244,234,.85);text-decoration:underline;text-underline-offset:2px;display:inline-block;padding:10px 0;}
 
@@ -481,10 +483,20 @@
     <p class="lead">Please make sure this is right. You can go back and change anything.</p>
     <div id="review"></div>
 
+    <div id="officerBox" hidden>
+      <h3 class="obox-h">Entered by an LLG officer</h3>
+      <div class="fr"><label for="f_officer_name">Officer's full name <span class="req">*</span></label>
+        <input id="f_officer_name" autocomplete="name"></div>
+      <div class="fr"><label for="f_officer_phone">Officer's mobile <span class="req">*</span></label>
+        <input id="f_officer_phone" type="tel" inputmode="tel" placeholder="7XXX XXXX"></div>
+      <div class="fr"><label for="f_form_no">Paper form number <span class="opt">(optional)</span></label>
+        <input id="f_form_no" placeholder="From the top-right box on the paper form"></div>
+    </div>
+
     <div class="fr" style="margin-top:20px;">
       <div class="chk" id="consentWrap">
         <input type="checkbox" id="f_consent">
-        <span><b>I agree to my business appearing publicly on MaketPles ENB</b> — my business name,
+        <span id="consentText"><b>I agree to my business appearing publicly on MaketPles ENB</b> — my business name,
         district, products, prices and photographs shown to buyers. My phone number and any bank
         details are never shown. I can ask for my business to be removed at any time. I have read the
         <a href="legal.html#seller-terms" target="_blank" rel="noopener">Seller terms</a> and
@@ -516,7 +528,7 @@
           <p>Usually within a few working days. If anything is missing we will phone you.</p></div></div>
         <div class="row"><span class="d">2</span><div>
           <h4>You receive your login</h4>
-          <p>Once approved we send you a link to set a password for your seller account.</p></div></div>
+          <p>Once approved, the Division gives you a login and a temporary password for your seller account.</p></div></div>
         <div class="row"><span class="d">3</span><div>
           <h4>Your products go live</h4>
           <p>The Division checks your listings, then buyers across PNG can order from you.</p></div></div>
@@ -829,9 +841,14 @@ function validate(n){
   if(n===5){
     if(!pics.length) p.push('Please add at least one photograph');
   }
+  if(n===6 && OFFICER){
+    const on = document.getElementById('f_officer_name'), op = document.getElementById('f_officer_phone');
+    if(on.value.trim().length < 2){ p.push("Enter the officer's name"); on.classList.add('bad'); }
+    if(!/^\+?[0-9 ]{7,20}$/.test(op.value.trim())){ p.push("Enter the officer's mobile number"); op.classList.add('bad'); }
+  }
   if(n===6){
     if(!document.getElementById('f_consent').checked){
-      p.push('You must agree to appear publicly in order to sell on MaketPles');
+      p.push(OFFICER ? 'Tick to confirm the owner signed the paper form' : 'You must agree to appear publicly in order to sell on MaketPles');
       document.getElementById('consentWrap').classList.add('bad');
     }
   }
@@ -853,6 +870,25 @@ function go(dir){
   if(step===6) buildReview();
   clearErr();
   window.scrollTo({top:document.getElementById('steps').offsetTop-20, behavior:'smooth'});
+}
+
+/* ---------- LLG officer mode: register.html?officer ----------
+   Same form, same database path. Adds the officer's details, marks the
+   entry as coming from the field, and the owner's consent is the signed
+   paper form. */
+const OFFICER = new URLSearchParams(location.search).has('officer');
+if(OFFICER){
+  document.getElementById('officerBox').hidden = false;
+  document.getElementById('consentText').innerHTML =
+    '<b>The owner has signed the permission section (7) of the paper form</b>, agreeing to the business ' +
+    'appearing on MaketPles ENB. Keep the paper form for your records.';
+  try{
+    const saved = JSON.parse(localStorage.getItem('mp_officer') || '{}');
+    if(saved.name) document.getElementById('f_officer_name').value = saved.name;
+    if(saved.phone) document.getElementById('f_officer_phone').value = saved.phone;
+  }catch(e){}
+  const h1 = document.querySelector('h1');
+  if(h1) h1.innerHTML = 'LLG officer entry <i>— one form per business.</i>';
 }
 
 function capture(n){
@@ -900,6 +936,19 @@ function buildReview(){
     row('Photographs', pics.length + ' photo' + (pics.length===1?'':'s'));
 }
 
+/* the "about" text, plus details that have no column of their own */
+function fullMessage(){
+  const extra = [];
+  if(data.ipa_number) extra.push('IPA number: ' + data.ipa_number);
+  if(OFFICER){
+    const g = id => document.getElementById(id).value.trim();
+    extra.push('Entered by LLG officer: ' + g('f_officer_name') + ', ' + g('f_officer_phone') +
+               (g('f_form_no') ? ' · paper form no. ' + g('f_form_no') : ''));
+    try{ localStorage.setItem('mp_officer', JSON.stringify({name:g('f_officer_name'), phone:g('f_officer_phone')})); }catch(e){}
+  }
+  return [data.message || '', extra.join('\n')].filter(Boolean).join('\n\n');
+}
+
 /* ---------- submit ---------- */
 const tidy = s => String(s||'').replace(/[^A-Za-z0-9]+/g,'-')
                     .replace(/^-|-$/g,'').slice(0,28) || 'x';
@@ -940,10 +989,10 @@ async function submitApp(){
         ipa_status:       data.ipa_status,
         years_trading:    data.years_trading || '',
         staff_count:      data.staff_count || '',
-        message:          data.message || '',
+        message:          fullMessage(),
         wants_help:       !!data.wants_help,
         consent:          true,
-        submitted_from:   'web'
+        submitted_from:   OFFICER ? 'field' : 'web'
       },
       p_products: productRows
     });

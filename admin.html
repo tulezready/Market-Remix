@@ -973,7 +973,7 @@ async function loadApplications(){
     phone: r.phone,
     email: r.email,
     ipa_status: r.ipa_status,
-    source: r.submitted_from === 'web' ? 'Website' : 'Conference',
+    source: r.submitted_from === 'web' ? 'Website' : r.submitted_from === 'field' ? 'LLG officer' : 'Conference',
     message: r.message,
     status: r.status,
     review_note: r.review_note,
@@ -1233,7 +1233,7 @@ function renderApps(){
       <td>${a.ipa_status==='Registered' ? '<span class="tag g">Registered</span>'
            : a.ipa_status==='In progress' ? '<span class="tag a">In progress</span>'
            : '<span class="tag r">Not registered</span>'}</td>
-      <td><span class="tag ${a.source==='Conference'?'b':''}">${esc(a.source)}</span></td>
+      <td><span class="tag ${a.source!=='Website'?'b':''}">${esc(a.source)}</span></td>
       <td>${tag(a.status)}</td>
       <td><button class="btn-o btn-sm" onclick="openApp('${a.id}')">${a.status==='pending'?'Review':'View'}</button></td>
     </tr>`).join('') : `<tr><td colspan="7"><div class="empty">No applications match.</div></td></tr>`;
@@ -1252,7 +1252,7 @@ async function openApp(id){
     <div class="kv"><span class="k">Email</span><span class="v">${miss(a.email)}</span></div>
     <div class="kv"><span class="k">IPA status</span><span class="v">${esc(a.ipa_status)}</span></div>
     <div class="kv"><span class="k">Source</span><span class="v">${esc(a.source)} · ${esc(a.created)}</span></div>
-    <div class="kv"><span class="k">Their note</span><span class="v">${miss(a.message)}</span></div>
+    <div class="kv"><span class="k">Their note</span><span class="v" style="white-space:pre-line;">${miss(a.message)}</span></div>
     <div id="appDetail">${LIVE ? '<div class="empty" style="padding:20px 0;">Loading their products and photographs…</div>' : ''}</div>
     ${a.ipa_status==='Not registered' ? `<div class="warnbox">
       <b>Not registered with IPA.</b> The Division has not yet decided whether informal businesses may sell.
