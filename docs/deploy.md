@@ -37,16 +37,13 @@ domain record. The site must never depend on one person's login.
    *Build command:* `sh scripts/build-site.sh`, *Build output directory:* `dist` →
    Save and deploy. The build copies only the website into `dist/`, so `docs/`, `db/`
    and the design files are never published even if the repository is public.
-   **If Connect to Git keeps sending you back to GitHub's settings page** (common on phones),
-   publish with GitHub Actions instead — `.github/workflows/cloudflare-pages.yml` builds and
-   uploads the site on every push to `main`. It needs two repository secrets
-   (Settings → Secrets and variables → Actions): `CLOUDFLARE_API_TOKEN` (Cloudflare → My Profile →
-   API Tokens → Create Token → Custom token → *Account · Cloudflare Pages · Edit*) and
-   `CLOUDFLARE_ACCOUNT_ID`. The first run creates the `maketples` Pages project.
-   **Set up as a Worker instead (what Cloudflare's dashboard now offers by default):**
+   **Done 9 October 2026 as a Worker** (what Cloudflare's dashboard now offers by default):
    Workers & Pages → Create → Import a repository → `tulezready/Market-Remix` → *Build command:*
    `sh scripts/build-site.sh`, *Deploy command:* `npx wrangler deploy` (default). The repo's
    `wrangler.jsonc` tells Cloudflare to publish `dist/` and serve `404.html` for missing pages.
+   Live at **https://market-remix.lesleywaninara.workers.dev**; every push to `main` updates it.
+   (If Cloudflare's GitHub sign-in loops on a phone, Brave's Shields are the usual cause — turn
+   them off for dash.cloudflare.com or use Chrome.)
 4. **Register the domain** with PNGUoT — nameservers, payment, the signed and sealed form:
    `docs/outreach/domain-application.md`.
 5. **Add custom domains** in the Pages project once the domain is active:

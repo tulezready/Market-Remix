@@ -45,7 +45,7 @@ INDUSTRIES = ["Retail", "Wholesale", "Tailoring", "Arts & crafts", "Fresh produc
               "Food crops — rice & spices", "Downstream processing (copra oil, cocoa, coffee, honey)"]
 
 # Where officers enter the form online. Change this when the site moves to its own domain.
-ONLINE_URL = "tulezready.github.io/Market-Remix/register.html?officer"
+ONLINE_URL = "market-remix.lesleywaninara.workers.dev/register?officer"
 
 W, H = A4
 M = 14 * mm
@@ -544,7 +544,7 @@ def instructions(path):
     page_top(p, "Reviewing entries", "For Division staff — in the Division panel (admin.html)")
     h(p, "Each new entry")
     items(p, [
-        "Division panel (" + ONLINE_URL.split("/register")[0] + "/admin.html) → Business applications. Entries from officers are labelled \"LLG officer\"; the note "
+        "Division panel (" + ONLINE_URL.split("/register")[0] + "/admin) → Business applications. Entries from officers are labelled \"LLG officer\"; the note "
         "shows the officer's name, mobile, paper form number and the IPA number.",
         "Phone the owner on the number given. Confirm the details, that they agreed to be listed, and the prices. "
         "Aim to do this within 2 working days so officers see results.",
