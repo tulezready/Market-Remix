@@ -1009,6 +1009,7 @@ async function loadApplications(){
     status: r.status,
     review_note: r.review_note,
     reference: r.reference,
+    created_sme_id: r.created_sme_id,
     created: relTime(r.created_at)
   }));
 }
@@ -1297,7 +1298,8 @@ async function openApp(id){
         <button class="btn g" id="approveBtn" onclick="decideApp('${a.id}',true)">Approve &amp; create account</button>
       </div>`
     : `${a.review_note ? `<div class="kv"><span class="k">Decision note</span><span class="v">${esc(a.review_note)}</span></div>`:''}
-       <div class="mact"><button class="btn-o" onclick="closeModal()">Close</button></div>`}
+       <div class="mact"><button class="btn-o" onclick="closeModal()">Close</button>
+         ${a.status==='approved' && a.created_sme_id && LIVE ? `<button class="btn" id="movePhotosBtn" onclick="retryPhotos('${a.id}')">Move photos again</button>` : ''}</div>`}
   `;
   openModal();
   if(LIVE) await loadAppDetail(id);
@@ -1399,13 +1401,24 @@ async function decideApp(id, approve){
     renderApps(); badges();
     alert(`${a.business_name} approved.` +
       (migrated.total ? ` ${migrated.ok} of ${migrated.total} photograph(s) moved to the live listing.` +
-        (migrated.fail ? ` ${migrated.fail} could not be moved — see the browser console for details.` : '')
+        (migrated.fail ? ` ${migrated.fail} could not be moved (${migrated.error}). Open the application and press "Move photos again".` : '')
         : ' No photographs were submitted with this application.'));
 
   }catch(err){
     if(btn){ btn.disabled = false; btn.textContent = 'Approve & create account'; }
     alert('Could not approve this application: ' + (err.message || err));
   }
+}
+
+async function retryPhotos(appId){
+  const a = applications.find(x => x.id === appId);
+  const btn = document.getElementById('movePhotosBtn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Moving…'; }
+  const r = await migrateApplicationPhotos(appId, a.created_sme_id);
+  if(btn){ btn.disabled = false; btn.textContent = 'Move photos again'; }
+  alert(r.total ? `${r.ok} of ${r.total} photograph(s) are on the live listing.` +
+        (r.fail ? ` ${r.fail} could not be moved: ${r.error}` : '') : 'This application has no photographs.');
+  if(LIVE) await loadAll();
 }
 
 /* Moves photographs from the private "applications" bucket into
@@ -1427,17 +1440,28 @@ async function migrateApplicationPhotos(appId, newSmeId){
   result.total = appPhotos.length;
   const slug = (smeRow && smeRow.slug) || newSmeId;
 
+  // photos already moved on an earlier try are skipped
+  const prodIds = (newProducts||[]).map(p => p.id);
+  const {data:done} = prodIds.length
+    ? await sb.from('product_images').select('photo_ref').in('product_id', prodIds) : {data:[]};
+  const doneRefs = new Set((done||[]).map(d => d.photo_ref));
+  const {data:smeNow} = await sb.from('smes').select('photo_ref, hero_photo_ref').eq('id', newSmeId).single();
+  let hasBusinessPhoto = !!(smeNow && smeNow.photo_ref);
+  const hasBusinessTagged = appPhotos.some(p => p.kind === 'business');
+
   for(const photo of appPhotos){
     try{
+      const filename = photo.storage_path.split('/').pop();
+      if(photo.kind === 'product' && doneRefs.has(filename)){ result.ok++; continue; }
+
       const {data:blob, error:eDl} = await sb.storage
         .from(SUPABASE.APPLICATIONS_BUCKET).download(photo.storage_path);
       if(eDl) throw eDl;
 
-      const filename = photo.storage_path.split('/').pop();
-      const destPath = `${slug}/${filename}`;
-
+      // a fresh name each time, so nothing is ever overwritten
+      const destPath = `${slug}/${Date.now().toString(36)}-${filename}`;
       const {error:eUp} = await sb.storage.from(SUPABASE.PHOTOS_BUCKET)
-        .upload(destPath, blob, {contentType:'image/jpeg', upsert:true});
+        .upload(destPath, blob, {contentType:'image/jpeg', upsert:false});
       if(eUp) throw eUp;
 
       const {data:pub} = sb.storage.from(SUPABASE.PHOTOS_BUCKET).getPublicUrl(destPath);
@@ -1447,19 +1471,29 @@ async function migrateApplicationPhotos(appId, newSmeId){
         await sb.from('smes').update({hero_photo_ref: publicUrl}).eq('id', newSmeId);
       } else if(photo.kind === 'business'){
         await sb.from('smes').update({photo_ref: publicUrl}).eq('id', newSmeId);
-      } else if(photo.product_id && appProducts && newProducts){
-        const orig = appProducts.find(p => p.id === photo.product_id);
-        const match = orig && newProducts.find(p => p.name === orig.name);
+        hasBusinessPhoto = true;
+      } else {
+        // a photo tagged "a product" but not a specific one goes to the matching
+        // product, or to the first product if there is no match
+        const orig = photo.product_id && appProducts && appProducts.find(p => p.id === photo.product_id);
+        const match = (orig && (newProducts||[]).find(p => p.name === orig.name)) || (newProducts||[])[0];
         if(match){
-          await sb.from('product_images').insert({
+          const {error:eImg} = await sb.from('product_images').insert({
             product_id: match.id, storage_path: publicUrl,
-            photo_ref: photo.original_name, sort_order: photo.sort_order
+            photo_ref: filename, sort_order: photo.sort_order
           });
+          if(eImg) throw eImg;
+        }
+        // no photo of the owner or stall: use the first product photo on the business card
+        if(!hasBusinessPhoto && !hasBusinessTagged){
+          await sb.from('smes').update({photo_ref: publicUrl}).eq('id', newSmeId);
+          hasBusinessPhoto = true;
         }
       }
       result.ok++;
     }catch(err){
       result.fail++;
+      result.error = (err && err.message) || String(err);
       console.error('Photo migration failed for', photo.storage_path, err);
     }
   }
