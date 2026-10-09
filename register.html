@@ -363,8 +363,12 @@
         <select id="f_district"><option value="">Choose your district…</option></select>
       </div>
       <div class="fr">
-        <label>LLG, ward or village <span class="opt">(optional)</span></label>
-        <input id="f_llg" placeholder="e.g. Bitapaka LLG, Vunamami">
+        <label for="f_llg">LLG <span class="req">*</span></label>
+        <select id="f_llg" disabled><option value="">Choose the district first…</option></select>
+      </div>
+      <div class="fr">
+        <label for="f_ward">Ward or village <span class="opt">(optional)</span></label>
+        <input id="f_ward" placeholder="e.g. Rakunai village" maxlength="120">
       </div>
       <div class="fr">
         <label>How long have you been trading? <span class="opt">(optional)</span></label>
@@ -633,6 +637,26 @@ document.getElementById('f_district').innerHTML =
   '<option value="">Choose your district…</option>' +
   DISTRICTS.map(d=>`<option value="${d}">${d}</option>`).join('');
 
+/* The 18 Local-level Governments of East New Britain, by district
+   (same list as the printed LLG forms, tools/build-form.py) */
+const LLGS = {
+  Gazelle: ["Central Gazelle Rural","Inland Baining Rural","Lassul Baining Rural","Livuan-Reimber Rural","Toma-Vunadidir Rural"],
+  Kokopo:  ["Bitapaka Rural","Duke of York Rural","Kokopo-Vunamami Urban","Raluana Rural"],
+  Pomio:   ["Central-Inland Pomio Rural","East Pomio Rural","Melkoi Rural","Sinivit Rural","West Pomio-Mamusi Rural"],
+  Rabaul:  ["Balanataman Rural","Kombiu Rural","Rabaul Urban","Watom Island Rural"],
+};
+function fillLlgs(){
+  const d = document.getElementById('f_district').value, sel = document.getElementById('f_llg');
+  const keep = sel.value;
+  sel.disabled = !d;
+  sel.innerHTML = d
+    ? '<option value="">Choose the LLG…</option>' + LLGS[d].map(l=>`<option>${l}</option>`).join('') +
+      '<option value="?">Not sure — the Division will check</option>'
+    : '<option value="">Choose the district first…</option>';
+  if(keep && [...sel.options].some(o=>o.value===keep)) sel.value = keep;
+}
+document.getElementById('f_district').addEventListener('change', fillLlgs);
+
 document.getElementById('industryRadios').innerHTML = INDUSTRIES.map(i=>`
   <label class="radio" data-g="industry" data-v="${i.key}">
     <input type="radio" name="industry" value="${i.key}">
@@ -824,6 +848,7 @@ function validate(n){
   if(n===1){
     need('f_business_name', v=>v.trim().length>1, 'Please enter your business name', p);
     need('f_district', v=>!!v, 'Please choose your district', p);
+    need('f_llg', v=>!!v, 'Please choose the LLG (or "Not sure")', p);
     if(!picked('industry')) p.push('Please choose what your business mainly does');
   }
   if(n===2){
@@ -918,7 +943,8 @@ function capture(n){
   if(n===1){
     data.business_name = g('f_business_name').trim();
     data.district = g('f_district');
-    data.llg = g('f_llg').trim();
+    data.llg = g('f_llg') === '?' ? '' : g('f_llg');
+    data.ward = g('f_ward').trim();
     data.years_trading = g('f_years_trading').trim();
     data.staff_count = g('f_staff_count').trim();
     data.primary_industry = picked('industry');
@@ -945,7 +971,8 @@ function buildReview(){
   document.getElementById('review').innerHTML =
     row('Business name', esc(data.business_name)) +
     row('District', esc(data.district)) +
-    row('LLG / ward', esc(data.llg)) +
+    row('LLG', esc(data.llg), 'not sure') +
+    row('Ward or village', esc(data.ward)) +
     row('Main activity', esc(ind)) +
     row('About', esc(data.message)) +
     row('Contact name', esc(data.contact_name)) +
@@ -1004,6 +1031,7 @@ async function submitApp(){
         business_name:    data.business_name,
         district:         data.district,
         llg:              data.llg || '',
+        ward:             data.ward || '',
         primary_industry: data.primary_industry,
         contact_name:     data.contact_name,
         phone:            data.phone,

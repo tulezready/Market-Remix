@@ -170,7 +170,7 @@ function loadFromDb(){
     dbGet('platform_settings?select=platform_rate,delivery_fee,free_delivery_over,min_order,card_payments_enabled,bank_transfer_details&limit=1')
   ]).then(([smes, cat, settings]) => {
     Shop.SMES = smes.map(s => ({
-      id: s.slug, n: s.name, d: s.district, llg: s.llg, about: s.description, photo: s.photo_ref,
+      id: s.slug, n: s.name, d: s.district, llg: [s.ward, s.llg].filter(Boolean).join(', '), about: s.description, photo: s.photo_ref,
       f: [s.primary_industry, s.secondary_industry].filter(Boolean).map(x => INDUSTRY_SHORT[x] || x).join(' · '),
       _uuid: s.id, sample: s.is_sample
     }));

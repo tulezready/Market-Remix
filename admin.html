@@ -1000,6 +1000,8 @@ async function loadApplications(){
     id: r.id,
     business_name: r.business_name,
     district: r.district,
+    llg: r.llg,
+    ward: r.ward,
     primary_industry: r.primary_industry,
     contact_name: r.contact_name,
     phone: r.phone,
@@ -1040,7 +1042,7 @@ async function loadListings(){
 async function loadSmes(){
   // contact details live in sme_private (Division and owner only), not on the public smes table
   const {data, error} = await sb.from('smes')
-    .select('id, slug, owner_id, registered_name, trading_name, district, primary_industry, approved, featured, consent, is_sample, ' +
+    .select('id, slug, owner_id, registered_name, trading_name, district, llg, ward, primary_industry, approved, featured, consent, is_sample, ' +
             'sme_private(contact_name, phone, email, ipa_number, tin, bank_name, account_name, account_number, bank_verified, bank_verified_at, bank_verified_by)')
     .order('registered_name');
   if(error){ console.error('loadSmes', error); return; }
@@ -1049,6 +1051,8 @@ async function loadSmes(){
     slug: r.slug,
     registered_name: r.registered_name,
     district: r.district,
+    llg: r.llg,
+    ward: r.ward,
     primary_industry: r.primary_industry,
     contact_name: (r.sme_private || {}).contact_name || '',
     phone: (r.sme_private || {}).phone || '',
@@ -1279,6 +1283,8 @@ async function openApp(id){
   document.getElementById('mTitle').textContent = a.business_name;
   document.getElementById('mBody').innerHTML = `
     <div class="kv"><span class="k">District</span><span class="v">${esc(a.district)}</span></div>
+    <div class="kv"><span class="k">LLG</span><span class="v">${miss(a.llg)}</span></div>
+    <div class="kv"><span class="k">Ward / village</span><span class="v">${miss(a.ward)}</span></div>
     <div class="kv"><span class="k">Industry</span><span class="v">${esc(ind(a.primary_industry))}</span></div>
     <div class="kv"><span class="k">Contact</span><span class="v">${miss(a.contact_name)}</span></div>
     <div class="kv"><span class="k">Phone</span><span class="v">${miss(a.phone)}</span></div>
@@ -1635,6 +1641,8 @@ function openSme(id){
   document.getElementById('mTitle').textContent = s.registered_name;
   document.getElementById('mBody').innerHTML = `
     <div class="kv"><span class="k">District</span><span class="v">${esc(s.district)}</span></div>
+    <div class="kv"><span class="k">LLG</span><span class="v">${miss(s.llg)}</span></div>
+    <div class="kv"><span class="k">Ward / village</span><span class="v">${miss(s.ward)}</span></div>
     <div class="kv"><span class="k">Industry</span><span class="v">${esc(ind(s.primary_industry))}</span></div>
     <div class="kv"><span class="k">Contact</span><span class="v">${miss(p.contact_name)}</span></div>
     <div class="kv"><span class="k">Phone</span><span class="v">${miss(p.phone)}</span></div>
