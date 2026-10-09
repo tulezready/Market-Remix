@@ -434,6 +434,15 @@
     </div>
     <button class="btn g" id="loginBtn" onclick="signIn()">Sign in</button>
 
+    <div id="pwStep" hidden>
+      <div class="err" id="pwErr" role="alert"></div>
+      <p class="lead"><b>Choose your own password.</b> You signed in with a temporary one. Use at least 10 characters,
+        something only you know.</p>
+      <div class="fr"><label for="pw1">New password</label><input id="pw1" type="password" autocomplete="new-password"></div>
+      <div class="fr"><label for="pw2">Type it again</label><input id="pw2" type="password" autocomplete="new-password"></div>
+      <button class="btn g" id="pwBtn" onclick="setOwnPassword()">Save and continue</button>
+    </div>
+
     <div class="alt">
       Not staff? The <a href="register.html">business registration form</a> and
       <a href="seller.html">seller sign-in</a> are elsewhere.
@@ -911,6 +920,14 @@ async function signIn(){
     document.getElementById('whoAv').textContent =
       (prof.full_name||email).split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase() || 'DA';
 
+    // a temporary password issued with the account must be replaced first
+    if(data.user.user_metadata && data.user.user_metadata.must_change_password){
+      document.querySelectorAll('#loginWrap .login > .fr, #loginBtn').forEach(e=>e.hidden = true);
+      document.getElementById('pwStep').hidden = false;
+      document.getElementById('pw1').focus();
+      return;
+    }
+
     btn.textContent = 'Loading…';
     await loadAll();
     enterApp();
@@ -919,6 +936,20 @@ async function signIn(){
     loginErr((err && err.message) || 'Could not sign in. Check your details and try again.');
     btn.disabled = false; btn.textContent = 'Sign in';
   }
+}
+
+async function setOwnPassword(){
+  const e = document.getElementById('pwErr');
+  const say = m => { e.textContent = m; e.classList.add('show'); };
+  const a = document.getElementById('pw1').value, b = document.getElementById('pw2').value;
+  if(a.length < 10) return say('Use at least 10 characters.');
+  if(a !== b) return say('The two passwords are different.');
+  const btn = document.getElementById('pwBtn'); btn.disabled = true; btn.textContent = 'Saving…';
+  const {error} = await sb.auth.updateUser({password:a, data:{must_change_password:false}});
+  if(error){ btn.disabled = false; btn.textContent = 'Save and continue'; return say(error.message); }
+  btn.textContent = 'Loading…';
+  await loadAll();
+  enterApp();
 }
 
 function enterApp(){
