@@ -702,7 +702,7 @@ const SUPABASE = {
   PHOTOS_BUCKET: "product-photos"
 };
 
-let sb = null, LIVE = false, currentUserId = null;
+let sb = null, LIVE = false, currentUserId = null, currentRole = 'division_admin';
 if(SUPABASE.URL && SUPABASE.KEY && window.supabase){
   try{ sb = window.supabase.createClient(SUPABASE.URL, SUPABASE.KEY); LIVE = true; }
   catch(e){ LIVE = false; }
@@ -917,6 +917,7 @@ async function signIn(){
     currentUserId = data.user.id;
     document.getElementById('whoName').textContent = prof.full_name || email;
     document.getElementById('whoRole').textContent = prof.role;
+    currentRole = prof.role;
     document.getElementById('whoAv').textContent =
       (prof.full_name||email).split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase() || 'DA';
 
@@ -1614,7 +1615,7 @@ function renderSmes(){
       <td>${esc(s.district)}</td>
       <td><span class="tag">${esc(ind(s.primary_industry))}</span></td>
       <td>${s.products}</td>
-      <td>${s.approved?'<span class="tag g">Live</span>':'<span class="tag a">Not approved</span>'}
+      <td>${s.approved?'<span class="tag g">Live</span>':'<span class="tag a">Not on site</span>'}
           ${s.featured?' <span class="tag b">Featured</span>':''}
           ${s.consent?'':' <span class="tag r">No consent</span>'}
           ${s.owner_id?' <span class="tag g">Login</span>':' <span class="tag">No login</span>'}
@@ -1655,6 +1656,19 @@ function openSme(id){
 
     <h4 class="msec">Seller login</h4>
     <div id="loginBox">${loginBoxHTML(s, login)}</div>
+
+    <h4 class="msec">On the site</h4>
+    ${s.approved
+      ? `<p class="sub2" style="margin:0 0 10px;">Live: buyers can see this business and its published products.</p>
+         <div class="mact" style="justify-content:flex-start;"><button class="btn-o btn-sm" onclick="setOnSite('${s.id}', false)">Remove from site</button></div>`
+      : `<div class="warnbox">Not on the site: buyers can't see this business or its products. Its records are kept.</div>
+         <div class="mact" style="justify-content:flex-start;"><button class="btn g btn-sm" onclick="setOnSite('${s.id}', true)">Put back on site</button></div>`}
+
+    ${currentRole === 'division_admin' ? `
+    <h4 class="msec" style="color:var(--red);">Delete permanently</h4>
+    <p class="sub2" style="margin:0 0 10px;">For test entries, or a business that never traded and asks to be erased.
+      Removes the business, its products, photos and application. Not possible once it has orders. This cannot be undone.</p>
+    <div class="mact" style="justify-content:flex-start;"><button class="btn btn-sm" onclick="deleteSme('${s.id}')">Delete permanently…</button></div>` : ''}
 
     <div class="mact"><button class="btn-o" onclick="closeModal()">Close</button></div>`;
   openModal();
@@ -1713,6 +1727,39 @@ async function removeLogin(id){
     openSme(id); renderSmes();
   }catch(e){ alert(e.message); }
 }
+async function setOnSite(id, on){
+  const s = smes.find(x=>x.id===id);
+  if(!on && !confirm(`Remove ${s.registered_name} from the site? Buyers won't see it or its products. You can put it back at any time.`)) return;
+  if(LIVE){
+    const {error} = await sb.from('smes').update({approved:on}).eq('id', id);
+    if(error){ alert('Could not save: ' + error.message); return; }
+    await loadSmes();
+  } else s.approved = on;
+  activity.unshift({t:`${s.registered_name} ${on ? 'put back on' : 'removed from'} the site`, w:"Just now", k: on ? 'ok' : 'warn'});
+  openSme(id); renderSmes();
+}
+async function deleteSme(id){
+  const s = smes.find(x=>x.id===id);
+  const typed = prompt(`This permanently deletes ${s.registered_name}, its products, photos and application.\n\nType the business name to confirm:`);
+  if(typed === null) return;
+  if(typed.trim().toLowerCase() !== s.registered_name.trim().toLowerCase()){ alert('The name did not match, so nothing was deleted.'); return; }
+  if(!LIVE){ smes = smes.filter(x=>x.id!==id); closeModal(); renderSmes(); return; }
+  const {data, error} = await sb.rpc('delete_sme', {p_sme: id});
+  if(error){
+    alert(/function .*delete_sme|could not find the function/i.test(error.message)
+      ? 'Deleting is not switched on yet: run db/delete-sme.sql in the Supabase SQL Editor first.'
+      : 'Could not delete: ' + error.message);
+    return;
+  }
+  // the photo files themselves are removed through the Storage API
+  const pp = (data && data.product_photos) || [], ap = (data && data.application_photos) || [];
+  const r1 = pp.length ? await sb.storage.from(SUPABASE.PHOTOS_BUCKET).remove(pp) : {};
+  const r2 = ap.length ? await sb.storage.from(SUPABASE.APPLICATIONS_BUCKET).remove(ap) : {};
+  activity.unshift({t:`${s.registered_name} deleted permanently`, w:"Just now", k:'bad'});
+  await loadAll(); closeModal(); show(currentView);
+  alert(`${s.registered_name} has been deleted.` + ((r1.error || r2.error) ? ' Some photo files could not be removed; they can be cleared in Supabase Storage.' : ''));
+}
+
 async function verifyBank(id){
   const s = smes.find(x=>x.id===id);
   if(!confirm(`Confirm that you phoned ${s.registered_name} and the bank details are correct?`)) return;
