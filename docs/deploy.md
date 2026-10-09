@@ -43,6 +43,10 @@ domain record. The site must never depend on one person's login.
    (Settings → Secrets and variables → Actions): `CLOUDFLARE_API_TOKEN` (Cloudflare → My Profile →
    API Tokens → Create Token → Custom token → *Account · Cloudflare Pages · Edit*) and
    `CLOUDFLARE_ACCOUNT_ID`. The first run creates the `maketples` Pages project.
+   **Set up as a Worker instead (what Cloudflare's dashboard now offers by default):**
+   Workers & Pages → Create → Import a repository → `tulezready/Market-Remix` → *Build command:*
+   `sh scripts/build-site.sh`, *Deploy command:* `npx wrangler deploy` (default). The repo's
+   `wrangler.jsonc` tells Cloudflare to publish `dist/` and serve `404.html` for missing pages.
 4. **Register the domain** with PNGUoT — nameservers, payment, the signed and sealed form:
    `docs/outreach/domain-application.md`.
 5. **Add custom domains** in the Pages project once the domain is active:

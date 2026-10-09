@@ -1,0 +1,11 @@
+// Cloudflare Workers settings for the website (static files only, no server code).
+// Cloudflare runs  sh scripts/build-site.sh  (copies only the website into dist/)
+// and then  npx wrangler deploy , which publishes dist/ using these settings.
+{
+  "name": "market-remix",
+  "compatibility_date": "2026-10-09",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}
