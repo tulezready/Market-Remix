@@ -7,8 +7,8 @@ Writes into tools/forms/:
   sme-entry-form.pdf         the two-page form, LLG left blank
   by-llg/<District>-<LLG>.pdf  guide + form with the LLG and district already printed (one per LLG)
   all-llgs.pdf               every LLG's guide + form in one file (for reading on screen)
-  print-guides-single-sided.pdf  the 18 officer guides, one page each
-  print-forms-double-sided.pdf   the 18 entry forms, two pages each: print double-sided, one sheet per LLG
+  print-guides-single-sided.pdf  the 20 officer guides, one page each
+  print-forms-double-sided.pdf   the 20 entry forms, two pages each: print double-sided, one sheet per LLG
   llg-tracking-sheet.pdf     for the Division: which LLGs have returned a business
   instructions.pdf           3 pages: printing and handing out, entering online, reviewing entries
 and copies the blank form to tools/sme-form.pdf (the file the README and register page point to).
@@ -30,11 +30,11 @@ RED, GOLD, GREEN = HexColor("#C8321E"), HexColor("#E9B949"), HexColor("#2E7D3A")
 INK, MUTED = HexColor("#161214"), HexColor("#4A3D36")
 LINE, SOFT, TINT = HexColor("#8C857D"), HexColor("#C9BFB3"), HexColor("#F6EEDF")
 
-# The 18 Local-level Governments of East New Britain, by district.
+# The 20 Local-level Governments of East New Britain, by district.
 # Confirm against the Division's own list before printing in bulk.
 LLGS = {
     "Gazelle": ["Central Gazelle Rural", "Inland Baining Rural", "Lassul Baining Rural",
-                "Livuan-Reimber Rural", "Toma-Vunadidir Rural"],
+                "Livuan Rural", "Reimber Rural", "Toma Rural", "Vunadidir Rural"],
     "Kokopo":  ["Bitapaka Rural", "Duke of York Rural", "Kokopo-Vunamami Urban", "Raluana Rural"],
     "Pomio":   ["Central-Inland Pomio Rural", "East Pomio Rural", "Melkoi Rural", "Sinivit Rural",
                 "West Pomio-Mamusi Rural"],
@@ -396,7 +396,7 @@ def tracking_sheet(path):
         c.setFont("Helvetica-Bold", 7.2); c.setFillColor(white)
         c.drawString(x + 1.5 * mm, y, name.upper()); x += cw * f
     y -= 2.6 * mm
-    rh = 8.1 * mm
+    rh = min(8.1 * mm, (y - M - 6 * mm) / sum(len(v) for v in LLGS.values()))
     c.setLineWidth(0.5)
     for d, llgs in LLGS.items():
         for i, l in enumerate(llgs):
@@ -413,7 +413,7 @@ def tracking_sheet(path):
     for _, f in cols[:-1]:
         x += cw * f; c.line(x, LH - M - 23.6 * mm, x, y)
     c.setFont("Helvetica", 7); c.setFillColor(MUTED)
-    c.drawString(M, M, "LLG list: confirm against the Division's records. Target: at least one business per LLG (18 LLGs) toward the 35-business launch cohort.")
+    c.drawString(M, M, "LLG list: confirm against the Division's records. Target: at least one business per LLG (20 LLGs) toward the 35-business launch cohort.")
     c.showPage(); c.save()
 
 
@@ -465,13 +465,13 @@ def instructions(path):
     page_top(p, "LLG trial — instructions", "Getting the first businesses onto MaketPles ENB through the LLGs")
     p.para("Every LLG Business Development Officer finds at least one business in their LLG, fills in the paper form "
            "with the owner, and enters it online with photos. The entry goes straight to the Division for review. "
-           "There are 18 LLGs and the launch target is 35 businesses, so ask each officer for two where they can.",
+           "There are 20 LLGs and the launch target is 35 businesses, so ask each officer for two where they can.",
            size=9.8)
     p.y -= 2 * mm
     h(p, "1. Print")
     table(p, ["File", "How to print", "Sheets"], [
-        ["print-guides-single-sided.pdf", "A4, single-sided", "18 — one officer guide per LLG"],
-        ["print-forms-double-sided.pdf", "A4, double-sided, flip on long edge", "18 — each LLG's form on one sheet"],
+        ["print-guides-single-sided.pdf", "A4, single-sided", "20 — one officer guide per LLG"],
+        ["print-forms-double-sided.pdf", "A4, double-sided, flip on long edge", "20 — each LLG's form on one sheet"],
         ["sme-entry-form.pdf", "A4, double-sided — a few spares", "For an officer's second business"],
         ["llg-tracking-sheet.pdf", "A4 landscape, single-sided", "1 — kept by the Division"],
     ], [0.36, 0.34, 0.30])
@@ -597,7 +597,7 @@ def main():
     entry_form(c); c.save()
     shutil.copy(os.path.join(OUT, "sme-entry-form.pdf"), os.path.join(HERE, "sme-form.pdf"))
 
-    # Print files: guides single-sided (18 sheets); forms double-sided, one sheet per LLG (18 sheets).
+    # Print files: guides single-sided (20 sheets); forms double-sided, one sheet per LLG (20 sheets).
     allc = doc(os.path.join(OUT, "all-llgs.pdf"), "SME Entry Forms, all LLGs — MaketPles ENB")
     guides = doc(os.path.join(OUT, "print-guides-single-sided.pdf"), "Officer guides, all LLGs — MaketPles ENB")
     forms = doc(os.path.join(OUT, "print-forms-double-sided.pdf"), "SME Entry Forms, all LLGs — MaketPles ENB")
