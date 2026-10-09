@@ -57,7 +57,10 @@
 
 <main class="wrap" id="app" style="display:none;">
   <div class="prod-layout">
-    <div class="prod-photo" id="p-photo"></div>
+    <div class="prod-media">
+      <div class="prod-photo" id="p-photo"></div>
+      <div class="prod-thumbs" id="p-thumbs" role="group" aria-label="More photos" hidden></div>
+    </div>
 
     <div class="prod-info">
       <a class="prod-cat" id="p-cat" href="shop.html">Category</a>
@@ -196,6 +199,28 @@ function ptab(t){
 }
 const initials = n => clean(n).split(' ').map(w=>w[0]).slice(0,2).join('');
 
+/* every photo of a live product, as tappable thumbnails under the main one */
+function loadGallery(p){
+  if(!Shop.LIVE || !/^[0-9a-f-]{36}$/i.test(p.id)) return;
+  dbGet('product_images?select=storage_path&product_id=eq.' + p.id + '&order=sort_order')
+    .then(rows => {
+      const urls = (rows || []).map(r => photoURL(r.storage_path)).filter(Boolean);
+      if(urls.length < 2) return;
+      const box = document.getElementById('p-thumbs');
+      box.innerHTML = urls.map((u, i) =>
+        `<button type="button" aria-label="Photo ${i+1} of ${urls.length}" aria-pressed="${i===0}" data-src="${esc(u)}">` +
+        `<img src="${esc(u)}" alt="" loading="lazy" decoding="async"></button>`).join('');
+      box.hidden = false;
+      box.onclick = e => {
+        const b = e.target.closest('button'); if(!b) return;
+        const main = document.querySelector('#p-photo img');
+        if(main){ main.classList.remove('broken'); main.src = b.dataset.src; }
+        box.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      };
+    })
+    .catch(() => {});   // the main photo is already showing; extra photos are a bonus
+}
+
 function boot(){
   const idRaw = new URLSearchParams(location.search).get('p');
   const p = getProduct(idRaw);
@@ -223,6 +248,7 @@ function boot(){
     (p.b ? `<span class="badge">${p.b}</span>` : '') + tag +
     (img ? `<img src="${img}" alt="${clean(p.n)}">` : '') + catIcon(p.c);
   document.getElementById('p-name').textContent = clean(p.n);
+  loadGallery(p);
 
   document.getElementById('p-seller').href = 'sme.html?s=' + p.s;
   document.getElementById('p-sav').textContent = s ? initials(s.n) : '?';
