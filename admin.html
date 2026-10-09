@@ -1330,15 +1330,17 @@ async function loadAppDetail(appId){
         .createSignedUrl(ph2.storage_path, 600);
       return {...ph2, url: signed ? signed.signedUrl : null};
     }));
-    thumbs = `<div class="fr full"><label>Photographs (${photos.length}) — check the tag on each before approving</label>
+    thumbs = `<div class="fr full"><label>Photographs (${photos.length}) — check what each one shows before approving</label>
       <div class="app-photo-grid">` +
       withUrls.map(p => `
         <div class="app-photo">
           ${p.url ? `<img src="${esc(p.url)}" alt="">` : '<div class="app-photo-broken">could not load</div>'}
-          <select onchange="setPhotoKind('${p.id}', this.value)">
+          <select onchange="setPhotoKind('${p.id}', this.value)" aria-label="What this photo shows">
+            ${(prods||[]).length ? `<optgroup label="A product">${(prods||[]).map(pr =>
+              `<option value="prod:${pr.id}" ${p.kind==='product' && p.product_id===pr.id ? 'selected' : ''}>${esc(pr.name)}</option>`).join('')}</optgroup>` : ''}
+            <option value="product" ${p.kind==='product' && !p.product_id ? 'selected' : ''}>A product — not sure which</option>
             <option value="business" ${p.kind==='business'?'selected':''}>Me / my stall</option>
             <option value="hero" ${p.kind==='hero'?'selected':''}>Front page</option>
-            <option value="product" ${p.kind==='product'?'selected':''}>A product</option>
           </select>
         </div>`).join('') +
       `</div></div>`;
@@ -1347,8 +1349,12 @@ async function loadAppDetail(appId){
   box.innerHTML = `<div style="margin:14px 0;">${prodRows}</div>${thumbs}`;
 }
 
-async function setPhotoKind(photoId, kind){
-  const {error} = await sb.from('application_photos').update({kind}).eq('id', photoId);
+async function setPhotoKind(photoId, value){
+  // "prod:<id>" ties the photo to that product; the other choices clear the link
+  const upd = value.indexOf('prod:') === 0
+    ? {kind:'product', product_id:value.slice(5)}
+    : {kind:value, product_id:null};
+  const {error} = await sb.from('application_photos').update(upd).eq('id', photoId);
   if(error) alert('That could not be saved: ' + error.message);
 }
 

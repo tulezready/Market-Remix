@@ -116,6 +116,7 @@
   .chk span{font-size:13px;line-height:1.6;}
   #officerBox{margin-top:20px;padding:16px;border:1px solid var(--hair);border-radius:12px;background:#fff;}
   .obox-h{font-size:15px;font-weight:800;margin:0 0 12px;}
+  .pic select.unset{background:#F8E0DA;color:#9E2414;font-weight:700;}
   .chk a{color:var(--harbour,#0F5C68);font-weight:700;text-decoration:underline;text-underline-offset:2px;}
   footer a{color:rgba(250,244,234,.85);text-decoration:underline;text-underline-offset:2px;display:inline-block;padding:10px 0;}
 
@@ -469,7 +470,7 @@
     <div class="hint" style="margin-top:16px;">
       <b>What helps most:</b> one photo of you at your stall, garden or workshop, and a clear
       photo of each product taken in daylight. If you know what a photo shows, choose it
-      underneath — otherwise leave it and the Division will sort it out.
+      underneath each one: which product it shows, or the owner at work, or the wide photo.
     </div>
     <div class="nav">
       <button class="btn-o" onclick="go(-1)">Back</button>
@@ -719,7 +720,7 @@ document.getElementById('picIn').addEventListener('change', async e=>{
     try{
       const out = await shrink(f);
       pics.push({id:'pic'+Date.now()+Math.random().toString(36).slice(2,5),
-                 dataUrl:out.dataUrl, blob:out.blob, role:'product', name:f.name});
+                 dataUrl:out.dataUrl, blob:out.blob, role:'', name:f.name});
     }catch(err){ /* skip unreadable files */ }
   }
   busy.classList.remove('on');
@@ -766,25 +767,35 @@ function drawPics(){
     </div>`).join('');
   drawPicRoles();
 }
+/* What each photo shows. With one product, its photos go to it automatically;
+   with several, each photo starts on "Choose…" so it lands on the right listing. */
+function namedProducts(){ return products.filter(p=>p.name.trim()); }
+function autoRoles(){
+  const named = namedProducts();
+  const ids = new Set(named.map(p=>'prod:'+p.id));
+  pics.forEach(p=>{
+    if(p.role.indexOf('prod:') === 0 && !ids.has(p.role)) p.role = '';   // its product was removed
+    if(named.length === 1 && (p.role === '' || p.role === 'product')) p.role = 'prod:' + named[0].id;
+  });
+}
 function drawPicRoles(){
-  const base = [
-    ['product','A product'],
-    ['business','Me / my stall'],
-    ['hero','Wide photo for the website'],
-  ];
-  const named = products.filter(p=>p.name.trim())
-    .map(p=>[`prod:${p.id}`, p.name.trim().slice(0,28)]);
+  autoRoles();
+  const named = namedProducts().map(p=>[`prod:${p.id}`, p.name.trim().slice(0,28)]);
   document.querySelectorAll('.pic select').forEach((sel,i)=>{
     const p = pics[i]; if(!p) return;
     sel.innerHTML =
-      base.map(([v,l])=>`<option value="${v}">${esc(l)}</option>`).join('') +
-      (named.length ? '<optgroup label="Which product?">' +
-        named.map(([v,l])=>`<option value="${v}">${esc(l)}</option>`).join('') +
-        '</optgroup>' : '');
+      `<option value="">Choose…</option>` +
+      (named.length ? '<optgroup label="A product">' +
+        named.map(([v,l])=>`<option value="${v}">${esc(l)}</option>`).join('') + '</optgroup>' : '') +
+      '<optgroup label="The business">' +
+        '<option value="business">Me / my stall (owner at work)</option>' +
+        '<option value="hero">Wide photo for the website</option></optgroup>' +
+      '<option value="product">Another product (not listed)</option>';
     sel.value = p.role;
+    sel.classList.toggle('unset', !p.role);
   });
 }
-function setRole(id,v){ const p = pics.find(x=>x.id===id); if(p) p.role = v; }
+function setRole(id,v){ const p = pics.find(x=>x.id===id); if(p) p.role = v; drawPicRoles(); }
 function rmPic(id){ pics = pics.filter(p=>p.id!==id); drawPics(); }
 
 /* ---------- validation ---------- */
@@ -840,6 +851,16 @@ function validate(n){
   }
   if(n===5){
     if(!pics.length) p.push('Please add at least one photograph');
+    else {
+      // gentle checks: the officer can carry on, but is asked first
+      const unset = pics.filter(x=>!x.role).length;
+      if(unset && !confirm(`${unset} photo${unset===1?' doesn’t':'s don’t'} say what ${unset===1?'it shows':'they show'}. ` +
+          'Choose a product under each photo so it goes on the right listing.\n\nPress OK to carry on anyway, or Cancel to choose.')) return false;
+      const hasOwner = pics.some(x=>x.role==='business'), hasWide = pics.some(x=>x.role==='hero');
+      if((!hasOwner || !hasWide) && !confirm('There is no ' + (!hasOwner && !hasWide ? 'photo of the owner at work or wide photo of the place'
+          : !hasOwner ? 'photo of the owner at work' : 'wide photo of the place') +
+          '. These make the business page look real.\n\nPress OK to carry on without, or Cancel to add one.')) return false;
+    }
   }
   if(n===6 && OFFICER){
     const on = document.getElementById('f_officer_name'), op = document.getElementById('f_officer_phone');
@@ -867,6 +888,7 @@ function go(dir){
     s.classList.toggle('done', i+1<step);
   });
   if(step===4) drawProducts();
+  if(step===5) drawPicRoles();
   if(step===6) buildReview();
   clearErr();
   window.scrollTo({top:document.getElementById('steps').offsetTop-20, behavior:'smooth'});
