@@ -260,8 +260,8 @@ def entry_form(c, llg=None, district=None):
     p.field(M, p.y, CW * 0.70, "Business name — as buyers should see it")
     p.field(M + CW * 0.74, p.y, CW * 0.26, "Trading for how long?")
     p.y -= 13 * mm
-    p.field(M, p.y, CW * 0.36, "Village or ward")
-    p.field(M + CW * 0.40, p.y, CW * 0.34, "LLG", llg)
+    p.field(M, p.y, CW * 0.36, "Ward or village")
+    p.field(M + CW * 0.40, p.y, CW * 0.34, "LLG" if llg else "LLG — one of your district's LLGs", llg)
     p.field(M + CW * 0.78, p.y, CW * 0.22, "District", district)
     p.y -= 13 * mm
     p.label(M, p.y, "What does the business mainly sell? Tick one")
@@ -508,14 +508,17 @@ def instructions(path):
     p.y -= 1 * mm
     h(p, "Step by step — copy from the paper form")
     items(p, [
-        "About the business: name, district, \"LLG, ward or village\", how long trading, staff, what it mainly "
-        "sells, and the owner's description from section 4.",
+        "About the business: name and district; then choose the LLG from the list (or \"Not sure\") and type "
+        "the ward or village in its own box; then how long trading, staff, what it mainly sells, and the "
+        "owner's description from section 4.",
         "Contact: the owner's name, mobile and email if any.",
         "Registration: IPA status, and the IPA number if they have one.",
         "What they sell: each product with its price in kina, what the price is for (each, per kg, per bundle), "
         "and how many they have.",
-        "Photos: up to 12. They are made smaller automatically so they send on a weak signal. Under each photo, "
-        "choose what it shows — a product, the owner at work, or the front-page photo.",
+        "Photos: up to 12, made smaller automatically so they send on a weak signal. With one product, its photos "
+        "go to it by themselves. With more than one, choose under each photo which product it shows — or the owner "
+        "at work, or the wide photo of the place. The form reminds you if a photo isn't sorted, or if there is no "
+        "photo of the owner or the place.",
         "Check and send: check everything, enter your own name, mobile and the paper form number, tick that "
         "the owner signed the paper form, and press Send.",
         "Write the reference shown (for example ENB-A1234) on the paper form. Press \"Register another "
@@ -545,8 +548,10 @@ def instructions(path):
         "shows the officer's name, mobile, paper form number and the IPA number.",
         "Phone the owner on the number given. Confirm the details, that they agreed to be listed, and the prices. "
         "Aim to do this within 2 working days so officers see results.",
-        "Open the entry, check the photos, and set each photo's label if needed (me / my stall, front page, a product).",
-        "Approve & create account — or Return to applicant with a note saying what is needed.",
+        "Open the entry. Check the LLG and ward, and under each photo check what it shows: the menu lists the "
+        "products by name, plus me / my stall and front page. Fix any photo before approving.",
+        "Approve & create account — or Return to applicant with a note saying what is needed. If photos are "
+        "missing from the listing afterwards, open the application again and press Move photos again.",
         "Listing review: check each product (photo, description, price) and Publish it.",
         "Businesses → open the business → Seller login → Create login. Give the owner the login and temporary "
         "password in person or by phone; they choose their own at first sign-in.",
@@ -564,6 +569,8 @@ def instructions(path):
         "Reject anything you cannot confirm by phone.",
         "Unregistered businesses can be approved during the pilot, case by case.",
         "Sample businesses on the site are placeholders; they are removed before launch.",
+        "To take a business off the site: Businesses → Open → Remove from site. Its records are kept and it can be "
+        "put back. Delete permanently is for test entries with no orders only, and only Division admins see it.",
     ], numbered=False)
     p.footer(FOOT, 3, 3)
     c.showPage()
