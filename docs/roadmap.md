@@ -79,6 +79,14 @@ the domain's DNS host (`docs/outreach/domain-application.md`).
 | 17 | Seller and agent guides; staff training | Claude drafts, Division delivers |
 | 18 | Soft launch in one district, then province-wide; keep a buffer week | Everyone |
 
+## After launch — ideas parked
+
+- **Loyalty points**: earned on purchases, spent as a discount; never sold for Kina or cashed out.
+- **Division vouchers** (expos, grants): the Division pays the seller when one is redeemed. Check with Division finance first.
+- **Phone wallet**: only through a licensed provider (CellMoni, MiCash or a bank). No MaketPles currency or tokens of our own:
+  buying credit with Kina is e-money under the National Payments System Act 2013 and needs Bank of PNG authorisation.
+  Decided 11 Oct.
+
 ---
 
 ## Already done
