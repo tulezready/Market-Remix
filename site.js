@@ -498,13 +498,13 @@ function notice(showBar){
   bar.style.cssText =
     "position:fixed;left:0;right:0;bottom:0;z-index:170;background:var(--ink);color:var(--ash);" +
     "padding:11px 18px;display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap;" +
-    "font-size:12px;font-family:'Space Mono',monospace;letter-spacing:0.06em;border-top:2px solid var(--leaf);";
+    "font-size:12px;font-family:var(--f-body);letter-spacing:0.06em;border-top:2px solid var(--leaf);";
   bar.innerHTML =
     '<span style="color:var(--leaf-gl);">SAMPLE DATA</span>' +
-    '<span style="opacity:.72;letter-spacing:0;font-family:\'Plus Jakarta Sans\';">' +
+    '<span style="opacity:.72;letter-spacing:0;font-family:var(--f-body);">' +
       'No <b>data.json</b> found. Showing placeholder businesses and products.</span>' +
     '<button id="pickBtn" style="background:var(--ash);color:var(--ink);border:none;border-radius:100px;' +
-      'padding:7px 15px;font-weight:700;font-size:11.5px;font-family:\'Plus Jakarta Sans\';cursor:pointer;">' +
+      'padding:7px 15px;font-weight:700;font-size:11.5px;font-family:var(--f-body);cursor:pointer;">' +
       'Load a data.json</button>' +
     '<button id="dismissBtn" aria-label="Dismiss" style="background:none;border:none;color:rgba(251,248,241,.5);' +
       'font-size:16px;cursor:pointer;line-height:1;">×</button>';
@@ -512,7 +512,7 @@ function notice(showBar){
     // live database, but the businesses shown are still the placeholder set
     bar.innerHTML =
       '<span style="color:var(--gold);">SAMPLE LISTINGS</span>' +
-      '<span style="opacity:.8;letter-spacing:0;font-family:\'Plus Jakarta Sans\';">' +
+      '<span style="opacity:.8;letter-spacing:0;font-family:var(--f-body);">' +
         'These businesses are placeholders until the launch cohort is loaded. Orders are recorded for testing only.</span>' +
       '<button id="dismissBtn" aria-label="Dismiss" style="background:none;border:none;color:rgba(251,248,241,.6);' +
         'font-size:18px;cursor:pointer;line-height:1;min-width:44px;min-height:44px;">×</button>';
