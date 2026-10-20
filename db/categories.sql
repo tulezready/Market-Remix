@@ -30,6 +30,7 @@ language sql immutable as $$
     when 'accommodation'   then 'tourism'
     when 'tours'           then 'tourism'
     when 'food_service'    then 'tourism'
+    when 'arts_crafts'     then 'tourism'
     when 'coastal_fishing' then 'fisheries'
     when 'fish_farming'    then 'fisheries'
     when 'trade_stores'    then 'trade'
@@ -68,7 +69,10 @@ update products set category = 'agriculture', subcategory = 'produce' where cate
 update products set category = 'agriculture', subcategory = null      where category = 'processing';
 update products set category = 'trade',       subcategory = 'trade_stores' where category = 'retail';
 update products set category = 'trade',       subcategory = 'distribution' where category = 'wholesale';
--- crafts and tailoring are not on the Division's list; those rows keep their old category for now
+-- arts, crafts and tailoring: a type under Tourism & Hospitality (decided 20 Oct)
+update smes set primary_industry = 'tourism', subcategory = 'arts_crafts' where primary_industry in ('crafts','tailoring');
+update seller_applications set primary_industry = 'tourism', subcategory = 'arts_crafts' where primary_industry in ('crafts','tailoring');
+update products set category = 'tourism', subcategory = 'arts_crafts' where category in ('crafts','tailoring');
 
 alter table smes                 add constraint smes_subcategory_ok      check (subcategory is null or industry_of_sub(subcategory) = primary_industry) not valid;
 alter table products             add constraint products_subcategory_ok  check (subcategory is null or industry_of_sub(subcategory) = category) not valid;

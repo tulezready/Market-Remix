@@ -46,7 +46,8 @@ LLGS = {
 # categories.js; keep the two in step.
 CATEGORIES = [
     ("Agriculture & farming",     ["Cocoa", "Copra & coconut", "Galip nut", "Fresh produce & horticulture"]),
-    ("Tourism & hospitality",     ["Accommodation & guest houses", "Tours & travel", "Restaurants, cafes & kaibars"]),
+    ("Tourism & hospitality",     ["Accommodation & guest houses", "Tours & travel", "Restaurants, cafes & kaibars",
+                                   "Arts, crafts & tailoring"]),
     ("Fisheries & marine",        ["Coastal fishing & trading", "Inland fish farming"]),
     ("Retail, wholesale & trade", ["Trade stores & supermarkets", "Local distributorships"]),
     ("Transport & logistics",     ["PMV & taxi", "Cargo, freight & car rentals"]),
@@ -278,16 +279,16 @@ def entry_form(c, llg=None, district=None):
     for main, subs in CATEGORIES:
         c.setFont("Helvetica-Bold", 8); c.setFillColor(INK)
         c.drawString(M, p.y, main)
-        p.boxes(M + 43 * mm, p.y, subs, CW - 43 * mm, size=8.2)
+        p.y = p.boxes(M + 43 * mm, p.y, subs, CW - 43 * mm, size=8.2, lead=5.6 * mm)   # a long row wraps
         p.y -= 5.6 * mm
     p.y -= 3.5 * mm
     p.label(M, p.y, "Registered with IPA? Tick one")
-    p.label(M + CW * 0.55, p.y, "IPA number, if registered")
-    p.boxes(M, p.y - 6 * mm, ["Yes", "Applied, waiting", "Not yet"], CW * 0.52)
-    p.rule(M + CW * 0.55, p.y - 7.2 * mm, M + CW)
-    p.y -= 15 * mm
-    p.field(M, p.y, CW * 0.30, "How many people work in it?")
-    p.y -= 15 * mm
+    p.label(M + CW * 0.52, p.y, "IPA number, if registered")
+    p.label(M + CW * 0.80, p.y, "How many staff?")
+    p.boxes(M, p.y - 6 * mm, ["Yes", "Applied, waiting", "Not yet"], CW * 0.50)
+    p.rule(M + CW * 0.52, p.y - 7.2 * mm, M + CW * 0.76)
+    p.rule(M + CW * 0.80, p.y - 7.2 * mm, M + CW)
+    p.y -= 17 * mm
 
     p.section(2, "Who we contact")
     p.field(M, p.y, CW * 0.48, "Owner or manager — full name")

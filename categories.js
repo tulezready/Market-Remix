@@ -25,6 +25,7 @@ const CATEGORIES = [
      {key:"accommodation", label:"Accommodation & Guest Houses"},
      {key:"tours",         label:"Tour and Travel Services"},
      {key:"food_service",  label:"Restaurants, Cafes & Kaibars"},
+     {key:"arts_crafts",   label:"Arts, Crafts & Tailoring"},
    ]},
   {key:"fisheries", label:"Fisheries & Marine Resources", short:"Fisheries & Marine",
    icon:"ic-fisheries", bg:"#DCEEEF", fg:"#0F5C68",                  // harbour teal
