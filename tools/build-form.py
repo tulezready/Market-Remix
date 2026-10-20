@@ -41,8 +41,17 @@ LLGS = {
     "Rabaul":  ["Balanataman Rural", "Kombiu Rural", "Rabaul Urban", "Watom Island Rural"],
 }
 
-INDUSTRIES = ["Retail", "Wholesale", "Tailoring", "Arts & crafts", "Fresh produce",
-              "Food crops — rice & spices", "Downstream processing (copra oil, cocoa, coffee, honey)"]
+# The Division's "Type of MSME listing": main category -> sub-categories, in the
+# short wording that fits one line of the paper form. The website's list is
+# categories.js; keep the two in step.
+CATEGORIES = [
+    ("Agriculture & farming",     ["Cocoa", "Copra & coconut", "Galip nut", "Fresh produce & horticulture"]),
+    ("Tourism & hospitality",     ["Accommodation & guest houses", "Tours & travel", "Restaurants, cafes & kaibars"]),
+    ("Fisheries & marine",        ["Coastal fishing & trading", "Inland fish farming"]),
+    ("Retail, wholesale & trade", ["Trade stores & supermarkets", "Local distributorships"]),
+    ("Transport & logistics",     ["PMV & taxi", "Cargo, freight & car rentals"]),
+    ("Professional & technical",  ["Building & civil construction", "IT & office services"]),
+]
 
 # Where officers enter the form online. Change this when the site moves to its own domain.
 ONLINE_URL = "market-remix.lesleywaninara.workers.dev/register?officer"
@@ -201,8 +210,8 @@ def officer_guide(c, llg=None, district=None):
         p.y -= 2.4 * mm
 
     block("Who to choose", [
-        "A business that is running now in your LLG and sells something people would buy: produce, food "
-        "crops, crafts, sewing, processed goods (copra oil, cocoa, coffee, honey), a trade store or wholesaler.",
+        "A business that is running now in your LLG, in one of the Division's six categories: agriculture "
+        "and farming, tourism and hospitality, fisheries, retail and trade, transport, or professional services.",
         "The owner wants to take part and can be reached on a mobile number.",
         "IPA registration is preferred, but not needed for the pilot — the Division approves unregistered "
         "businesses case by case and can help them register.",
@@ -264,9 +273,14 @@ def entry_form(c, llg=None, district=None):
     p.field(M + CW * 0.40, p.y, CW * 0.34, "LLG" if llg else "LLG — one of your district's LLGs", llg)
     p.field(M + CW * 0.78, p.y, CW * 0.22, "District", district)
     p.y -= 13 * mm
-    p.label(M, p.y, "What does the business mainly sell? Tick one")
+    p.label(M, p.y, "What kind of business is it? Tick one box")
     p.y -= 6 * mm
-    p.y = p.boxes(M, p.y, INDUSTRIES, CW) - 9 * mm
+    for main, subs in CATEGORIES:
+        c.setFont("Helvetica-Bold", 8); c.setFillColor(INK)
+        c.drawString(M, p.y, main)
+        p.boxes(M + 43 * mm, p.y, subs, CW - 43 * mm, size=8.2)
+        p.y -= 5.6 * mm
+    p.y -= 3.5 * mm
     p.label(M, p.y, "Registered with IPA? Tick one")
     p.label(M + CW * 0.55, p.y, "IPA number, if registered")
     p.boxes(M, p.y - 6 * mm, ["Yes", "Applied, waiting", "Not yet"], CW * 0.52)
@@ -291,7 +305,7 @@ def entry_form(c, llg=None, district=None):
         p.label(x + 1 * mm, p.y, name, size=6.6); x += CW * f
     p.y -= 2.4 * mm
     rh = 9.2 * mm
-    rows = 6
+    rows = 5
     c.setStrokeColor(LINE); c.setLineWidth(0.6)
     for r in range(rows + 1):
         c.line(M, p.y - r * rh, M + CW, p.y - r * rh)
@@ -509,7 +523,7 @@ def instructions(path):
     h(p, "Step by step — copy from the paper form")
     items(p, [
         "About the business: name and district; then choose the LLG from the list (or \"Not sure\") and type "
-        "the ward or village in its own box; then how long trading, staff, what it mainly sells, and the "
+        "the ward or village in its own box; then how long trading, staff, its category and type, and the "
         "owner's description from section 4.",
         "Contact: the owner's name, mobile and email if any.",
         "Registration: IPA status, and the IPA number if they have one.",
@@ -559,8 +573,8 @@ def instructions(path):
     ])
     h(p, "Each week")
     items(p, [
-        "Launch progress screen: shows how many businesses per industry (target 5 in each of 7) and per district. "
-        "Tell officers what is missing — for example \"we need tailoring from Pomio\".",
+        "Launch progress screen: shows how many businesses per industry (target 5 in each of the 6 categories) and per district. "
+        "Tell officers what is missing — for example \"we need a guest house from Pomio\".",
         "Phone officers whose LLG has nothing yet.",
     ], numbered=False)
     h(p, "Keep in mind")

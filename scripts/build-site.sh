@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 rm -rf dist
 mkdir -p dist/photos dist/tools
 
-cp ./*.html site.css site.js shop-data.js config.js logo-96.png logo.svg _headers dist/
+cp ./*.html site.css site.js shop-data.js categories.js config.js logo-96.png logo.svg _headers dist/
 [ -f data.json ] && cp data.json dist/
 [ -f _redirects ] && cp _redirects dist/
 

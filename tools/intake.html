@@ -338,7 +338,7 @@
       <button data-v="export">Export &amp; backup</button>
     </nav>
     <div class="side-bot">
-      TARGET: 35 BUSINESSES<br>5 PER INDUSTRY × 7<br>ACROSS 4 DISTRICTS
+      TARGET: 35 BUSINESSES<br>5 PER CATEGORY × 6<br>ACROSS 4 DISTRICTS
     </div>
   </aside>
 
@@ -565,14 +565,13 @@
    REFERENCE LISTS — from the bi-annual conference SME listing
    ============================================================ */
 const DISTRICTS = ["Gazelle","Kokopo","Rabaul","Pomio"];
-const INDUSTRIES = [
-  {key:"retail",     label:"Retail"},
-  {key:"wholesale",  label:"Wholesale"},
-  {key:"tailoring",  label:"Tailoring"},
-  {key:"crafts",     label:"Arts & Crafts"},
-  {key:"processing", label:"Small Scale Downstream Processing"},
-  {key:"produce",    label:"Fresh Produce"},
-  {key:"foodcrops",  label:"Food Crops — Rice & Spices"},
+const INDUSTRIES = [   // the Division's six categories — same keys as categories.js
+  {key:"agriculture", label:"Agriculture, Farming & Agribusiness"},
+  {key:"tourism",     label:"Tourism & Hospitality"},
+  {key:"fisheries",   label:"Fisheries & Marine Resources"},
+  {key:"trade",       label:"Retail, Wholesale & General Trade"},
+  {key:"transport",   label:"Transport & Logistics"},
+  {key:"services",    label:"Professional, Construction & Technical Services"},
 ];
 const TARGET_PER_INDUSTRY = 5;
 const TARGET_TOTAL = 35;

@@ -34,6 +34,11 @@ const SPRITE = `<svg style="position:absolute;width:0;height:0;overflow:hidden" 
   <symbol id="ic-processing" viewBox="0 0 24 24"><path d="M10 3h4"/><path d="M10 3v5.2L5.3 17a2 2 0 0 0 1.8 3h9.8a2 2 0 0 0 1.8-3L14 8.2V3"/><line x1="7.8" y1="14.5" x2="16.2" y2="14.5"/></symbol>
   <symbol id="ic-produce" viewBox="0 0 24 24"><path d="M4.5 11h15l-1.8 9H6.3l-1.8-9Z"/><circle cx="9" cy="9" r="1.9"/><circle cx="13" cy="7" r="2.2"/><circle cx="16.3" cy="9.8" r="1.5"/></symbol>
   <symbol id="ic-foodcrops" viewBox="0 0 24 24"><line x1="12" y1="21" x2="12" y2="9"/><path d="M12 9 9.2 6.2 M12 9 14.8 6.2 M12 13 9.2 10.2 M12 13 14.8 10.2 M12 17 9.2 14.2 M12 17 14.8 14.2"/></symbol>
+  <symbol id="ic-agriculture" viewBox="0 0 24 24"><path d="M12 21V11"/><path d="M12 11c0-3.5 2.5-6 6.5-6 0 3.5-2.5 6-6.5 6Z"/><path d="M12 14c0-3-2.2-5.2-5.8-5.2 0 3 2.2 5.2 5.8 5.2Z"/><line x1="5" y1="21" x2="19" y2="21"/></symbol>
+  <symbol id="ic-tourism" viewBox="0 0 24 24"><path d="M3 19V7"/><path d="M3 15h18v4"/><path d="M3 12h7v3"/><path d="M10 12h8a3 3 0 0 1 3 3"/><circle cx="6.5" cy="9.5" r="1.6"/></symbol>
+  <symbol id="ic-fisheries" viewBox="0 0 24 24"><path d="M3 12c3-4.5 9-5.5 13.5-2L21 7v10l-4.5-3C12 17.5 6 16.5 3 12Z"/><circle cx="8" cy="11.2" r=".9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="ic-transport" viewBox="0 0 24 24"><path d="M3 16.5V7.5a1.5 1.5 0 0 1 1.5-1.5h9.5v10.5"/><path d="M14 9.5h3.8l3.2 3.6v3.4h-2"/><path d="M8.6 16.5h5.6"/><circle cx="6.5" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></symbol>
+  <symbol id="ic-services" viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="12" rx="2"/><path d="M9 7.5V5.5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5.5v2"/><path d="M3 12.5h18"/><line x1="12" y1="11.3" x2="12" y2="13.7"/></symbol>
   <symbol id="ic-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8 1c0 1.7-2.4 2.2-2.4 3.7"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></symbol>
 </svg>`;
 const OVERLAYS = `<!-- BASKET -->
@@ -148,16 +153,9 @@ function mSearch(){
   }
 }
 
-/* ---------- categories, used by the home tiles and the shop chips ---------- */
-const CATS = [
-  {c:"produce",    n:"Fresh Produce",       bg:"#E2F0E2", fg:"#24662F"},   // leaf green
-  {c:"foodcrops",  n:"Food Crops & Spices", bg:"#FBF0D2", fg:"#7D5A0C"},   // kumul gold
-  {c:"crafts",     n:"Arts & Crafts",       bg:"#FBE1EC", fg:"#9C2A5D"},   // Sulka pink
-  {c:"tailoring",  n:"Tailoring",           bg:"#F8E0DA", fg:"#A8281A"},   // tubuan red
-  {c:"processing", n:"Processed Goods",     bg:"#F1E4D8", fg:"#5B3220"},   // Gazelle cocoa
-  {c:"retail",     n:"Retail",              bg:"#DCEEEF", fg:"#0F5C68"},   // harbour teal
-  {c:"wholesale",  n:"Wholesale & Bulk",    bg:"#ECE8E3", fg:"#4F4943"},   // Tavurvur ash
-];
+/* ---------- categories, used by the home tiles and the shop chips ----------
+   The list itself is in categories.js; CATS keeps the shape these pages use. */
+const CATS = CATEGORIES.map(x => ({c:x.key, n:x.short, full:x.label, bg:x.bg, fg:x.fg, subs:x.subs}));
 const DISTRICT_NAMES = ["Rabaul","Kokopo","Gazelle","Pomio"];
 
 /* ---------- images sized for where they are shown ----------

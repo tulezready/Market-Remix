@@ -101,6 +101,8 @@
   .hint.warn{color:#8A6410;background:#FBF0D2;border-radius:8px;padding:10px 12px;}
 
   .radios{display:grid;gap:9px;}
+  #subWrap[hidden]{display:none;}
+  #subRadios{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));}
   .radio{display:flex;gap:11px;align-items:flex-start;padding:13px 15px;
     border:1px solid var(--hair);border-radius:11px;background:#fff;cursor:pointer;transition:.18s;}
   .radio:hover{border-color:var(--ink);}
@@ -382,6 +384,10 @@
         <label>What does your business mainly do? <span class="req">*</span></label>
         <div class="radios" id="industryRadios"></div>
       </div>
+      <div class="fr full" id="subWrap" hidden>
+        <label>Which of these? <span class="req">*</span></label>
+        <div class="radios" id="subRadios"></div>
+      </div>
       <div class="fr full">
         <label>Tell us about your business <span class="opt">(optional but helpful)</span></label>
         <textarea id="f_message" placeholder="What do you make or sell? What makes it different from the next stall?"></textarea>
@@ -558,6 +564,7 @@
 </footer>
 
 <script src="config.js"></script>
+<script src="categories.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 /* ============================================================
@@ -597,22 +604,6 @@ if(!LIVE){
 }
 
 const DISTRICTS = ["Gazelle","Kokopo","Rabaul","Pomio"];
-const INDUSTRIES = [
-  {key:"retail",     label:"Retail",
-   desc:"Selling goods directly to customers — a trade store, canteen or stall."},
-  {key:"wholesale",  label:"Wholesale",
-   desc:"Supplying goods in bulk to other businesses or trade stores."},
-  {key:"tailoring",  label:"Tailoring",
-   desc:"Sewing and garment making — meri blouses, uniforms, laplap."},
-  {key:"crafts",     label:"Arts & Crafts",
-   desc:"Bilum, weaving, carving, shellcraft and traditional artwork."},
-  {key:"processing", label:"Small Scale Downstream Processing",
-   desc:"Turning raw produce into products — copra oil, cocoa, coffee, honey."},
-  {key:"produce",    label:"Fresh Produce",
-   desc:"Garden food sold fresh — greens, root crops, fruit, vegetables."},
-  {key:"foodcrops",  label:"Food Crops — Rice & Spices",
-   desc:"Rice, vanilla, spices and other stored food crops."},
-];
 const IPA_OPTIONS = [
   {key:"Registered",     label:"Yes, I am registered",
    desc:"You hold an IPA certificate for this business."},
@@ -657,11 +648,21 @@ function fillLlgs(){
 }
 document.getElementById('f_district').addEventListener('change', fillLlgs);
 
-document.getElementById('industryRadios').innerHTML = INDUSTRIES.map(i=>`
-  <label class="radio" data-g="industry" data-v="${i.key}">
-    <input type="radio" name="industry" value="${i.key}">
-    <span><span class="t">${esc(i.label)}</span><span class="d">${esc(i.desc)}</span></span>
+/* main categories (categories.js); picking one shows its sub-categories */
+document.getElementById('industryRadios').innerHTML = CATEGORIES.map(c=>`
+  <label class="radio" data-g="industry" data-v="${c.key}">
+    <input type="radio" name="industry" value="${c.key}">
+    <span><span class="t">${esc(c.label)}</span><span class="d">${esc(c.subs.map(x=>x.label).join(' · '))}</span></span>
   </label>`).join('');
+function fillSubs(main, keep){
+  const c = catByKey(main), wrap = document.getElementById('subWrap');
+  wrap.hidden = !c;
+  document.getElementById('subRadios').innerHTML = c ? c.subs.map(x=>`
+    <label class="radio${x.key===keep?' sel':''}" data-g="sub" data-v="${x.key}">
+      <input type="radio" name="sub" value="${x.key}"${x.key===keep?' checked':''}>
+      <span><span class="t">${esc(x.label)}</span></span>
+    </label>`).join('') : '';
+}
 
 document.getElementById('ipaRadios').innerHTML = IPA_OPTIONS.map(o=>`
   <label class="radio" data-g="ipa" data-v="${o.key}">
@@ -669,8 +670,10 @@ document.getElementById('ipaRadios').innerHTML = IPA_OPTIONS.map(o=>`
     <span><span class="t">${esc(o.label)}</span><span class="d">${esc(o.desc)}</span></span>
   </label>`).join('');
 
-document.querySelectorAll('.radio').forEach(r=>{
-  r.addEventListener('click', ()=>{
+document.addEventListener('click', e=>{
+  const r = e.target.closest('.radio');
+  if(!r) return;
+  {
     const g = r.dataset.g;
     document.querySelectorAll(`.radio[data-g="${g}"]`).forEach(x=>x.classList.remove('sel'));
     r.classList.add('sel');
@@ -680,8 +683,9 @@ document.querySelectorAll('.radio').forEach(r=>{
       document.getElementById('ipaHelp').style.display    = v==='Not registered' ? 'block' : 'none';
       if(v==='Not registered') document.getElementById('f_wants_help').checked = true;
     }
+    if(g==='industry' && r.dataset.v !== data._main){ data._main = r.dataset.v; fillSubs(r.dataset.v); }
     clearErr();
-  });
+  }
 });
 
 /* ---------- products ---------- */
@@ -714,7 +718,7 @@ function drawProducts(){
         <div class="fr">
           <label>Sold by ${i===0?'<span class="req">*</span>':''}</label>
           <input value="${esc(p.unit)}" oninput="upd('${p.id}','unit',this.value)"
-                 placeholder="each · per kg · per bundle">
+                 placeholder="each · per kg · per bundle · per night · per trip">
         </div>
         <div class="fr">
           <label>How many do you have? <span class="opt">(optional)</span></label>
@@ -850,6 +854,7 @@ function validate(n){
     need('f_district', v=>!!v, 'Please choose your district', p);
     need('f_llg', v=>!!v, 'Please choose the LLG (or "Not sure")', p);
     if(!picked('industry')) p.push('Please choose what your business mainly does');
+    else if(!picked('sub')) p.push('Please choose which kind of ' + catByKey(picked('industry')).short.toLowerCase() + ' business it is');
   }
   if(n===2){
     need('f_contact_name', v=>v.trim().length>1, 'Please enter your full name', p);
@@ -948,6 +953,7 @@ function capture(n){
     data.years_trading = g('f_years_trading').trim();
     data.staff_count = g('f_staff_count').trim();
     data.primary_industry = picked('industry');
+    data.subcategory = picked('sub');
     data.message = g('f_message').trim();
   }
   if(n===2){
@@ -963,7 +969,7 @@ function capture(n){
 }
 
 function buildReview(){
-  const ind = (INDUSTRIES.find(i=>i.key===data.primary_industry)||{}).label || "—";
+  const ind = catLine(data.primary_industry, data.subcategory, false);
   const row = (k,v,none) => `<div class="kv"><span class="k">${k}</span>`+
     `<span class="v${v?'':' none'}">${v || (none||'not supplied')}</span></div>`;
   const plist = products.filter(p=>p.name.trim())
@@ -1033,6 +1039,7 @@ async function submitApp(){
         llg:              data.llg || '',
         ward:             data.ward || '',
         primary_industry: data.primary_industry,
+        subcategory:      data.subcategory,
         contact_name:     data.contact_name,
         phone:            data.phone,
         email:            data.email || '',

@@ -171,6 +171,7 @@
 </footer>
 
 <script src="config.js"></script>
+<script src="categories.js"></script>
 <script src="shop-data.js"></script>
 <script src="site.js"></script>
 <script>
@@ -237,8 +238,11 @@ function boot(){
   document.title = clean(p.n) + ' — MaketPles ENB';
   document.getElementById('crumbNow').textContent = clean(p.n);
   const catEl = document.getElementById('p-cat'), crumbCat = document.getElementById('crumbCat');
-  catEl.textContent = crumbCat.textContent = cat ? cat.n : (INDUSTRY_LABEL[p.c] || p.c);
-  catEl.href = crumbCat.href = 'shop.html?cat=' + p.c;
+  const subName = subLabel(p.sub);
+  crumbCat.textContent = cat ? cat.n : catShort(p.c);
+  catEl.textContent = subName || crumbCat.textContent;
+  crumbCat.href = 'shop.html?cat=' + p.c;
+  catEl.href = subName ? 'shop.html?sub=' + p.sub : crumbCat.href;
   if(cat){ catEl.style.setProperty('--t', cat.bg); catEl.style.setProperty('--tc', cat.fg); }
 
   const img = photoURL(p.ph);
@@ -278,7 +282,8 @@ function boot(){
     document.getElementById('relatedGrid').innerHTML = related.map(({p:rp,i}) => cardHTML(rp,i)).join('');
     document.getElementById('relatedWrap').style.display = 'block';
   }
-  const similar = P.map(x=>({p:x,i:x.id})).filter(({p:x,i}) => x.c === p.c && x.s !== p.s && i !== currentId).slice(0, 8);
+  const similar = P.map(x=>({p:x,i:x.id})).filter(({p:x,i}) => x.c === p.c && x.s !== p.s && i !== currentId)
+    .sort((a,b) => (b.p.sub === p.sub) - (a.p.sub === p.sub)).slice(0, 8);   // same sub-category first
   if(similar.length){
     document.getElementById('similarTitle').textContent = 'More ' + (cat ? cat.n : 'like this');
     document.getElementById('similarSee').href = 'shop.html?cat=' + p.c;

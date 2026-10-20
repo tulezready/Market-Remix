@@ -297,6 +297,7 @@
 </footer>
 
 <script src="config.js"></script>
+<script src="categories.js"></script>
 <script src="shop-data.js"></script>
 <script src="site.js"></script>
 <script>
@@ -315,7 +316,7 @@ document.getElementById('marq').innerHTML =
 function renderCats(){
   document.getElementById('catTiles').innerHTML = CATS.map(x=>{
     const n = P.filter(p=>p.c===x.c).length;
-    return `<a class="ctile" style="--t:${x.bg};--tc:${x.fg}" href="shop.html?cat=${x.c}">
+    return `<a class="ctile" style="--t:${x.bg};--tc:${x.fg}" href="shop.html?cat=${x.c}" title="${esc(x.full)}">
       <span class="ci">${catIcon(x.c)}</span>
       <b>${x.n}</b><small>${n} item${n===1?'':'s'}</small>
     </a>`;

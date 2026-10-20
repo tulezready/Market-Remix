@@ -76,6 +76,7 @@
         </select>
       </div>
       <div class="frow" id="catRow"></div>
+      <div class="frow" id="subRow" hidden></div>
       <div class="frow" id="distRow"></div>
       <div class="fmeta">
         <span id="fcount">—</span>
@@ -130,16 +131,17 @@
 </footer>
 
 <script src="config.js"></script>
+<script src="categories.js"></script>
 <script src="shop-data.js"></script>
 <script src="site.js"></script>
 <script>
 /* ============================================================
    SHOP — the full catalogue.
-   Filters live in the address (shop.html?cat=crafts&district=Rabaul&q=bilum&sort=lo)
+   Filters live in the address (shop.html?cat=agriculture&sub=cocoa&district=Rabaul&q=seedling&sort=lo)
    so any view can be bookmarked, shared or linked from the home page.
    ============================================================ */
 const PAGE = 24;   // products per "Show more"
-let cat = 'all', dist = 'all', sortMode = 'feat', shown = PAGE;
+let cat = 'all', sub = 'all', dist = 'all', sortMode = 'feat', shown = PAGE;
 const QIDS = ['q','mq'];
 const params = new URLSearchParams(location.search);
 
@@ -149,7 +151,17 @@ function chipRows(){
   document.getElementById('catRow').innerHTML =
     '<span class="flabel">Category</span>' +
     `<button class="chip${cat==='all'?' on':''}" data-c="all" onclick="setCat('all')">All <small>${P.length}</small></button>` +
-    CATS.map(x=>`<button class="chip${cat===x.c?' on':''}" data-c="${x.c}" onclick="setCat('${x.c}')">${x.n} <small>${count(x.c)}</small></button>`).join('');
+    CATS.map(x=>`<button class="chip${cat===x.c?' on':''}" data-c="${x.c}" onclick="setCat('${x.c}')" title="${esc(x.full)}">${x.n} <small>${count(x.c)}</small></button>`).join('');
+  // the chosen category's own sub-categories, as a second row
+  const c = CATS.find(x=>x.c===cat), row = document.getElementById('subRow');
+  row.hidden = !c;
+  if(c){
+    const scount = k => P.filter(p=>p.c===cat && p.sub===k).length;
+    row.style.setProperty('--t', c.bg); row.style.setProperty('--tc', c.fg);
+    row.innerHTML = '<span class="flabel">Type</span>' +
+      `<button class="chip${sub==='all'?' on':''}" onclick="setSub('all')">All ${esc(c.n)}</button>` +
+      c.subs.map(x=>`<button class="chip${sub===x.key?' on':''}" onclick="setSub('${x.key}')">${esc(x.label)} <small>${scount(x.key)}</small></button>`).join('');
+  }
   document.getElementById('distRow').innerHTML =
     '<span class="flabel">District</span>' +
     `<button class="chip dist${dist==='all'?' on':''}" data-d="all" onclick="setDist('all')">All districts</button>` +
@@ -161,6 +173,7 @@ function visible(){
   const t = clean(query().toLowerCase());
   return P.map(p=>({p,i:p.id})).filter(({p})=>{
     if(cat !== 'all' && p.c !== cat) return false;
+    if(sub !== 'all' && p.sub !== sub) return false;
     const s = sme(p.s);
     if(dist !== 'all' && (!s || s.d !== dist)) return false;
     if(t){
@@ -174,6 +187,7 @@ function visible(){
 function syncURL(){
   const u = new URLSearchParams();
   if(cat !== 'all') u.set('cat', cat);
+  if(sub !== 'all') u.set('sub', sub);
   if(dist !== 'all') u.set('district', dist);
   if(query()) u.set('q', query());
   if(sortMode !== 'feat') u.set('sort', sortMode);
@@ -183,8 +197,9 @@ function syncURL(){
 
 function heading(){
   const c = CATS.find(x=>x.c===cat);
-  let title = c ? c.n : 'The whole maket';
-  if(dist !== 'all') title = c ? `${c.n} from ${dist}` : `Shop ${dist} District`;
+  const sb = c && c.subs.find(x=>x.key===sub);
+  let title = sb ? sb.label : c ? c.full : 'The whole maket';
+  if(dist !== 'all') title = c ? `${sb ? sb.label : c.n} from ${dist}` : `Shop ${dist} District`;
   if(query()) title = `Results for “${query()}”`;
   document.getElementById('shopTitle').textContent = title;
   document.getElementById('crumbNow').textContent = (c || dist !== 'all' || query()) ? title : 'Shop';
@@ -194,7 +209,7 @@ function heading(){
 function render(){
   const vis = visible();
   const g = document.getElementById('grid');
-  const filtered = cat!=='all' || dist!=='all' || query();
+  const filtered = cat!=='all' || sub!=='all' || dist!=='all' || query();
   document.getElementById('fcount').textContent =
     vis.length + (vis.length === 1 ? ' PRODUCT' : ' PRODUCTS') + (filtered ? ' MATCHING' : ' LISTED');
   document.getElementById('fclearWrap').style.display = filtered ? 'inline' : 'none';
@@ -224,10 +239,11 @@ function setQuery(v, from){
 }
 function syncQ(el){ setQuery(el.value, el); }
 function setSort(v){ sortMode = v; render(); }
-function setCat(c){ cat = c; shown = PAGE; chipRows(); render(); }
+function setCat(c){ cat = c; sub = 'all'; shown = PAGE; chipRows(); render(); }
+function setSub(k){ sub = k; shown = PAGE; chipRows(); render(); }
 function setDist(d){ dist = d; shown = PAGE; chipRows(); render(); }
 function clearAll(){
-  cat = 'all'; dist = 'all'; shown = PAGE;
+  cat = 'all'; sub = 'all'; dist = 'all'; shown = PAGE;
   QIDS.forEach(id=>{ const x = document.getElementById(id); if(x) x.value=''; });
   chipRows(); render();
 }
@@ -237,8 +253,9 @@ document.querySelector('header .srch').addEventListener('submit', e=>{ e.prevent
 document.getElementById('q').addEventListener('input', e=>syncQ(e.target));
 
 function boot(){
-  const c = params.get('cat'), d = params.get('district'), q = params.get('q'), s = params.get('sort');
+  const c = params.get('cat'), sc = params.get('sub'), d = params.get('district'), q = params.get('q'), s = params.get('sort');
   if(c && CATS.some(x=>x.c===c)) cat = c;
+  if(sc && catOfSub(sc)){ cat = catOfSub(sc).key; sub = sc; }   // a sub-category link also picks its category
   if(d && DISTRICT_NAMES.includes(d)) dist = d;
   if(s && ['lo','hi','az'].includes(s)){ sortMode = s; document.getElementById('sort').value = s; }
   if(q) QIDS.forEach(id=>{ document.getElementById(id).value = q; });

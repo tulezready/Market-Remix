@@ -663,6 +663,7 @@
 </div>
 
 <script src="config.js"></script>
+<script src="categories.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 /* ============================================================
@@ -682,13 +683,6 @@ if(CFG.supabaseUrl && CFG.supabaseKey && window.supabase){
   try{ sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey); LIVE = true; }catch(e){ LIVE = false; }
 }
 
-const CATS = [
-  {key:"retail",label:"Retail"},{key:"wholesale",label:"Wholesale"},
-  {key:"tailoring",label:"Tailoring"},{key:"crafts",label:"Arts & Crafts"},
-  {key:"processing",label:"Downstream Processing"},{key:"produce",label:"Fresh Produce"},
-  {key:"foodcrops",label:"Food Crops — Rice & Spices"},
-];
-
 /* ---------- state ---------- */
 let me = null, sme = null, priv = null, settings = {platform_rate:10, payout_hold_days:5};
 let products = [], orders = [], payouts = [], balance = {held:0, available:0, in_payout:0, paid_out:0};
@@ -700,9 +694,9 @@ function loadSample(){
   priv = {contact_name:'P. Umong', phone:'+675 7100 0010', email:'', ipa_number:'', tin:'',
           bank_name:'BSP', account_name:'Kerevat Mill Co.', account_number:'1000123456', bank_verified:true};
   products = [
-    {id:'p1', name:'Cold-Pressed Copra Oil (500ml)', category:'processing', price:32, unit:'per bottle', stock:40, status:'in_review', description:'', perishable:false, images:[]},
-    {id:'p2', name:'Baining Mountain Coffee (250g)', category:'processing', price:40, unit:'per pack', stock:25, status:'needs_changes', review_note:'Photograph is too dark — please retake in daylight.', perishable:false, images:[]},
-    {id:'p3', name:'Copra Oil, 20L Bulk Drum', category:'wholesale', price:520, unit:'per drum', stock:6, status:'live', perishable:false, images:[]},
+    {id:'p1', name:'Cold-Pressed Copra Oil (500ml)', category:'agriculture', subcategory:'copra', price:32, unit:'per bottle', stock:40, status:'in_review', description:'', perishable:false, images:[]},
+    {id:'p2', name:'Baining Mountain Coffee (250g)', category:'agriculture', subcategory:'produce', price:40, unit:'per pack', stock:25, status:'needs_changes', review_note:'Photograph is too dark — please retake in daylight.', perishable:false, images:[]},
+    {id:'p3', name:'Copra Oil, 20L Bulk Drum', category:'agriculture', subcategory:'copra', price:520, unit:'per drum', stock:6, status:'live', perishable:false, images:[]},
   ];
   orders = [
     {id:'o1', order_number:'ENB-1042', status:'paid', created_at:new Date().toISOString(), buyer_name:'A. Tovut', buyer_phone:'+675 7000 1111',
@@ -718,7 +712,6 @@ function loadSample(){
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const K = n => "K" + Number(n||0).toFixed(2);
-const catLabel = k => (CATS.find(c=>c.key===k)||{}).label || "—";
 const when = iso => iso ? new Date(iso).toLocaleDateString('en-GB', {day:'numeric', month:'short'}) : '—';
 function toLogin(raw){
   const s = (raw||'').trim().toLowerCase();
@@ -783,7 +776,7 @@ async function signOut(){
 /* ---------- load everything for this seller ---------- */
 async function loadAll(){
   const {data:biz, error} = await sb.from('smes')
-    .select('id, slug, registered_name, trading_name, district, llg, primary_industry, description, approved')
+    .select('id, slug, registered_name, trading_name, district, llg, primary_industry, subcategory, description, approved')
     .eq('owner_id', me.id).order('registered_name').limit(1);
   if(error) throw error;
   sme = (biz||[])[0] || null;
@@ -791,7 +784,7 @@ async function loadAll(){
   const id = sme.id;
   const [p, pr, o, b, y, st] = await Promise.all([
     sb.from('sme_private').select('*').eq('sme_id', id).maybeSingle(),
-    sb.from('products').select('id, name, category, price, unit, stock, description, perishable, status, review_note, created_at, product_images(id, storage_path, sort_order)')
+    sb.from('products').select('id, name, category, subcategory, price, unit, stock, description, perishable, status, review_note, created_at, product_images(id, storage_path, sort_order)')
       .eq('sme_id', id).order('created_at', {ascending:false}),
     sb.from('orders').select('id, order_number, status, created_at, buyer_name, buyer_phone, is_gift, recipient_name, recipient_phone, fulfilment, delivery_address, delivery_district, subtotal, platform_fee, agent_fee, seller_net, paid_at, fulfilled_at, order_items(product_name, quantity, unit)')
       .eq('sme_id', id).order('created_at', {ascending:false}),
@@ -824,7 +817,9 @@ function enterApp(){
   $('whoDist').textContent = sme.district + ' District';
   $('whoAv').textContent = name.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
   $('stallLink').href = 'sme.html?s=' + encodeURIComponent(sme.slug || '');
-  $('p_cat').innerHTML = CATS.map(c=>`<option value="${c.key}">${esc(c.label)}</option>`).join('');
+  // one list: each main category (categories.js) with its sub-categories under it
+  $('p_cat').innerHTML = '<option value="">Choose…</option>' + CATEGORIES.map(c=>`<optgroup label="${esc(c.label)}">` +
+    c.subs.map(x=>`<option value="${x.key}">${esc(x.label)}</option>`).join('') + '</optgroup>').join('');
   show('dash');
 }
 
@@ -910,7 +905,7 @@ function renderProducts(){
       <td><div class="rowflex">
         <div class="thumb">${img ? `<img src="${esc(img.storage_path)}" alt="" loading="lazy">` : '<span class="nophoto">no photo</span>'}</div>
         <div><div class="nm">${esc(p.name)}</div>
-          <div class="sub2">${esc(catLabel(p.category))} · ${(p.images||[]).length} photo${(p.images||[]).length===1?'':'s'}</div>
+          <div class="sub2">${esc(catLine(p.category, p.subcategory))} · ${(p.images||[]).length} photo${(p.images||[]).length===1?'':'s'}</div>
           ${p.status==='needs_changes' && p.review_note ? `<div class="note">${esc(p.review_note)}</div>` : ''}</div>
       </div></td>
       <td class="mono">${K(p.price)}<div class="sub2">${esc(p.unit||'')}</div></td>
@@ -933,7 +928,7 @@ function editProduct(id){
   $('formTitle').textContent = p ? 'Edit “' + p.name + '”' : 'Add a product';
   $('pTitle').textContent = p ? 'Edit a product' : 'Add a product';
   $('p_name').value = p ? p.name : '';
-  $('p_cat').value = p ? p.category : (sme && sme.primary_industry) || CATS[0].key;
+  $('p_cat').value = (p && p.subcategory) || (!p && sme && sme.subcategory) || '';
   $('p_price').value = p ? Number(p.price).toFixed(2) : '';
   $('p_unit').value = p ? (p.unit||'') : '';
   $('p_stock').value = p ? (p.stock ?? '') : '';
@@ -1002,6 +997,7 @@ async function saveProduct(target){
   document.querySelectorAll('#v-newprod .bad').forEach(e=>e.classList.remove('bad'));
   const flag = (id, msg) => { problems.push(msg); $(id).classList.add('bad'); };
   if(g('p_name').length < 2) flag('p_name', 'a product name');
+  if(!$('p_cat').value) flag('p_cat', 'a category');
   const price = Number(g('p_price').replace(/[^\d.]/g,''));
   if(!g('p_price') || isNaN(price) || price <= 0) flag('p_price', 'a price in Kina');
   if(!g('p_unit')) flag('p_unit', 'a unit, such as “each” or “per kg”');
@@ -1011,7 +1007,8 @@ async function saveProduct(target){
   if(problems.length) return showErr('prodErr', 'Please add ' + problems.join(', ') + '.');
   showErr('prodErr', '');
 
-  const rec = {name:g('p_name'), category:$('p_cat').value, price:Math.round(price*100)/100, unit:g('p_unit'),
+  const sub = $('p_cat').value;
+  const rec = {name:g('p_name'), category:(catOfSub(sub)||{}).key, subcategory:sub, price:Math.round(price*100)/100, unit:g('p_unit'),
                stock, description:g('p_desc') || null, perishable:$('p_fresh').checked};
   if(target !== 'live') rec.status = target;   // 'live' means: keep it live, just save the changes
 

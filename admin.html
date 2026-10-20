@@ -680,6 +680,7 @@
 </div>
 
 <script src="config.js"></script>
+<script src="categories.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 /* ============================================================
@@ -718,57 +719,52 @@ if(!LIVE){
    SAMPLE DATA — used only in preview mode (SUPABASE left blank)
    ============================================================ */
 const DISTRICTS = ["Gazelle","Kokopo","Rabaul","Pomio"];
-const INDUSTRIES = [
-  {key:"retail",label:"Retail"},{key:"wholesale",label:"Wholesale"},
-  {key:"tailoring",label:"Tailoring"},{key:"crafts",label:"Arts & Crafts"},
-  {key:"processing",label:"Downstream Processing"},{key:"produce",label:"Fresh Produce"},
-  {key:"foodcrops",label:"Food Crops — Rice & Spices"},
-];
+const INDUSTRIES = CATEGORIES.map(c => ({key:c.key, label:c.label}));   // categories.js
 const TARGET_EACH = 5, TARGET_TOTAL = 35;
 
 const SAMPLE_APPLICATIONS = [
-  {id:"a1", business_name:"Vunamami Growers Collective", district:"Kokopo", primary_industry:"produce",
+  {id:"a1", business_name:"Vunamami Growers Collective", district:"Kokopo", primary_industry:"agriculture", subcategory:"produce",
    contact_name:"J. Tobing", phone:"+675 7100 0001", email:"", ipa_status:"Registered",
    source:"Conference", message:"Smallholder cocoa and garden produce growers, 14 members.", status:"pending", created:"2 hours ago"},
-  {id:"a2", business_name:"Toma Tailoring Centre", district:"Gazelle", primary_industry:"tailoring",
+  {id:"a2", business_name:"Toma Guest House", district:"Gazelle", primary_industry:"tourism", subcategory:"accommodation",
    contact_name:"M. Palor", phone:"+675 7100 0002", email:"toma@example.pg", ipa_status:"In progress",
-   source:"Website", message:"Meri blouses, school uniforms, made to measure.", status:"pending", created:"5 hours ago"},
-  {id:"a3", business_name:"Pomio Forest Crafts", district:"Pomio", primary_industry:"crafts",
+   source:"Website", message:"Four guest rooms near Toma station, meals included.", status:"pending", created:"5 hours ago"},
+  {id:"a3", business_name:"Pomio Coastal Fishers", district:"Pomio", primary_industry:"fisheries", subcategory:"coastal_fishing",
    contact_name:"S. Bedi", phone:"+675 7100 0003", email:"", ipa_status:"Not registered",
-   source:"Conference", message:"Carvings and wild honey from inland Pomio.", status:"pending", created:"Yesterday"},
-  {id:"a4", business_name:"Kokopo Trade Supplies", district:"Kokopo", primary_industry:"wholesale",
+   source:"Conference", message:"Reef fish and smoked fish from Jacquinot Bay.", status:"pending", created:"Yesterday"},
+  {id:"a4", business_name:"Kokopo Trade Supplies", district:"Kokopo", primary_industry:"trade", subcategory:"distribution",
    contact_name:"D. Toliman", phone:"+675 7100 0004", email:"kts@example.pg", ipa_status:"Registered",
    source:"Website", message:"Bulk trade store supply, established 2019.", status:"approved", created:"3 days ago"},
-  {id:"a5", business_name:"Unnamed Trading", district:"Rabaul", primary_industry:"retail",
+  {id:"a5", business_name:"Unnamed Trading", district:"Rabaul", primary_industry:"trade", subcategory:"trade_stores",
    contact_name:"—", phone:"+675 0000 0000", email:"", ipa_status:"Not registered",
    source:"Website", message:"", status:"rejected", review_note:"No contact name or business detail supplied.", created:"4 days ago"},
 ];
 
 const SAMPLE_SMES = [
-  {id:"s1", registered_name:"Kokopo Trade Supplies", district:"Kokopo", primary_industry:"wholesale",
+  {id:"s1", registered_name:"Kokopo Trade Supplies", district:"Kokopo", primary_industry:"trade", subcategory:"distribution",
    contact_name:"D. Toliman", phone:"+675 7100 0004", approved:true, featured:true, consent:true, products:4},
-  {id:"s2", registered_name:"Kerevat Mill Co.", district:"Gazelle", primary_industry:"processing",
+  {id:"s2", registered_name:"Kerevat Mill Co.", district:"Gazelle", primary_industry:"agriculture", subcategory:"copra",
    contact_name:"P. Umong", phone:"+675 7100 0010", approved:true, featured:true, consent:true, products:6},
-  {id:"s3", registered_name:"Rabaul Weavers Guild", district:"Rabaul", primary_industry:"crafts",
+  {id:"s3", registered_name:"Rabaul Harbour Tours", district:"Rabaul", primary_industry:"tourism", subcategory:"tours",
    contact_name:"E. Bedi", phone:"+675 7100 0011", approved:true, featured:false, consent:true, products:5},
-  {id:"s4", registered_name:"Warangoi Rice Growers", district:"Gazelle", primary_industry:"foodcrops",
+  {id:"s4", registered_name:"Warangoi Rice Growers", district:"Gazelle", primary_industry:"agriculture", subcategory:"produce",
    contact_name:"T. Vunagi", phone:"+675 7100 0012", approved:false, featured:false, consent:false, products:2},
 ];
 
 const SAMPLE_LISTINGS = [
-  {id:"l1", name:"Cold-Pressed Copra Oil (500ml)", sme:"Kerevat Mill Co.", category:"processing",
+  {id:"l1", name:"Cold-Pressed Copra Oil (500ml)", sme:"Kerevat Mill Co.", category:"agriculture", subcategory:"copra",
    price:32.00, unit:"per bottle", stock:40, status:"in_review", photos:2,
    description:"Cold-pressed at the Kerevat mill from locally grown coconut.", submitted:"1 hour ago"},
-  {id:"l2", name:"Fine-Weave Bilum, Large", sme:"Rabaul Weavers Guild", category:"crafts",
-   price:135.00, unit:"each", stock:6, status:"in_review", photos:3,
-   description:"Hand-woven over three weeks using traditional patterns.", submitted:"Yesterday"},
-  {id:"l3", name:"Milled Rice (5kg)", sme:"Warangoi Rice Growers", category:"foodcrops",
+  {id:"l2", name:"Half-Day Harbour and Volcano Tour", sme:"Rabaul Harbour Tours", category:"tourism", subcategory:"tours",
+   price:135.00, unit:"per person", stock:6, status:"in_review", photos:3,
+   description:"Boat tour of Simpson Harbour with a stop below Tavurvur.", submitted:"Yesterday"},
+  {id:"l3", name:"Milled Rice (5kg)", sme:"Warangoi Rice Growers", category:"agriculture", subcategory:"produce",
    price:62.00, unit:"per bag", stock:0, status:"in_review", photos:0,
    description:"", submitted:"Yesterday"},
-  {id:"l4", name:"Trade Store Starter Pack", sme:"Kokopo Trade Supplies", category:"wholesale",
+  {id:"l4", name:"Trade Store Starter Pack", sme:"Kokopo Trade Supplies", category:"trade", subcategory:"distribution",
    price:340.00, unit:"per pack", stock:12, status:"live", photos:2,
    description:"Bulk assortment for new trade stores.", submitted:"3 days ago"},
-  {id:"l5", name:"Baining Mountain Coffee (250g)", sme:"Kerevat Mill Co.", category:"processing",
+  {id:"l5", name:"Baining Mountain Coffee (250g)", sme:"Kerevat Mill Co.", category:"agriculture", subcategory:"copra",
    price:40.00, unit:"per pack", stock:25, status:"needs_changes", photos:1,
    review_note:"Photograph is too dark — please retake in daylight.", submitted:"2 days ago"},
 ];
@@ -777,7 +773,7 @@ const SAMPLE_ORDERS = [
   {id:"o1", order_number:"ENB-1042", sme:"Kerevat Mill Co.", buyer:"A. Tovut", route:"Delivery — Kokopo Urban",
    agent:null, subtotal:128.00, total:128.00, platform_fee:12.80, agent_fee:0, seller_net:115.20,
    status:"paid", gift:false, created:"Today"},
-  {id:"o2", order_number:"ENB-1041", sme:"Rabaul Weavers Guild", buyer:"M. Kaputin (Brisbane)",
+  {id:"o2", order_number:"ENB-1041", sme:"Rabaul Harbour Tours", buyer:"M. Kaputin (Brisbane)",
    route:"Send home — recipient in Rabaul", agent:null, subtotal:270.00, total:270.00,
    platform_fee:27.00, agent_fee:0, seller_net:243.00, status:"processing", gift:true, created:"Today"},
   {id:"o3", order_number:"ENB-1039", sme:"Kokopo Trade Supplies", buyer:"Via agent — A. Palor",
@@ -786,7 +782,7 @@ const SAMPLE_ORDERS = [
   {id:"o4", order_number:"ENB-1036", sme:"Kerevat Mill Co.", buyer:"R. Tammur", route:"Collect from SME — Gazelle",
    agent:null, subtotal:64.00, total:64.00, platform_fee:6.40, agent_fee:0, seller_net:57.60,
    status:"disputed", gift:false, created:"3 days ago", note:"Buyer reports one bottle leaked in transit."},
-  {id:"o5", order_number:"ENB-1044", sme:"Rabaul Weavers Guild", buyer:"S. Tovue", route:"Collect from SME — Rabaul",
+  {id:"o5", order_number:"ENB-1044", sme:"Rabaul Harbour Tours", buyer:"S. Tovue", route:"Collect from SME — Rabaul",
    agent:null, subtotal:60.00, total:60.00, platform_fee:6.00, agent_fee:0, seller_net:54.00,
    status:"pending_payment", gift:false, created:"Today"},
 ];
@@ -823,7 +819,7 @@ let currentView = 'dash';
    HELPERS
    ============================================================ */
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const ind = k => (INDUSTRIES.find(i=>i.key===k)||{}).label || "—";
+const ind = (k, sub) => catLine(k, sub, false);
 const k = n => "K" + Number(n||0).toFixed(2);
 const ph = what => alert("Design preview: this would " + what + ".");
 
@@ -1003,6 +999,7 @@ async function loadApplications(){
     llg: r.llg,
     ward: r.ward,
     primary_industry: r.primary_industry,
+    subcategory: r.subcategory,
     contact_name: r.contact_name,
     phone: r.phone,
     email: r.email,
@@ -1028,6 +1025,7 @@ async function loadListings(){
     name: r.name,
     sme: r.smes ? r.smes.registered_name : '—',
     category: r.category,
+    subcategory: r.subcategory,
     price: Number(r.price)||0,
     unit: r.unit,
     stock: r.stock,
@@ -1042,7 +1040,7 @@ async function loadListings(){
 async function loadSmes(){
   // contact details live in sme_private (Division and owner only), not on the public smes table
   const {data, error} = await sb.from('smes')
-    .select('id, slug, owner_id, registered_name, trading_name, district, llg, ward, primary_industry, approved, featured, consent, is_sample, ' +
+    .select('id, slug, owner_id, registered_name, trading_name, district, llg, ward, primary_industry, subcategory, approved, featured, consent, is_sample, ' +
             'sme_private(contact_name, phone, email, ipa_number, tin, bank_name, account_name, account_number, bank_verified, bank_verified_at, bank_verified_by)')
     .order('registered_name');
   if(error){ console.error('loadSmes', error); return; }
@@ -1054,6 +1052,7 @@ async function loadSmes(){
     llg: r.llg,
     ward: r.ward,
     primary_industry: r.primary_industry,
+    subcategory: r.subcategory,
     contact_name: (r.sme_private || {}).contact_name || '',
     phone: (r.sme_private || {}).phone || '',
     priv: r.sme_private || {},
@@ -1266,7 +1265,7 @@ function renderApps(){
     <tr>
       <td><div class="nm">${esc(a.business_name)}</div><div class="sub2">${esc(a.contact_name)} · ${esc(a.phone)}</div></td>
       <td>${esc(a.district)}</td>
-      <td><span class="tag">${esc(ind(a.primary_industry))}</span></td>
+      <td><span class="tag">${esc(ind(a.primary_industry, a.subcategory))}</span></td>
       <td>${a.ipa_status==='Registered' ? '<span class="tag g">Registered</span>'
            : a.ipa_status==='In progress' ? '<span class="tag a">In progress</span>'
            : '<span class="tag r">Not registered</span>'}</td>
@@ -1285,7 +1284,7 @@ async function openApp(id){
     <div class="kv"><span class="k">District</span><span class="v">${esc(a.district)}</span></div>
     <div class="kv"><span class="k">LLG</span><span class="v">${miss(a.llg)}</span></div>
     <div class="kv"><span class="k">Ward / village</span><span class="v">${miss(a.ward)}</span></div>
-    <div class="kv"><span class="k">Industry</span><span class="v">${esc(ind(a.primary_industry))}</span></div>
+    <div class="kv"><span class="k">Industry</span><span class="v">${esc(ind(a.primary_industry, a.subcategory))}</span></div>
     <div class="kv"><span class="k">Contact</span><span class="v">${miss(a.contact_name)}</span></div>
     <div class="kv"><span class="k">Phone</span><span class="v">${miss(a.phone)}</span></div>
     <div class="kv"><span class="k">Email</span><span class="v">${miss(a.email)}</span></div>
@@ -1378,7 +1377,7 @@ async function decideApp(id, approve){
     a.review_note = note;
     if(approve){
       smes.push({id:"s"+Date.now(), registered_name:a.business_name, district:a.district,
-        primary_industry:a.primary_industry, contact_name:a.contact_name, phone:a.phone,
+        primary_industry:a.primary_industry, subcategory:a.subcategory, contact_name:a.contact_name, phone:a.phone,
         approved:true, featured:false, consent:true, products:0});
       activity.unshift({t:`${a.business_name} approved and now live`, w:"Just now", k:"ok"});
     } else {
@@ -1536,7 +1535,7 @@ function renderListings(){
              <div class="sub2">${l.photos} photo${l.photos===1?'':'s'}${l.stock===0?' · no stock':''}</div></div>
       </div></td>
       <td>${esc(l.sme)}</td>
-      <td><span class="tag">${esc(ind(l.category))}</span></td>
+      <td><span class="tag">${esc(ind(l.category, l.subcategory))}</span></td>
       <td class="mono">${k(l.price)}</td>
       <td>${tag(l.status)}</td>
       <td><button class="btn-o btn-sm" onclick="openListing('${l.id}')">${l.status==='in_review'?'Review':'View'}</button></td>
@@ -1553,7 +1552,7 @@ function openListing(id){
   document.getElementById('mTitle').textContent = l.name;
   document.getElementById('mBody').innerHTML = `
     <div class="kv"><span class="k">Business</span><span class="v">${esc(l.sme)}</span></div>
-    <div class="kv"><span class="k">Industry</span><span class="v">${esc(ind(l.category))}</span></div>
+    <div class="kv"><span class="k">Industry</span><span class="v">${esc(ind(l.category, l.subcategory))}</span></div>
     <div class="kv"><span class="k">Price</span><span class="v">${k(l.price)} ${esc(l.unit||'')}</span></div>
     <div class="kv"><span class="k">Stock</span><span class="v">${l.stock}</span></div>
     <div class="kv"><span class="k">Photographs</span><span class="v">${l.photos || '<span class="v miss">none supplied</span>'}</span></div>
@@ -1619,7 +1618,7 @@ function renderSmes(){
       <td><div class="nm">${esc(s.registered_name)}</div>
           <div class="sub2">${esc(s.contact_name)} · ${esc(s.phone)}</div></td>
       <td>${esc(s.district)}</td>
-      <td><span class="tag">${esc(ind(s.primary_industry))}</span></td>
+      <td><span class="tag">${esc(ind(s.primary_industry, s.subcategory))}</span></td>
       <td>${s.products}</td>
       <td>${s.approved?'<span class="tag g">Live</span>':'<span class="tag a">Not on site</span>'}
           ${s.featured?' <span class="tag b">Featured</span>':''}
@@ -1643,7 +1642,7 @@ function openSme(id){
     <div class="kv"><span class="k">District</span><span class="v">${esc(s.district)}</span></div>
     <div class="kv"><span class="k">LLG</span><span class="v">${miss(s.llg)}</span></div>
     <div class="kv"><span class="k">Ward / village</span><span class="v">${miss(s.ward)}</span></div>
-    <div class="kv"><span class="k">Industry</span><span class="v">${esc(ind(s.primary_industry))}</span></div>
+    <div class="kv"><span class="k">Industry</span><span class="v">${esc(ind(s.primary_industry, s.subcategory))}</span></div>
     <div class="kv"><span class="k">Contact</span><span class="v">${miss(p.contact_name)}</span></div>
     <div class="kv"><span class="k">Phone</span><span class="v">${miss(p.phone)}</span></div>
     <div class="kv"><span class="k">Email</span><span class="v">${miss(p.email)}</span></div>
