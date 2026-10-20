@@ -4,11 +4,11 @@ MaketPles ENB — printable forms for LLG Business Development Officers.
 Run:  python3 tools/build-form.py        (needs reportlab: pip install reportlab)
 Writes into tools/forms/:
   officer-guide.pdf          one page for the officer: who to pick, what to do, how to return it
-  sme-entry-form.pdf         the two-page form, LLG left blank
+  sme-entry-form.pdf         the three-page form, LLG left blank
   by-llg/<District>-<LLG>.pdf  guide + form with the LLG and district already printed (one per LLG)
   all-llgs.pdf               every LLG's guide + form in one file (for reading on screen)
   print-guides-single-sided.pdf  the 20 officer guides, one page each
-  print-forms-double-sided.pdf   the 20 entry forms, two pages each: print double-sided, one sheet per LLG
+  print-forms-double-sided.pdf   the 20 entry forms, three pages and a blank each: print double-sided, two sheets per LLG
   llg-tracking-sheet.pdf     for the Division: which LLGs have returned a business
   instructions.pdf           3 pages: printing and handing out, entering online, reviewing entries
 and copies the blank form to tools/sme-form.pdf (the file the README and register page point to).
@@ -40,6 +40,63 @@ LLGS = {
                 "West Pomio-Mamusi Rural"],
     "Rabaul":  ["Balanataman Rural", "Kombiu Rural", "Rabaul Urban", "Watom Island Rural"],
 }
+
+# Page 3: questions for each type of business. Same sets as QSETS in
+# categories.js (the online form) — keep the two in step.
+# (kind, label, options)   kind: text | num | yesno | pick | checks
+TYPE_QUESTIONS = [
+    ("Cocoa · Copra & coconut · Galip · Fresh produce", [
+        ("text", "How much can you supply each month?", None),
+        ("text", "Which months is it available?", None)]),
+    ("Fishing and fish farming", [
+        ("text", "What do you catch or farm?", None),
+        ("checks", "Sold as", ["Fresh", "Smoked", "Frozen", "Dried"]),
+        ("text", "How much can you sell each week?", None),
+        ("yesno", "Cooler or freezer to keep it fresh?", None)]),
+    ("Trade stores and distributors", [
+        ("text", "Opening days and hours", None),
+        ("yesno", "Do you deliver?", None),
+        ("text", "If yes, where to?", None)]),
+    ("Arts, crafts and tailoring", [
+        ("yesno", "Do you make things to order?", None),
+        ("text", "How long does one take to make?", None)]),
+    ("Guest houses and accommodation", [
+        ("num", "Number of rooms", None),
+        ("num", "Most guests at one time", None),
+        ("checks", "Meals", ["Not included", "Breakfast", "All meals", "On request"]),
+        ("checks", "Facilities", ["Power", "Running water", "Shower", "Flush toilet", "Wi-Fi", "Air con", "Parking"]),
+        ("text", "How do guests find you?", None)]),
+    ("Tours and travel", [
+        ("text", "How long is each tour?", None),
+        ("num", "Largest group you can take", None),
+        ("text", "Days offered", None),
+        ("text", "Where do guests meet you?", None),
+        ("text", "What is included?", None)]),
+    ("Restaurants, cafes and kaibars", [
+        ("text", "Opening days and hours", None),
+        ("num", "How many seats?", None),
+        ("checks", "You offer", ["Dine in", "Takeaway", "Catering"])]),
+    ("PMV and taxi", [
+        ("checks", "Vehicle", ["PMV bus 15 seats", "PMV bus 25+", "PMV truck", "Taxi", "Banana boat", "Other"]),
+        ("num", "Number of vehicles", None),
+        ("text", "PMV or taxi licence number", None),
+        ("text", "Opening days and hours", None)]),
+    ("Cargo, freight and car rental", [
+        ("text", "Vehicle type and size", None),
+        ("num", "Number of vehicles", None),
+        ("text", "Areas you serve", None),
+        ("checks", "Driver included?", ["Yes", "No", "Either"]),
+        ("text", "Licence or permit number", None)]),
+    ("Building and civil construction", [
+        ("checks", "Work you do", ["Buildings", "Roads and civil", "Plumbing", "Electrical", "Carpentry", "Other"]),
+        ("text", "Licence or trade certificate", None),
+        ("num", "How many workers?", None),
+        ("text", "Main equipment", None),
+        ("text", "Recent jobs", None)]),
+    ("IT and office services", [
+        ("checks", "You offer", ["Printing", "Typing", "Computer repair", "Phone repair", "Internet", "Training"]),
+        ("text", "Opening days and hours", None)]),
+]
 
 # The Division's "Type of MSME listing": main category -> sub-categories, in the
 # short wording that fits one line of the paper form. The website's list is
@@ -221,7 +278,7 @@ def officer_guide(c, llg=None, district=None):
     block("On the visit", [
         "Explain the marketplace using the points below. Ask the owner to read section 7 or read it to them.",
         "Fill in the form with the owner, in their words. Write prices in kina and say what each price is for "
-        "(each, per kg, per bundle).",
+        "(each, per kg, per night, per trip). On page 3, fill in only the box for their type of business.",
         "Take the photos listed in section 5 with your phone, in daylight.",
         "The owner signs section 7. You sign the officer's part. Without both signatures we cannot list them.",
         f"Enter the form online on your phone at  {ONLINE_URL}  and add the photos there. "
@@ -256,8 +313,8 @@ def officer_guide(c, llg=None, district=None):
     c.showPage()
 
 
-# ---------------------------------------------------------------- entry form (2 pages)
-def entry_form(c, llg=None, district=None):
+# ---------------------------------------------------------------- entry form (3 pages)
+def entry_form(c, llg=None, district=None, pad=False):
     # ---- page 1
     p = Page(c)
     header(p, "SME Entry Form", "Filled in by the LLG Business Development Officer with the business owner",
@@ -298,8 +355,8 @@ def entry_form(c, llg=None, district=None):
     p.field(M, p.y, CW * 0.60, "Email — only if they have one")
     p.y -= 15 * mm
 
-    p.section(3, "What they sell", "Start with the three or four best sellers")
-    cols = [("Product — include size or weight", 0.44), ("Price K", 0.12), ("Per what?", 0.17),
+    p.section(3, "What they sell or offer", "Start with the three or four best sellers")
+    cols = [("Product or service — include size", 0.44), ("Price K", 0.12), ("Per what?", 0.17),
             ("How many now?", 0.15), ("Fresh?", 0.12)]
     x = M
     for name, f in cols:
@@ -321,8 +378,11 @@ def entry_form(c, llg=None, district=None):
         c.setStrokeColor(INK); c.rect(bx, p.y - r * rh - 6 * mm, 3.4 * mm, 3.4 * mm, stroke=1, fill=0)
         c.setStrokeColor(LINE)
     p.y -= rows * rh + 8 * mm
+    p.c.setFont("Helvetica-Oblique", 7.8); p.c.setFillColor(MUTED)
+    p.c.drawString(M, p.y + 3.2 * mm, "Services: write each one with its price — e.g. Double room, K180, per night · Kokopo to Rabaul, K5, per person.")
+    p.y -= 4 * mm
     p.field(M, p.y, CW, "Is any of it seasonal? When is it available?")
-    p.footer(FOOT, 1, 2)
+    p.footer(FOOT, 1, 3)
     c.showPage()
 
     # ---- page 2
@@ -385,7 +445,93 @@ def entry_form(c, llg=None, district=None):
     q = (CW - 15 * mm) / 4
     for i, t in enumerate(["Received by", "Date received", "Photos received", "Entered online — ref."]):
         p.field(M + 3 * mm + i * (q + 3 * mm), p.y - 11 * mm, q, t, gap=6.5 * mm)
-    p.footer(FOOT, 2, 2)
+    p.footer(FOOT, 2, 3)
+    c.showPage()
+    type_page(c, llg)
+    if pad:   # double-sided print file: keep every form on its own two sheets
+        c.showPage()
+
+
+def type_page(c, llg=None):
+    """Page 3: a box of questions for each type of business, in two columns."""
+    p = Page(c)
+    p.c.setFont("Helvetica-Bold", 10); p.c.setFillColor(INK)
+    p.c.drawString(M, p.y - 3 * mm, "SME Entry Form — about this type of business")
+    p.c.setFont("Helvetica", 8.5); p.c.setFillColor(MUTED)
+    p.c.drawRightString(M + CW, p.y - 3 * mm, f"LLG: {llg}" if llg else "LLG: ______________________________")
+    p.ribbon(p.y - 6.5 * mm)
+    p.y -= 13 * mm
+    p.section(8, "Questions for this type of business", "Fill in ONE box only")
+    p.para("Use the box that matches the type you ticked in section 1. Leave the others empty.", size=8.6, color=MUTED)
+    p.y -= 3 * mm
+
+    gap = 5 * mm
+    colw = (CW - gap) / 2
+    ROW, HEAD, PAD = 6.6 * mm, 7.6 * mm, 2.6 * mm
+    sz = 7.6
+
+    def lines_for(kind, label, opts):
+        """how many rows a question needs in a column"""
+        if kind != "checks":
+            return 1
+        cx, rows = c.stringWidth(label + "  ", "Helvetica-Bold", sz), 1
+        for o in opts:
+            need = c.stringWidth(o, "Helvetica", sz) + 8 * mm
+            if cx + need > colw - 2 * PAD:
+                rows += 1; cx = 0
+            cx += need
+        return rows
+
+    def height(qs):
+        return HEAD + sum(lines_for(*q) for q in qs) * ROW + PAD
+
+    def draw_box(x, top, title, qs):
+        h = height(qs)
+        c.setStrokeColor(LINE); c.setLineWidth(0.7); c.setFillColor(white)
+        c.rect(x, top - h, colw, h, stroke=1, fill=0)
+        c.setFillColor(TINT); c.rect(x, top - HEAD + 1.2 * mm, colw, HEAD - 1.2 * mm, stroke=0, fill=1)
+        c.setStrokeColor(INK); c.setLineWidth(0.8)
+        c.rect(x + PAD, top - 5.4 * mm, 3.2 * mm, 3.2 * mm, stroke=1, fill=0)
+        c.setFont("Helvetica-Bold", 8.2); c.setFillColor(INK)
+        c.drawString(x + PAD + 5 * mm, top - 4.8 * mm, title)
+        yy = top - HEAD - 4.4 * mm
+        for kind, label, opts in qs:
+            c.setFont("Helvetica-Bold", sz); c.setFillColor(MUTED)
+            c.drawString(x + PAD, yy, label)
+            lw = c.stringWidth(label + "  ", "Helvetica-Bold", sz)
+            if kind in ("text", "num"):
+                end = x + colw - PAD if kind == "text" else min(x + PAD + lw + 22 * mm, x + colw - PAD)
+                c.setStrokeColor(LINE); c.setLineWidth(0.6)
+                c.line(x + PAD + lw, yy - 1 * mm, end, yy - 1 * mm)
+                yy -= ROW
+            else:
+                items = ["Yes", "No"] if kind == "yesno" else opts
+                cx = x + PAD + lw
+                for o in items:
+                    need = c.stringWidth(o, "Helvetica", sz) + 8 * mm
+                    if cx + need > x + colw - PAD:
+                        yy -= ROW; cx = x + PAD
+                    c.setStrokeColor(INK); c.setLineWidth(0.7)
+                    c.rect(cx, yy - 0.8 * mm, 3 * mm, 3 * mm, stroke=1, fill=0)
+                    c.setFont("Helvetica", sz); c.setFillColor(INK)
+                    c.drawString(cx + 4.4 * mm, yy, o)
+                    cx += need
+                yy -= ROW
+        return h
+
+    # fill the left column, then the right, keeping the order
+    hs = [height(qs) for _, qs in TYPE_QUESTIONS]
+    half, run, split = sum(hs) / 2, 0, len(hs)
+    for i, h in enumerate(hs):
+        if run + h / 2 > half:
+            split = i; break
+        run += h
+    top0 = p.y
+    for col, chunk in enumerate([TYPE_QUESTIONS[:split], TYPE_QUESTIONS[split:]]):
+        top = top0
+        for title, qs in chunk:
+            top -= draw_box(M + col * (colw + gap), top, title, qs) + 3.4 * mm
+    p.footer(FOOT, 3, 3)
     c.showPage()
 
 
@@ -486,7 +632,7 @@ def instructions(path):
     h(p, "1. Print")
     table(p, ["File", "How to print", "Sheets"], [
         ["print-guides-single-sided.pdf", "A4, single-sided", "20 — one officer guide per LLG"],
-        ["print-forms-double-sided.pdf", "A4, double-sided, flip on long edge", "20 — each LLG's form on one sheet"],
+        ["print-forms-double-sided.pdf", "A4, double-sided, flip on long edge", "20 — each LLG's form on two sheets"],
         ["sme-entry-form.pdf", "A4, double-sided — a few spares", "For an officer's second business"],
         ["llg-tracking-sheet.pdf", "A4 landscape, single-sided", "1 — kept by the Division"],
     ], [0.36, 0.34, 0.30])
@@ -612,7 +758,7 @@ def main():
     entry_form(c); c.save()
     shutil.copy(os.path.join(OUT, "sme-entry-form.pdf"), os.path.join(HERE, "sme-form.pdf"))
 
-    # Print files: guides single-sided (20 sheets); forms double-sided, one sheet per LLG (20 sheets).
+    # Print files: guides single-sided (20 sheets); forms double-sided, two sheets per LLG (40 sheets).
     allc = doc(os.path.join(OUT, "all-llgs.pdf"), "SME Entry Forms, all LLGs — MaketPles ENB")
     guides = doc(os.path.join(OUT, "print-guides-single-sided.pdf"), "Officer guides, all LLGs — MaketPles ENB")
     forms = doc(os.path.join(OUT, "print-forms-double-sided.pdf"), "SME Entry Forms, all LLGs — MaketPles ENB")
@@ -621,7 +767,7 @@ def main():
             c = doc(os.path.join(OUT, "by-llg", f"{d}-{slug(l)}.pdf"), f"{l} — SME Entry Form — MaketPles ENB")
             officer_guide(c, l, d + " District"); entry_form(c, l, d + " District"); c.save()
             officer_guide(allc, l, d + " District"); entry_form(allc, l, d + " District")
-            officer_guide(guides, l, d + " District"); entry_form(forms, l, d + " District")
+            officer_guide(guides, l, d + " District"); entry_form(forms, l, d + " District", pad=True)
     allc.save(); guides.save(); forms.save()
 
     tracking_sheet(os.path.join(OUT, "llg-tracking-sheet.pdf"))

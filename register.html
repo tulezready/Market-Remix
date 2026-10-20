@@ -102,6 +102,18 @@
 
   .radios{display:grid;gap:9px;}
   #subWrap[hidden]{display:none;}
+  /* step 4: questions for the chosen type of business */
+  #extraQs{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;margin:4px 0 10px;}
+  #extraQs .fr.wide{grid-column:1/-1;}
+  .qchips{display:flex;flex-wrap:wrap;gap:8px;}
+  .qchips label{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--hair);border-radius:10px;
+    background:#fff;font-size:13.5px;font-weight:500;cursor:pointer;text-transform:none;letter-spacing:0;min-height:44px;}
+  .qchips input{width:auto;margin:0;padding:0;min-height:0;box-shadow:none;}
+  .qchips label{margin:0;}
+  .grid2 .fr.wide{grid-column:1/-1;}
+  .qchips label:has(input:checked){border-color:var(--green);box-shadow:0 0 0 3px rgba(46,125,58,.09);}
+  .subh{font-size:15px;font-weight:700;margin:14px 0 10px;}
+  @media (max-width:640px){ #extraQs{grid-template-columns:1fr;} }
   #subRadios{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));}
   .radio{display:flex;gap:11px;align-items:flex-start;padding:13px 15px;
     border:1px solid var(--hair);border-radius:11px;background:#fff;cursor:pointer;transition:.18s;}
@@ -452,10 +464,12 @@
 
   <!-- 4 -->
   <section class="card pane" id="p4" style="display:none;">
-    <h2>What you sell</h2>
-    <p class="lead">Add your best sellers. You can add more once your business is approved.</p>
+    <h2 id="p4Title">What you sell</h2>
+    <p class="lead" id="p4Lead">Add your best sellers. You can add more once your business is approved.</p>
+    <div id="extraQs"></div>
+    <h3 class="subh" id="p4ListTitle" hidden></h3>
     <div id="prodList"></div>
-    <button class="addp" onclick="addProduct()">+ Add another product</button>
+    <button class="addp" id="addpBtn" onclick="addProduct()">+ Add another product</button>
     <div class="nav">
       <button class="btn-o" onclick="go(-1)">Back</button>
       <button class="btn" onclick="go(1)">Continue</button>
@@ -688,6 +702,51 @@ document.addEventListener('click', e=>{
   }
 });
 
+/* ---------- step 4: questions for this type of business ---------- */
+let details = {};
+const curSet = () => qsetFor(data.subcategory);
+function drawExtras(){
+  const qs = curSet(), goods = !qs || qs.goods;
+  document.getElementById('p4Title').textContent = qs ? qs.title : 'What you sell';
+  document.getElementById('p4Lead').textContent = goods
+    ? 'Add your best sellers. You can add more once your business is approved.'
+    : 'A few questions about your business, then your services and prices. You can add more once you are approved.';
+  const lt = document.getElementById('p4ListTitle');
+  lt.hidden = goods; lt.textContent = 'Services and prices';
+  document.getElementById('addpBtn').textContent = goods ? '+ Add another product' : '+ Add another ' + (qs.item || 'service').toLowerCase();
+  const box = document.getElementById('extraQs');
+  if(!qs){ box.innerHTML = ''; return; }
+  box.innerHTML = qs.q.map(q=>{
+    const v = details[q.k], id = 'q_' + q.k;
+    const lab = `<label for="${id}">${esc(q.label)} <span class="opt">(optional)</span></label>`;
+    if(q.t==='text') return `<div class="fr wide">${lab}<input id="${id}" data-q="${q.k}" value="${esc(v||'')}" placeholder="${esc(q.ph||'')}" maxlength="200"></div>`;
+    if(q.t==='num') return `<div class="fr">${lab}<input id="${id}" data-q="${q.k}" value="${esc(v||'')}" inputmode="numeric" placeholder="${esc(q.ph||'e.g. 4')}" maxlength="10"></div>`;
+    if(q.t==='pick') return `<div class="fr">${lab}<select id="${id}" data-q="${q.k}"><option value="">Choose…</option>${q.opts.map(o=>`<option${o===v?' selected':''}>${esc(o)}</option>`).join('')}</select></div>`;
+    if(q.t==='yesno') return `<div class="fr"><label>${esc(q.label)} <span class="opt">(optional)</span></label><div class="qchips">${['Yes','No'].map(o=>
+      `<label><input type="radio" name="${id}" data-q="${q.k}" value="${o}"${o===v?' checked':''}> ${o}</label>`).join('')}</div></div>`;
+    if(q.t==='checks') return `<div class="fr wide"><label>${esc(q.label)} <span class="opt">(tick all that apply)</span></label><div class="qchips">${q.opts.map(o=>
+      `<label><input type="checkbox" data-q="${q.k}" value="${esc(o)}"${(v||[]).includes(o)?' checked':''}> ${esc(o)}</label>`).join('')}</div></div>`;
+    return '';
+  }).join('');
+}
+document.getElementById('extraQs').addEventListener('input', e=>{
+  const el = e.target, k = el.dataset.q; if(!k) return;
+  if(el.type==='checkbox'){
+    details[k] = [...document.querySelectorAll(`#extraQs input[type=checkbox][data-q="${k}"]:checked`)].map(x=>x.value);
+  } else details[k] = el.value;
+});
+/* only the answers for the chosen type are sent */
+function cleanDetails(){
+  const qs = curSet(), out = {};
+  if(!qs) return out;
+  qs.q.forEach(q=>{
+    let v = details[q.k];
+    if(Array.isArray(v)){ if(v.length) out[q.k] = v; }
+    else if(v != null && String(v).trim()) out[q.k] = String(v).trim().slice(0,200);
+  });
+  return out;
+}
+
 /* ---------- products ---------- */
 function addProduct(){
   products.push({id:'pr'+Date.now()+Math.random().toString(36).slice(2,5),
@@ -700,14 +759,16 @@ function removeProduct(id){
   drawProducts();
 }
 function drawProducts(){
+  const qs = curSet(), goods = !qs || qs.goods;
+  const item = goods ? 'Product' : (qs.item || 'Service');
   document.getElementById('prodList').innerHTML = products.map((p,i)=>`
     <div class="prod">
-      <span class="no">Product ${i+1}</span>
+      <span class="no">${esc(item)} ${i+1}</span>
       ${products.length>1?`<button class="rm" onclick="removeProduct('${p.id}')">Remove</button>`:''}
       <div class="fr">
-        <label>Product name ${i===0?'<span class="req">*</span>':''}</label>
+        <label>${goods ? 'Product name' : esc(item)} ${i===0?'<span class="req">*</span>':''}</label>
         <input value="${esc(p.name)}" oninput="upd('${p.id}','name',this.value)"
-               placeholder="Include the size, e.g. Copra Oil (500ml)">
+               placeholder="${goods ? 'Include the size, e.g. Copra Oil (500ml)' : esc(qs.itemPh || '')}">
       </div>
       <div class="grid2">
         <div class="fr">
@@ -716,18 +777,18 @@ function drawProducts(){
                  placeholder="0.00" inputmode="decimal">
         </div>
         <div class="fr">
-          <label>Sold by ${i===0?'<span class="req">*</span>':''}</label>
+          <label>${goods ? 'Sold by' : 'Per what?'} ${i===0?'<span class="req">*</span>':''}</label>
           <input value="${esc(p.unit)}" oninput="upd('${p.id}','unit',this.value)"
-                 placeholder="each · per kg · per bundle · per night · per trip">
+                 placeholder="${goods ? 'each · per kg · per bundle' : esc(qs.unitPh || 'per job')}">
         </div>
-        <div class="fr">
+        ${goods ? `<div class="fr">
           <label>How many do you have? <span class="opt">(optional)</span></label>
           <input value="${esc(p.stock)}" oninput="upd('${p.id}','stock',this.value)" placeholder="e.g. 40">
-        </div>
-        <div class="fr">
-          <label>Anything else about it? <span class="opt">(optional)</span></label>
+        </div>` : ''}
+        <div class="fr${goods ? '' : ' wide'}">
+          <label>${goods ? 'Anything else about it?' : 'What is included?'} <span class="opt">(optional)</span></label>
           <input value="${esc(p.description)}" oninput="upd('${p.id}','description',this.value)"
-                 placeholder="How it is grown or made">
+                 placeholder="${goods ? 'How it is grown or made' : 'e.g. meals, fuel, materials'}">
         </div>
       </div>
     </div>`).join('');
@@ -866,17 +927,20 @@ function validate(n){
     if(!picked('ipa')) p.push('Please tell us your IPA registration status');
   }
   if(n===4){
+    const qs = curSet(), goods = !qs || qs.goods;
+    const item = goods ? 'product' : (qs.item || 'service').toLowerCase();
     const first = products[0];
-    if(!first || !first.name.trim()) p.push('Please add at least one product');
+    if(!first || !first.name.trim()) p.push('Please add at least one ' + item);
     else{
       if(!String(first.price).trim() || isNaN(parseFloat(first.price)))
-        p.push('Please give a price in Kina for your first product');
+        p.push('Please give a price in Kina for your first ' + item);
       if(!first.unit.trim())
-        p.push('Please say how the first product is sold — each, per kg, per bundle');
+        p.push(goods ? 'Please say how the first product is sold — each, per kg, per bundle'
+                     : 'Please say what the price is for — ' + (qs.unitPh || 'per job'));
     }
     products.forEach((pr,i)=>{
       if(i>0 && pr.name.trim() && (!String(pr.price).trim() || isNaN(parseFloat(pr.price))))
-        p.push('Product ' + (i+1) + ' needs a price, or remove it');
+        p.push(item.charAt(0).toUpperCase() + item.slice(1) + ' ' + (i+1) + ' needs a price, or remove it');
     });
   }
   if(n===5){
@@ -917,7 +981,7 @@ function go(dir){
     s.classList.toggle('on', i+1===step);
     s.classList.toggle('done', i+1<step);
   });
-  if(step===4) drawProducts();
+  if(step===4){ drawExtras(); drawProducts(); }
   if(step===5) drawPicRoles();
   if(step===6) buildReview();
   clearErr();
@@ -987,7 +1051,8 @@ function buildReview(){
     row('IPA status', esc(data.ipa_status)) +
     (data.ipa_number ? row('IPA number', esc(data.ipa_number)) : '') +
     row('Wants Division help', data.wants_help ? 'Yes' : 'No') +
-    row('Products', plist) +
+    detailLines(data.subcategory, cleanDetails()).map(([k,v])=>row(esc(k), esc(v))).join('') +
+    row(curSet() && !curSet().goods ? 'Services and prices' : 'Products', plist) +
     row('Photographs', pics.length + ' photo' + (pics.length===1?'':'s'));
 }
 
@@ -1040,6 +1105,7 @@ async function submitApp(){
         ward:             data.ward || '',
         primary_industry: data.primary_industry,
         subcategory:      data.subcategory,
+        details:          cleanDetails(),
         contact_name:     data.contact_name,
         phone:            data.phone,
         email:            data.email || '',
