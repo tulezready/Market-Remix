@@ -657,9 +657,12 @@
                 <input id="b_trading" maxlength="120"></div>
               <div class="fr full"><label for="b_about">About your business <span class="opt">(shown to buyers)</span></label>
                 <textarea id="b_about" maxlength="1500"></textarea></div>
-              <div class="fr"><label for="b_contact">Contact person</label><input id="b_contact" autocomplete="name"></div>
-              <div class="fr"><label for="b_phone">Mobile number</label><input id="b_phone" type="tel" autocomplete="tel"></div>
-              <div class="fr"><label for="b_email">Email <span class="opt">(optional)</span></label><input id="b_email" type="email" autocomplete="email"></div>
+              <div class="fr"><label for="b_contact">Owner or manager</label><input id="b_contact" autocomplete="name"></div>
+              <div class="fr"><label for="b_phone">Personal mobile</label><input id="b_phone" type="tel" autocomplete="tel"></div>
+              <div class="fr"><label for="b_email">Personal email <span class="opt">(optional)</span></label><input id="b_email" type="email" autocomplete="email"></div>
+              <div class="fr"><label for="b_bphone">Business phone <span class="opt">(if it has its own)</span></label><input id="b_bphone" type="tel"></div>
+              <div class="fr"><label for="b_bemail">Business email <span class="opt">(if it has its own)</span></label><input id="b_bemail" type="email"></div>
+              <div class="fr"><label for="b_bfb">Facebook page <span class="opt">(optional)</span></label><input id="b_bfb" maxlength="200"></div>
               <div class="fr"><label for="b_ipa">IPA registration number</label><input id="b_ipa"></div>
               <div class="fr"><label for="b_tin">TIN <span class="opt">(if you have one)</span></label><input id="b_tin"></div>
             </div>
@@ -1250,6 +1253,9 @@ function renderSettings(){
   $('b_contact').value = pv.contact_name || '';
   $('b_phone').value = pv.phone || '';
   $('b_email').value = pv.email || '';
+  $('b_bphone').value = pv.business_phone || '';
+  $('b_bemail').value = pv.business_email || '';
+  $('b_bfb').value = pv.business_facebook || '';
   $('b_ipa').value = pv.ipa_number || '';
   $('b_tin').value = pv.tin || '';
   // the questions for this type of business (categories.js), with the saved answers
@@ -1281,11 +1287,13 @@ async function saveBusiness(){
   const bankChanged = bank.bank_name !== (pv.bank_name||null) || bank.account_number !== (pv.account_number||null) || bank.account_name !== (pv.account_name||null);
   if(bankChanged && pv.bank_verified &&
      !confirm('Change your bank details? Payouts will wait until the Division phones you to confirm the new account.')) return;
+  if(g('b_bphone') && !/^\+?[0-9 ]{7,20}$/.test(g('b_bphone'))) return showErr('setErr', 'The business phone number does not look right.');
   if(bank.account_number && !/^\d{6,20}$/.test(bank.account_number)) return showErr('setErr', 'The account number should be digits only.');
   const btn = $('saveBizBtn'); busy(btn, true, 'Saving…');
   try{
     const bizUpd = {trading_name:g('b_trading') || null, description:g('b_about') || null, details:readTypes()};
     const privUpd = Object.assign({contact_name:g('b_contact') || null, phone:g('b_phone') || null, email:g('b_email') || null,
+                                   business_phone:g('b_bphone') || null, business_email:g('b_bemail') || null, business_facebook:g('b_bfb') || null,
                                    ipa_number:g('b_ipa') || null, tin:g('b_tin') || null}, bank);
     if(LIVE){
       const {error:e1} = await sb.from('smes').update(bizUpd).eq('id', sme.id);

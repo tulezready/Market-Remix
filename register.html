@@ -432,6 +432,7 @@
   <section class="card pane" id="p2" style="display:none;">
     <h2>How we reach you</h2>
     <p class="lead">The Division will contact you about your application, so please check these carefully.</p>
+    <h3 class="subh">You — the owner or manager</h3>
     <div class="grid2">
       <div class="fr">
         <label>Your full name <span class="req">*</span></label>
@@ -446,6 +447,22 @@
         <label>Email address <span class="opt">(optional)</span></label>
         <input id="f_email" placeholder="If you have one" inputmode="email">
         <div class="hint">You do not need an email address to sell on MaketPles.</div>
+      </div>
+    </div>
+    <h3 class="subh">The business <span class="opt">— only if it has its own (optional)</span></h3>
+    <div class="hint" style="margin:-4px 0 10px;">For example the shop, guest house or office phone. Leave these empty if you use your own mobile and email for the business.</div>
+    <div class="grid2">
+      <div class="fr">
+        <label>Business phone</label>
+        <input id="f_business_phone" placeholder="+675 …" inputmode="tel">
+      </div>
+      <div class="fr">
+        <label>Business email</label>
+        <input id="f_business_email" placeholder="e.g. bookings@…" inputmode="email">
+      </div>
+      <div class="fr full">
+        <label>Facebook page</label>
+        <input id="f_business_facebook" placeholder="The page name or link">
       </div>
     </div>
     <div class="nav">
@@ -1067,6 +1084,10 @@ function validate(n){
     need('f_phone', v=>v.replace(/\D/g,'').length>=7, 'Please enter a valid mobile number', p);
     need('f_email', v=>!v.trim() || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim()),
          'That email address does not look right — leave it blank if you have none', p);
+    need('f_business_phone', v=>!v.trim() || /^\+?[0-9 ]{7,20}$/.test(v.trim()),
+         'The business phone number does not look right — leave it blank if there is none', p);
+    need('f_business_email', v=>!v.trim() || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim()),
+         'The business email address does not look right — leave it blank if there is none', p);
   }
   if(n===3){
     if(!picked('ipa')) p.push('Please tell us your IPA registration status');
@@ -1171,6 +1192,9 @@ function capture(n){
     data.contact_name = g('f_contact_name').trim();
     data.phone = g('f_phone').trim();
     data.email = g('f_email').trim();
+    data.business_phone = g('f_business_phone').trim();
+    data.business_email = g('f_business_email').trim();
+    data.business_facebook = g('f_business_facebook').trim();
   }
   if(n===3){
     data.ipa_status = picked('ipa');
@@ -1195,6 +1219,10 @@ function buildReview(){
     row('Contact name', esc(data.contact_name)) +
     row('Mobile', esc(data.phone)) +
     row('Email', esc(data.email), 'none — we will phone you') +
+    (data.business_phone || data.business_email || data.business_facebook
+      ? row('Business phone', esc(data.business_phone), 'none') + row('Business email', esc(data.business_email), 'none') +
+        row('Facebook page', esc(data.business_facebook), 'none')
+      : row('Business contact', 'the same as yours')) +
     row('IPA status', esc(data.ipa_status)) +
     (data.ipa_number ? row('IPA number', esc(data.ipa_number)) : '') +
     row('Wants Division help', data.wants_help ? 'Yes' : 'No') +
@@ -1266,6 +1294,9 @@ async function submitApp(){
         contact_name:     data.contact_name,
         phone:            data.phone,
         email:            data.email || '',
+        business_phone:   data.business_phone || '',
+        business_email:   data.business_email || '',
+        business_facebook: data.business_facebook || '',
         ipa_status:       data.ipa_status,
         years_trading:    data.years_trading || '',
         staff_count:      data.staff_count || '',

@@ -1038,6 +1038,9 @@ async function loadApplications(){
     contact_name: r.contact_name,
     phone: r.phone,
     email: r.email,
+    business_phone: r.business_phone,
+    business_email: r.business_email,
+    business_facebook: r.business_facebook,
     ipa_status: r.ipa_status,
     source: r.submitted_from === 'web' ? 'Website' : r.submitted_from === 'field' ? 'LLG officer' : 'Conference',
     message: r.message,
@@ -1077,7 +1080,7 @@ async function loadSmes(){
   // contact details live in sme_private (Division and owner only), not on the public smes table
   const {data, error} = await sb.from('smes')
     .select('id, slug, owner_id, registered_name, trading_name, district, llg, ward, primary_industry, subcategory, extra_subs, details, approved, featured, consent, is_sample, ' +
-            'sme_private(contact_name, phone, email, ipa_number, tin, bank_name, account_name, account_number, bank_verified, bank_verified_at, bank_verified_by)')
+            'sme_private(contact_name, phone, email, business_phone, business_email, business_facebook, ipa_number, tin, bank_name, account_name, account_number, bank_verified, bank_verified_at, bank_verified_by)')
     .order('registered_name');
   if(error){ console.error('loadSmes', error); return; }
   smes = (data||[]).map(r => ({
@@ -1391,9 +1394,7 @@ async function openApp(id){
     <div class="kv"><span class="k">Ward / village</span><span class="v">${miss(a.ward)}</span></div>
     <div class="kv"><span class="k">Industry</span><span class="v">${esc(typesLine(a.primary_industry, a.subcategory, a.extra_subs, false))}</span></div>
     ${detailLines(a.subcategory, a.details, a.extra_subs).map(([k,v])=>`<div class="kv"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('')}
-    <div class="kv"><span class="k">Contact</span><span class="v">${miss(a.contact_name)}</span></div>
-    <div class="kv"><span class="k">Phone</span><span class="v">${miss(a.phone)}</span></div>
-    <div class="kv"><span class="k">Email</span><span class="v">${miss(a.email)}</span></div>
+    ${contactRows(a)}
     <div class="kv"><span class="k">IPA status</span><span class="v">${esc(a.ipa_status)}</span></div>
     <div class="kv"><span class="k">Source</span><span class="v">${esc(a.source)} · ${esc(a.created)}</span></div>
     <div class="kv"><span class="k">Their note</span><span class="v" style="white-space:pre-line;">${miss(a.message)}</span></div>
@@ -1471,6 +1472,16 @@ async function setPhotoKind(photoId, value){
   if(error) alert('That could not be saved: ' + error.message);
 }
 
+/* the owner's own contact details, then the business's own (if it has any) */
+function contactRows(c){
+  const miss = v => v ? esc(v) : '<span class="v miss">not supplied</span>';
+  const kv = (k, v) => `<div class="kv"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+  const biz = c.business_phone || c.business_email || c.business_facebook;
+  return kv('Owner / manager', miss(c.contact_name)) + kv('Personal mobile', miss(c.phone)) + kv('Personal email', miss(c.email)) +
+    (biz ? kv('Business phone', miss(c.business_phone)) + kv('Business email', miss(c.business_email)) + kv('Facebook page', miss(c.business_facebook))
+         : kv('Business contact', '<span class="v miss">same as the owner\'s</span>'));
+}
+
 /* ---------- editing an application that is still waiting ----------
    The applicant has no login until approval, so the Division corrects the
    details here (a wrong phone number, a second type of business, a missing
@@ -1484,8 +1495,20 @@ async function editApp(id){
     if(error) return alert('Could not load their products: ' + error.message);
     prods = data || [];
   }
-  appEdit = {id, prods: prods.map(p => ({id:p.id, name:p.name||'', price:p.price ?? '', unit:p.unit||'', stock:p.stock||'',
-    description:p.description||'', subcategory:p.subcategory||a.subcategory})), dropped:[]};
+  let photos = a.photos || [];
+  if(LIVE){
+    const {data, error} = await sb.from('application_photos').select('*').eq('application_id', id).order('sort_order');
+    if(error) return alert('Could not load their photographs: ' + error.message);
+    photos = await Promise.all((data || []).map(async ph => {
+      const {data:signed} = await sb.storage.from(SUPABASE.APPLICATIONS_BUCKET).createSignedUrl(ph.storage_path, 1800);
+      return Object.assign({}, ph, {url: signed ? signed.signedUrl : null});
+    }));
+  }
+  appEdit = {id, seq: 0, prods: prods.map(p => ({id:p.id, key:p.id, name:p.name||'', price:p.price ?? '', unit:p.unit||'', stock:p.stock||'',
+    description:p.description||'', subcategory:p.subcategory||a.subcategory})), dropped:[],
+    photos: photos.map(ph => ({id:ph.id, storage_path:ph.storage_path, url:ph.url,
+      role: ph.kind === 'product' ? (ph.product_id ? 'prod:' + ph.product_id : 'product') : ph.kind})),
+    dropPhotos: [], newPics: []};
   const dist = DISTRICTS.map(d=>`<option${d===a.district?' selected':''}>${d}</option>`).join('');
   const field = (key, label, val, extra) => `<div class="fr"><label for="ae_${key}">${label}</label><input id="ae_${key}" value="${esc(val||'')}"${extra||''}></div>`;
   document.getElementById('mTitle').textContent = 'Edit ' + a.business_name;
@@ -1496,15 +1519,29 @@ async function editApp(id){
       <div class="fr"><label for="ae_district">District</label><select id="ae_district" onchange="aeLlgs()">${dist}</select></div>
       <div class="fr"><label for="ae_llg">LLG</label><select id="ae_llg"></select></div>
       ${field('ward', 'Ward or village', a.ward)}
-      ${field('contact_name', 'Contact name', a.contact_name)}
-      ${field('phone', 'Mobile', a.phone, ' inputmode="tel"')}
-      ${field('email', 'Email', a.email, ' inputmode="email"')}
+    </div>
+    <h4 class="msec">Owner or manager</h4>
+    <div class="grid2">
+      ${field('contact_name', 'Name', a.contact_name)}
+      ${field('phone', 'Personal mobile', a.phone, ' inputmode="tel"')}
+      ${field('email', 'Personal email', a.email, ' inputmode="email"')}
+    </div>
+    <h4 class="msec">The business's own contact <span style="font-weight:400;">(leave empty if the same)</span></h4>
+    <div class="grid2">
+      ${field('business_phone', 'Business phone', a.business_phone, ' inputmode="tel"')}
+      ${field('business_email', 'Business email', a.business_email, ' inputmode="email"')}
+      ${field('business_facebook', 'Facebook page', a.business_facebook)}
     </div>
     <h4 class="msec">Type of business</h4>
     ${typeFieldsHTML(a.subcategory)}
     <h4 class="msec">Products and services</h4>
     <div id="ae_prods"></div>
     <button class="btn-o btn-sm" onclick="aeAddProd()">+ Add a product</button>
+    <h4 class="msec">Photographs</h4>
+    <div class="hint">Say what each one shows. Removed photographs are deleted when you save.</div>
+    <div class="app-photo-grid" id="ae_pics"></div>
+    <label class="btn-o btn-sm" style="display:inline-block;margin-top:10px;cursor:pointer;">+ Add photographs
+      <input type="file" accept="image/*" multiple hidden onchange="aeAddPics(this)"></label>
     <div class="mact">
       <button class="btn-o" onclick="openApp('${a.id}')">Cancel</button>
       <button class="btn g" id="aeSave" onclick="saveApp()">Save changes</button>
@@ -1527,16 +1564,16 @@ function aeReadProds(){
     row.querySelectorAll('[data-f]').forEach(el => p[el.dataset.f] = el.value);
   });
 }
-function aeDrawProds(){
+function aeDrawProds(alreadyRead){
   if(!appEdit) return;
   const box = document.getElementById('ae_prods'); if(!box) return;
-  if(box.children.length) aeReadProds();
+  if(!alreadyRead && box.children.length) aeReadProds();
   const types = [document.getElementById('te_sub').value].concat([...document.querySelectorAll('#te_qs .tq')].slice(1).map(x => x.dataset.sub));
   box.innerHTML = appEdit.prods.map((p, i) => {
     if(!types.includes(p.subcategory)) p.subcategory = types[0];
     return `<div class="aep typebox" style="margin-bottom:10px;">
       <div class="grid2">
-        <div class="fr"><label>Name</label><input data-f="name" value="${esc(p.name)}"></div>
+        <div class="fr"><label>Name</label><input data-f="name" value="${esc(p.name)}" onchange="aeReadProds(); aeRelabelPics();"></div>
         ${types.length > 1 ? `<div class="fr"><label>Part of the business</label><select data-f="subcategory">${types.map(t =>
           `<option value="${t}"${t===p.subcategory?' selected':''}>${esc(subLabel(t))}</option>`).join('')}</select></div>` : ''}
         <div class="fr"><label>Price (Kina)</label><input data-f="price" value="${esc(p.price)}" inputmode="decimal"></div>
@@ -1547,13 +1584,76 @@ function aeDrawProds(){
       <button class="btn-o btn-sm" onclick="aeRemoveProd(${i})">Remove</button>
     </div>`;
   }).join('') || '<div class="hint">No products yet.</div>';
+  aeDrawPics();
 }
-function aeAddProd(){ aeReadProds(); appEdit.prods.push({name:'', price:'', unit:'', stock:'', description:'', subcategory:document.getElementById('te_sub').value}); aeDrawProds(); }
+const AE_MAX_PICS = 12;
+const aePicOpts = role => `<optgroup label="A product">${appEdit.prods.filter(p => p.name.trim()).map(p =>
+    `<option value="prod:${p.key}"${role==='prod:'+p.key?' selected':''}>${esc(p.name)}</option>`).join('')}</optgroup>
+  <option value="product"${role==='product'?' selected':''}>A product — not sure which</option>
+  <option value="business"${role==='business'?' selected':''}>Owner / stall</option>
+  <option value="hero"${role==='hero'?' selected':''}>Front page</option>`;
+function aeRelabelPics(){
+  const all = appEdit.photos.concat(appEdit.newPics);
+  document.querySelectorAll('#ae_pics select').forEach((sel, i) => { if(all[i]) sel.innerHTML = aePicOpts(all[i].role); });
+}
+function aeDrawPics(){
+  const box = document.getElementById('ae_pics'); if(!box || !appEdit) return;
+  const opts = aePicOpts;
+  const card = (ph, list, i) => `<div class="app-photo">
+      ${ph.url ? `<img src="${esc(ph.url)}" alt="">` : '<div class="app-photo-broken">could not load</div>'}
+      <select aria-label="What this photo shows" onchange="appEdit.${list}[${i}].role = this.value">${opts(ph.role)}</select>
+      <button class="btn-o btn-sm" style="width:100%;border-radius:0;border-width:1px 0 0;" onclick="aeRemovePic('${list}', ${i})">Remove</button>
+    </div>`;
+  box.innerHTML = appEdit.photos.map((ph, i) => card(ph, 'photos', i)).join('') +
+                  appEdit.newPics.map((ph, i) => card(ph, 'newPics', i)).join('') ||
+                  '<div class="hint">No photographs.</div>';
+}
+async function aeAddPics(input){
+  const files = [...input.files]; input.value = '';
+  for(const f of files){
+    if(appEdit.photos.length + appEdit.newPics.length >= AE_MAX_PICS){ alert('Twelve photographs is the maximum.'); break; }
+    try{
+      const {dataUrl, blob} = await shrinkPhoto(f);
+      appEdit.newPics.push({url:dataUrl, blob, name:f.name, role:'product'});
+    }catch(e){ alert(f.name + ' could not be read as a photograph.'); }
+  }
+  aeDrawPics();
+}
+function aeRemovePic(list, i){
+  const [ph] = appEdit[list].splice(i, 1);
+  if(ph && ph.id) appEdit.dropPhotos.push(ph);
+  aeDrawPics();
+}
+// resized and compressed the same way as the registration form
+function shrinkPhoto(file, max = 1400, q = 0.82){
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onerror = () => rej(new Error('unreadable'));
+    fr.onload = () => {
+      const img = new Image();
+      img.onerror = () => rej(new Error('not an image'));
+      img.onload = () => {
+        const sc = Math.min(1, max / Math.max(img.width, img.height));
+        const cv = document.createElement('canvas');
+        cv.width = Math.round(img.width * sc); cv.height = Math.round(img.height * sc);
+        const ctx = cv.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+        ctx.drawImage(img, 0, 0, cv.width, cv.height);
+        cv.toBlob(b => b ? res({dataUrl: cv.toDataURL('image/jpeg', q), blob: b}) : rej(new Error('could not compress')), 'image/jpeg', q);
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+function aeAddProd(){ aeReadProds(); appEdit.prods.push({key:'n' + (++appEdit.seq), name:'', price:'', unit:'', stock:'', description:'', subcategory:document.getElementById('te_sub').value}); aeDrawProds(true); }
 function aeRemoveProd(i){
   aeReadProds();
   const [p] = appEdit.prods.splice(i, 1);
   if(p && p.id) appEdit.dropped.push(p.id);
-  aeDrawProds();
+  // its photographs stay, as "a product — not sure which"
+  if(p) appEdit.photos.concat(appEdit.newPics).forEach(ph => { if(ph.role === 'prod:' + p.key) ph.role = 'product'; });
+  aeDrawProds(true);
 }
 async function saveApp(){
   const a = applications.find(x=>x.id===appEdit.id); if(!a) return;
@@ -1561,11 +1661,15 @@ async function saveApp(){
   const v = id => document.getElementById(id).value.trim();
   const upd = Object.assign({
     business_name: v('ae_business_name'), district: v('ae_district'), llg: v('ae_llg') || null, ward: v('ae_ward') || null,
-    contact_name: v('ae_contact_name'), phone: v('ae_phone'), email: v('ae_email') || null
+    contact_name: v('ae_contact_name'), phone: v('ae_phone'), email: v('ae_email') || null,
+    business_phone: v('ae_business_phone') || null, business_email: v('ae_business_email') || null,
+    business_facebook: v('ae_business_facebook') || null
   }, readTypesForm());
   const errs = [];
   if(upd.business_name.length < 2) errs.push('a business name');
   if(!/^\+?[0-9 ]{7,20}$/.test(upd.phone)) errs.push('a valid mobile number');
+  if(upd.business_phone && !/^\+?[0-9 ]{7,20}$/.test(upd.business_phone)) errs.push('a valid business phone (or leave it empty)');
+  [upd.email, upd.business_email].forEach(e => { if(e && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) errs.push('a valid email address (or leave it empty)'); });
   const prods = appEdit.prods.filter(p => p.name.trim());
   prods.forEach(p => { if(p.price !== '' && !(Number(p.price) >= 0)) errs.push(`a price for ${p.name}`); });
   if(errs.length) return alert('Please give ' + errs.join(', ') + '.');
@@ -1575,25 +1679,54 @@ async function saveApp(){
     description: p.description.trim() || null, sort_order: i
   }));
   const btn = document.getElementById('aeSave'); btn.disabled = true; btn.textContent = 'Saving…';
+  const gone = appEdit.dropped.concat(appEdit.prods.filter(p => p.id && !p.name.trim()).map(p => p.id));
+  const ids = {};   // product key -> saved id
+  const photoRow = (ph, i) => {
+    const pid = ph.role.indexOf('prod:') === 0 ? ids[ph.role.slice(5)] : null;
+    return {kind: ph.role.indexOf('prod:') === 0 ? 'product' : ph.role, product_id: pid || null, sort_order: i};
+  };
   if(LIVE){
     const fail = msg => { btn.disabled = false; btn.textContent = 'Save changes'; alert('Could not save: ' + msg); };
-    const {error} = await sb.from('seller_applications').update(upd).eq('id', a.id).eq('status', 'pending');
+    const {data:okRows, error} = await sb.from('seller_applications').update(upd).eq('id', a.id).eq('status', 'pending').select('id');
     if(error) return fail(error.message);
-    // a removed product's photos stay with the application, untagged
-    const gone = appEdit.dropped.concat(appEdit.prods.filter(p => p.id && !p.name.trim()).map(p => p.id));
-    if(gone.length){
-      const r1 = await sb.from('application_photos').update({product_id:null}).in('product_id', gone);
-      if(r1.error) return fail(r1.error.message);
-      const r2 = await sb.from('application_products').delete().in('id', gone);
-      if(r2.error) return fail(r2.error.message);
-    }
+    if(!okRows || !okRows.length) return fail('this application has already been decided. Reload the page.');
     for(const [i, p] of prods.entries()){
       const r = p.id ? await sb.from('application_products').update(rows[i]).eq('id', p.id)
-                     : await sb.from('application_products').insert(rows[i]);
+                     : await sb.from('application_products').insert(rows[i]).select('id').single();
+      if(r.error) return fail(r.error.message);
+      ids[p.key] = p.id || r.data.id;
+    }
+    // what each kept photograph shows; this also unhooks photos from products about to be removed
+    for(const [i, ph] of appEdit.photos.entries()){
+      const r = await sb.from('application_photos').update(photoRow(ph, i)).eq('id', ph.id);
+      if(r.error) return fail(r.error.message);
+    }
+    if(gone.length){
+      const r = await sb.from('application_products').delete().in('id', gone);
+      if(r.error) return fail(r.error.message);
+    }
+    if(appEdit.dropPhotos.length){
+      const r1 = await sb.from('application_photos').delete().in('id', appEdit.dropPhotos.map(ph => ph.id));
+      if(r1.error) return fail(r1.error.message);
+      await sb.storage.from(SUPABASE.APPLICATIONS_BUCKET).remove(appEdit.dropPhotos.map(ph => ph.storage_path));
+    }
+    if(appEdit.newPics.length){
+      const tidy = t => String(t||'').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,28) || 'x';
+      const folder = a.reference || a.id, stamp = Date.now(), newRows = [];
+      for(const [i, ph] of appEdit.newPics.entries()){
+        const path = `${folder}/${tidy(upd.district)}_${tidy(upd.business_name)}_division_${stamp}_${String(i+1).padStart(2,'0')}.jpg`;
+        const up = await sb.storage.from(SUPABASE.APPLICATIONS_BUCKET).upload(path, ph.blob, {contentType:'image/jpeg', upsert:false});
+        if(up.error) return fail(up.error.message);
+        newRows.push(Object.assign({application_id: a.id, storage_path: path, original_name: ph.name, bytes: ph.blob.size},
+                                   photoRow(ph, appEdit.photos.length + i)));
+      }
+      const r = await sb.from('application_photos').insert(newRows);
       if(r.error) return fail(r.error.message);
     }
   } else {
     a.products = rows.map((r, i) => Object.assign({id: prods[i].id || 'np' + Date.now() + i}, r));
+    prods.forEach((p, i) => ids[p.key] = a.products[i].id);
+    a.photos = appEdit.photos.concat(appEdit.newPics).map((ph, i) => Object.assign({id: ph.id || 'ph' + Date.now() + i, url: ph.url}, photoRow(ph, i)));
   }
   Object.assign(a, upd);
   activity.unshift({t:`${a.business_name} application corrected by the Division`, w:"Just now", k:"ok"});
@@ -1946,9 +2079,7 @@ function openSme(id){
     ${detailLines(s.subcategory, s.details, s.extra_subs).map(([k,v])=>`<div class="kv"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('')}
     <div class="mact" style="margin:6px 0 4px;"><button class="btn-o btn-sm" onclick="editType('${s.id}')">Change type or answers</button></div>
     <div id="typeEdit" hidden></div>
-    <div class="kv"><span class="k">Contact</span><span class="v">${miss(p.contact_name)}</span></div>
-    <div class="kv"><span class="k">Phone</span><span class="v">${miss(p.phone)}</span></div>
-    <div class="kv"><span class="k">Email</span><span class="v">${miss(p.email)}</span></div>
+    ${contactRows(p)}
     <div class="kv"><span class="k">IPA number</span><span class="v">${miss(p.ipa_number)}</span></div>
     <div class="kv"><span class="k">TIN</span><span class="v">${miss(p.tin)}</span></div>
 

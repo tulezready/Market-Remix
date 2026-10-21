@@ -355,12 +355,14 @@ def entry_form(c, llg=None, district=None, pad=False):
     p.rule(M + CW * 0.80, p.y - 7.2 * mm, M + CW)
     p.y -= 17 * mm
 
-    p.section(2, "Who we contact")
-    p.field(M, p.y, CW * 0.48, "Owner or manager — full name")
-    p.field(M + CW * 0.52, p.y, CW * 0.23, "Mobile number")
-    p.field(M + CW * 0.79, p.y, CW * 0.21, "Second number")
+    p.section(2, "Who we contact", "Business lines only if it has its own")
+    p.field(M, p.y, CW * 0.40, "Owner or manager — full name")
+    p.field(M + CW * 0.43, p.y, CW * 0.22, "Personal mobile")
+    p.field(M + CW * 0.68, p.y, CW * 0.32, "Personal email (if any)")
     p.y -= 13 * mm
-    p.field(M, p.y, CW * 0.60, "Email — only if they have one")
+    p.field(M, p.y, CW * 0.22, "Business phone")
+    p.field(M + CW * 0.25, p.y, CW * 0.36, "Business email")
+    p.field(M + CW * 0.64, p.y, CW * 0.36, "Facebook page")
     p.y -= 15 * mm
 
     p.section(3, "What they sell or offer", "Start with the three or four best sellers")
@@ -691,7 +693,7 @@ def instructions(path):
         "About the business: name and district; then choose the LLG from the list (or \"Not sure\") and type "
         "the ward or village in its own box; then how long trading, staff, its category and type, and the "
         "owner's description from section 4.",
-        "Contact: the owner's name, mobile and email if any.",
+        "Contact: the owner's name, mobile and email if any; then the business's own phone, email and Facebook page if it has them.",
         "Registration: IPA status, and the IPA number if they have one.",
         "What they sell: each product with its price in kina, what the price is for (each, per kg, per bundle), "
         "and how many they have.",
