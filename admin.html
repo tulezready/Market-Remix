@@ -1065,6 +1065,7 @@ async function loadListings(){
     photos: (r.product_images||[]).length,
     description: r.description,
     review_note: r.review_note,
+    pickup_only: !!r.pickup_only,
     submitted: relTime(r.created_at)
   }));
 }
@@ -1633,7 +1634,7 @@ function renderListings(){
     <tr>
       <td><div class="rowflex">
         <div class="thumb">${l.photos ? `<svg class="icon" aria-hidden="true" style="width:18px;height:18px;"><use href="#ic-photo"/></svg>` : '<span style="font-size:11px;color:var(--red)">none</span>'}</div>
-        <div><div class="nm">${esc(l.name)}</div>
+        <div><div class="nm">${esc(l.name)}${l.pickup_only ? ' <span class="tag a">Live poultry · collect only</span>' : ''}</div>
              <div class="sub2">${l.photos} photo${l.photos===1?'':'s'}${l.stock===0?' · no stock':''}</div></div>
       </div></td>
       <td>${esc(l.sme)}</td>

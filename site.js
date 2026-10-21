@@ -89,6 +89,7 @@ const OVERLAYS = `<!-- BASKET -->
           <option value="agent_handoff">Collect from a local agent</option>
           <option value="delivery">Delivery — Kokopo and Rabaul urban areas</option>
         </select>
+        <div class="mnote" id="coPickNote" hidden></div>
       </div>
       <div id="coDelivery" hidden>
         <div class="fr"><label for="coAddr">Delivery address</label><input id="coAddr" autocomplete="street-address" placeholder="Section, lot, street or landmark"></div>
@@ -220,6 +221,7 @@ function cardHTML(p, i){
   const s = sme(p.s);
   const img = photoURL(p.ph);
   const tag = (p.stock != null && p.stock <= 5) ? `<span class="stk low">Only ${p.stock} left</span>`
+            : p.pickup ? `<span class="stk fresh">Collect only</span>`
             : p.fresh ? `<span class="stk fresh">Fresh</span>` : '';
   return `<article class="card">
     <a class="ph" href="product.html?p=${i}" tabindex="-1" aria-hidden="true">
@@ -341,10 +343,18 @@ function closeCart(){document.getElementById('drawer').classList.remove('on');do
    platform_settings, the card option becomes available. Prices, fees and
    delivery are always recalculated by the database (place_order). */
 function coSelected(name){ const x = document.querySelector(`input[name="${name}"]:checked`); return x ? x.value : null; }
+const pickupOnly = () => getCart().map(c => getProduct(c.i)).find(p => p && p.pickup);
 function coUpdate(){
   const { sub } = cartTotals();
   const s = Shop.SETTINGS || {};
-  const fulfil = document.getElementById('coFulfil').value;
+  // live poultry is collected from the business: no delivery, no agent
+  const sel = document.getElementById('coFulfil'), live = pickupOnly();
+  [...sel.options].forEach(o => o.disabled = !!live && o.value !== 'sme_pickup');
+  if(live) sel.value = 'sme_pickup';
+  const pn = document.getElementById('coPickNote');
+  pn.hidden = !live;
+  if(live) pn.textContent = `${clean(live.n)} is live poultry, so it is collected from the business.`;
+  const fulfil = sel.value;
   document.getElementById('coDelivery').hidden = fulfil !== 'delivery';
   const del = (fulfil === 'delivery' && sub < Number(s.free_delivery_over || 150)) ? Number(s.delivery_fee || 15) : 0;
   document.getElementById('coSub').textContent = money(sub);
@@ -389,6 +399,8 @@ async function placeOrder(ev){
   if(!/^\+?[0-9 ]{7,20}$/.test(v('coPhone'))) return coError('Please enter a valid mobile number.');
   if(gift && (v('coRName').length < 2 || !/^\+?[0-9 ]{7,20}$/.test(v('coRPhone'))))
     return coError('Please enter the name and mobile number of the person receiving the order.');
+  if(fulfil !== 'sme_pickup' && pickupOnly())
+    return coError(`${clean(pickupOnly().n)} is live poultry, so it can only be collected from the business. Choose "Collect from the business".`);
   if(fulfil === 'delivery' && v('coAddr').length < 3) return coError('Please enter a delivery address.');
   if(fulfil === 'delivery'){
     const far = getCart().map(c => getProduct(c.i)).filter(p => p && p.fresh && (sme(p.s) || {}).d && sme(p.s).d !== v('coDist'));

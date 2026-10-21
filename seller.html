@@ -567,6 +567,9 @@
               <div class="fr full">
                 <label class="chkline"><input type="checkbox" id="p_fresh"> Fresh produce — must be collected or delivered quickly</label>
               </div>
+              <div class="fr full" id="p_liveWrap" hidden>
+                <label class="chkline"><input type="checkbox" id="p_live"> Live poultry — buyers collect it from you, no delivery</label>
+              </div>
               <div class="fr full">
                 <label for="p_desc">Description <span class="opt">(recommended)</span></label>
                 <textarea id="p_desc" placeholder="How it is grown or made, and where. A few sentences." maxlength="1200"></textarea>
@@ -827,7 +830,7 @@ async function loadAll(){
   const id = sme.id;
   const [p, pr, o, b, y, st, rq] = await Promise.all([
     sb.from('sme_private').select('*').eq('sme_id', id).maybeSingle(),
-    sb.from('products').select('id, name, category, subcategory, mode, price, unit, stock, description, perishable, status, review_note, created_at, product_images(id, storage_path, sort_order)')
+    sb.from('products').select('id, name, category, subcategory, mode, price, unit, stock, description, perishable, pickup_only, status, review_note, created_at, product_images(id, storage_path, sort_order)')
       .eq('sme_id', id).order('created_at', {ascending:false}),
     sb.from('orders').select('id, order_number, status, created_at, buyer_name, buyer_phone, is_gift, recipient_name, recipient_phone, fulfilment, delivery_address, delivery_district, subtotal, platform_fee, agent_fee, seller_net, paid_at, fulfilled_at, order_items(product_name, quantity, unit)')
       .eq('sme_id', id).order('created_at', {ascending:false}),
@@ -983,6 +986,7 @@ function editProduct(id){
   $('p_stock').value = p ? (p.stock ?? '') : '';
   $('p_desc').value = p ? (p.description||'') : '';
   $('p_fresh').checked = p ? !!p.perishable : false;
+  $('p_live').checked = p ? !!p.pickup_only : false;
   $('p_mode').value = (p && p.mode) || '';
   syncMode();
 
@@ -1061,7 +1065,7 @@ async function saveProduct(target){
 
   const sub = $('p_cat').value;
   const rec = {name:g('p_name'), category:(catOfSub(sub)||{}).key, subcategory:sub, price:Math.round(price*100)/100, unit:g('p_unit'),
-               stock, description:g('p_desc') || null, perishable:$('p_fresh').checked, mode:$('p_mode').value || null};
+               stock, description:g('p_desc') || null, perishable:$('p_fresh').checked, pickup_only:$('p_cat').value === 'livestock' && $('p_live').checked, mode:$('p_mode').value || null};
   if(target !== 'live') rec.status = target;   // 'live' means: keep it live, just save the changes
 
   const btns = [...document.querySelectorAll('#formActs button')]; btns.forEach(b=>b.disabled = true);
@@ -1174,6 +1178,7 @@ function syncMode(){
   const usual = (subByKey($('p_cat').value) || {}).mode || 'buy';
   $('p_modeHint').textContent = 'Usual for this type: ' + MODES[usual].btn + '. Choose another for a bulk lot or made-to-order work.';
   $('p_stockWrap').hidden = effMode() !== 'buy';
+  $('p_liveWrap').hidden = $('p_cat').value !== 'livestock';
 }
 $('p_mode').addEventListener('change', syncMode);
 $('p_cat').addEventListener('change', syncMode);

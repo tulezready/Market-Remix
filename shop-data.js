@@ -168,7 +168,7 @@ function loadFromDb(){
     }));
     Shop.P = cat.map(r => ({
       id: r.product_id, n: r.name, s: r.sme_slug, p: Number(r.price), c: r.category, sub: r.subcategory || '', mode: r.mode || '', b: r.badge || null,
-      ph: r.photo, u: r.unit, about: r.description, stock: r.stock, fresh: !!r.perishable
+      ph: r.photo, u: r.unit, about: r.description, stock: r.stock, fresh: !!r.perishable, pickup: !!r.pickup_only
     }));
     Shop.SLIDES = smes.filter(s => s.featured && s.hero_photo_ref).map(s => ({
       img: s.hero_photo_ref, biz: s.name, loc: s.district + ' District',
