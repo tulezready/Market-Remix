@@ -128,6 +128,37 @@ const MODES = {
 const modeOf = p => (p && (p.mode || (subByKey(p.sub) || {}).mode)) || "buy";
 
 const qsetFor = sub => QSETS[(subByKey(sub) || {}).set] || null;
+/* The questions for a sub-category as form fields (seller portal and Division
+   panel), filled with saved answers; readQs() reads them back. Field ids are
+   prefixed so two forms never clash. */
+const qEsc = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function qsFormHTML(sub, d, pre){
+  const qs = qsetFor(sub); d = d || {};
+  if(!qs) return '<div class="hint">No extra questions for this type of business.</div>';
+  return qs.q.map(q => {
+    const v = d[q.k], id = pre + q.k;
+    const lab = `<label for="${id}">${qEsc(q.label)}</label>`;
+    if(q.t === "text") return `<div class="fr full">${lab}<input id="${id}" data-qk="${q.k}" value="${qEsc(v)}" placeholder="${qEsc(q.ph || "")}" maxlength="200"></div>`;
+    if(q.t === "num")  return `<div class="fr">${lab}<input id="${id}" data-qk="${q.k}" value="${qEsc(v)}" inputmode="numeric" maxlength="10"></div>`;
+    if(q.t === "pick") return `<div class="fr">${lab}<select id="${id}" data-qk="${q.k}"><option value="">Choose…</option>${q.opts.map(o => `<option${o === v ? " selected" : ""}>${qEsc(o)}</option>`).join("")}</select></div>`;
+    const opts = q.t === "yesno" ? ["Yes","No"] : q.opts, type = q.t === "yesno" ? "radio" : "checkbox";
+    const on = o => q.t === "yesno" ? o === v : (Array.isArray(v) && v.includes(o));
+    return `<div class="fr${q.t === "checks" ? " full" : ""}"><label>${qEsc(q.label)}</label><div class="qchips">${opts.map(o =>
+      `<label><input type="${type}" name="${id}" data-qk="${q.k}" value="${qEsc(o)}"${on(o) ? " checked" : ""}> ${qEsc(o)}</label>`).join("")}</div></div>`;
+  }).join("");
+}
+function readQs(root){
+  const out = {};
+  root.querySelectorAll("[data-qk]").forEach(el => {
+    const k = el.dataset.qk;
+    if(el.type === "checkbox"){ out[k] = out[k] || []; if(el.checked) out[k].push(el.value); }
+    else if(el.type === "radio"){ if(el.checked) out[k] = el.value; }
+    else if(el.value.trim()) out[k] = el.value.trim().slice(0, 200);
+  });
+  Object.keys(out).forEach(k => { if(Array.isArray(out[k]) && !out[k].length) delete out[k]; });
+  return out;
+}
+
 /* one line per answer, for the Division panel */
 const detailLines = (sub, d) => {
   const qs = qsetFor(sub); if(!qs || !d) return [];

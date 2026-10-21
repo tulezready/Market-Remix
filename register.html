@@ -102,6 +102,11 @@
 
   .radios{display:grid;gap:9px;}
   #subWrap[hidden]{display:none;}
+  .draftbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:space-between;margin:0 0 18px;
+    padding:14px 16px;border-radius:12px;background:#FBF0D2;border:1px solid rgba(184,135,26,.35);font-size:13.5px;}
+  .draftbar[hidden]{display:none;}
+  .draftacts{display:flex;gap:8px;}
+  .draftacts .btn,.draftacts .btn-o{padding:9px 14px;font-size:13px;}
   /* step 4: questions for the chosen type of business */
   #extraQs{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;margin:4px 0 10px;}
   #extraQs .fr.wide{grid-column:1/-1;}
@@ -351,6 +356,11 @@
     </div>
   </section>
 
+  <div class="draftbar" id="draftBar" hidden>
+    <span id="draftTxt">You have an unfinished application on this phone.</span>
+    <span class="draftacts"><button class="btn" onclick="useDraft()">Continue it</button>
+    <button class="btn-o" onclick="dropDraft()">Start again</button></span>
+  </div>
   <div class="steps" id="steps">
     <div class="step on"><div class="k">Step 1</div><div class="t">Business</div></div>
     <div class="step"><div class="k">Step 2</div><div class="t">Contact</div></div>
@@ -797,6 +807,82 @@ function drawProducts(){
 function upd(id,k,v){ const p = products.find(x=>x.id===id); if(p) p[k]=v; }
 addProduct();
 
+/* ---------- unfinished application, kept on this phone ----------
+   Typed answers are saved in the browser as the form is filled in, so a
+   closed tab, a reload or a flat battery doesn't lose them. Photos are too
+   big to keep and have to be chosen again. Cleared once the application is
+   sent, or after 7 days. */
+const DRAFT_KEY = 'mp_reg_draft';
+const DRAFT_DAYS = 7;
+let draftTimer = null, draftOffered = false;
+function saveDraft(){
+  if(draftOffered || step === 7) return;   // after sending, or before the person answers about an old draft; don't overwrite a draft the person hasn't answered about yet
+  try{
+    const fields = {};
+    document.querySelectorAll('[id^="f_"]').forEach(el=>{
+      if(/^f_officer/.test(el.id)) return;   // officer details are kept separately
+      fields[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+    });
+    const draft = { at: Date.now(), fields, products, details,
+      picks: { industry: picked('industry'), sub: picked('sub'), ipa: picked('ipa') },
+      sent: sent ? sent.reference : null };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  }catch(e){}
+}
+function clearDraft(){ clearTimeout(draftTimer); try{ localStorage.removeItem(DRAFT_KEY); }catch(e){} }
+function readDraft(){
+  try{
+    const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+    if(!d || Date.now() - d.at > DRAFT_DAYS * 864e5){ clearDraft(); return null; }
+    return d;
+  }catch(e){ return null; }
+}
+function pickRadio(g, v){
+  const r = v && document.querySelector(`.radio[data-g="${g}"][data-v="${v}"]`);
+  if(r){ r.classList.add('sel'); const i = r.querySelector('input'); if(i) i.checked = true; }
+}
+function useDraft(){
+  const d = readDraft(); draftOffered = false;
+  document.getElementById('draftBar').hidden = true;
+  if(!d) return;
+  const f = d.fields || {};
+  if(f.f_district){ document.getElementById('f_district').value = f.f_district; fillLlgs(); }
+  Object.entries(f).forEach(([id, v])=>{
+    const el = document.getElementById(id); if(!el || id === 'f_district') return;
+    if(el.type === 'checkbox') el.checked = !!v; else el.value = v;
+  });
+  pickRadio('industry', d.picks && d.picks.industry);
+  if(d.picks && d.picks.industry){ data._main = d.picks.industry; fillSubs(d.picks.industry, d.picks.sub); }
+  pickRadio('ipa', d.picks && d.picks.ipa);
+  if(d.picks && d.picks.ipa){
+    document.getElementById('ipaNumWrap').style.display = d.picks.ipa === 'Registered' ? 'block' : 'none';
+    document.getElementById('ipaHelp').style.display = d.picks.ipa === 'Not registered' ? 'block' : 'none';
+  }
+  if(Array.isArray(d.products) && d.products.length){ products = d.products; drawProducts(); }
+  if(d.details && typeof d.details === 'object') details = d.details;
+}
+function dropDraft(){
+  draftOffered = false; clearDraft();
+  document.getElementById('draftBar').hidden = true;
+}
+(function offerDraft(){
+  const d = readDraft(); if(!d) return;
+  const bar = document.getElementById('draftBar');
+  if(d.sent){
+    // the application reached the Division; only some photos may be missing
+    document.getElementById('draftTxt').innerHTML = `Your application <b>${esc(d.sent)}</b> was saved, but some photos may not have arrived. ` +
+      'Send them to the Division by WhatsApp or email with that reference.';
+    bar.querySelector('.draftacts').innerHTML = '<button class="btn-o" onclick="dropDraft()">OK</button>';
+  } else {
+    const when = new Date(d.at).toLocaleString('en-GB', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+    const name = d.fields && d.fields.f_business_name ? ` for <b>${esc(d.fields.f_business_name)}</b>` : '';
+    document.getElementById('draftTxt').innerHTML = `You have an unfinished application${name} on this phone, from ${esc(when)}. Photos need to be chosen again.`;
+  }
+  draftOffered = true; bar.hidden = false;
+})();
+document.addEventListener('input', ()=>{ clearTimeout(draftTimer); draftTimer = setTimeout(saveDraft, 600); });
+document.addEventListener('change', ()=>{ clearTimeout(draftTimer); draftTimer = setTimeout(saveDraft, 600); });
+
 /* ---------- photos ---------- */
 document.getElementById('picIn').addEventListener('change', async e=>{
   const files = [...e.target.files];
@@ -973,6 +1059,7 @@ function validate(n){
 
 /* ---------- navigation ---------- */
 function go(dir){
+  if(dir<0 && sent){ showErr(['Your application is already saved — only the photos are left to send. Press the green button to send them.']); return; }
   if(dir>0 && !validate(step)) return;
   if(dir>0) capture(step);
   step += dir;
@@ -981,6 +1068,7 @@ function go(dir){
     s.classList.toggle('on', i+1===step);
     s.classList.toggle('done', i+1<step);
   });
+  saveDraft();
   if(step===4){ drawExtras(); drawProducts(); }
   if(step===5) drawPicRoles();
   if(step===6) buildReview();
@@ -1073,6 +1161,13 @@ function fullMessage(){
 const tidy = s => String(s||'').replace(/[^A-Za-z0-9]+/g,'-')
                     .replace(/^-|-$/g,'').slice(0,28) || 'x';
 
+/* The application is saved once. If the connection drops while the photos
+   are uploading, pressing the button again sends only the photos that are
+   left — never a second copy of the application. */
+let sent = null;          // {id, reference, products} once the application is saved
+const uploaded = {};      // photo id -> its record, once its file is uploaded
+let photosRecorded = false;
+
 async function submitApp(){
   if(!validate(6)) return;
   const btn = document.getElementById('submitBtn');
@@ -1084,8 +1179,9 @@ async function submitApp(){
     return;
   }
 
-  btn.textContent = 'Sending…';
+  btn.textContent = sent ? 'Sending photos…' : 'Sending…';
   try{
+   if(!sent){
     // One server-side call saves the application and its products and
     // returns the reference. (The public cannot read applications back, so a
     // plain insert-then-select would be refused.)
@@ -1120,8 +1216,10 @@ async function submitApp(){
       p_products: productRows
     });
     if(res.error) throw res.error;
-    const app = { id: res.data.id, reference: res.data.reference };
-    const saved = res.data.products || [];
+    sent = { id: res.data.id, reference: res.data.reference, products: res.data.products || [] };
+    saveDraft();
+   }
+    const app = sent, saved = sent.products;
 
     btn.textContent = 'Sending photos…';
     const folder = app.reference || app.id;
@@ -1145,34 +1243,44 @@ async function submitApp(){
       const fname = tidy(data.district)+'_'+tidy(data.business_name)+'_'+tag+'_'+n+'.jpg';
       const path  = folder+'/'+fname;
 
-      const up = await sb.storage.from(SUPABASE.BUCKET)
-        .upload(path, p.blob, {contentType:'image/jpeg', upsert:false});
-      if(up.error) throw up.error;
-
-      photoRows.push({
-        application_id: app.id,
-        product_id: productId,
-        kind: kind,
-        storage_path: path,
-        original_name: p.name,
-        bytes: p.blob.size,
-        sort_order: i
-      });
+      if(!uploaded[p.id]){
+        const up = await sb.storage.from(SUPABASE.BUCKET)
+          .upload(path, p.blob, {contentType:'image/jpeg', upsert:false});
+        // "already exists" = it reached the server on an earlier try
+        if(up.error && !/exist|duplicate/i.test(up.error.message || '')) throw up.error;
+        uploaded[p.id] = {
+          application_id: app.id,
+          product_id: productId,
+          kind: kind,
+          storage_path: path,
+          original_name: p.name,
+          bytes: p.blob.size,
+          sort_order: i
+        };
+      }
+      photoRows.push(uploaded[p.id]);
     }
 
-    if(photoRows.length){
+    if(photoRows.length && !photosRecorded){
       const ph = await sb.from('application_photos').insert(photoRows);
       if(ph.error) throw ph.error;
+      photosRecorded = true;
     }
 
+    clearDraft();
     finish(app.reference || '—');
 
   }catch(err){
     btn.disabled = false;
-    btn.textContent = 'Send application';
-    showErr(['Your application could not be sent. ' +
-             (err && err.message ? err.message : 'Please check your connection and try again.') +
-             ' Nothing has been lost — press Send again.']);
+    const why = err && err.message ? err.message : 'Please check your connection and try again.';
+    if(sent){
+      btn.textContent = 'Send the rest of the photos';
+      showErr([`Your application <b>${esc(sent.reference || '')}</b> is saved, but not all the photos arrived. ${esc(why)} ` +
+               'Press the button again to send the rest — the application will not be sent twice.']);
+    } else {
+      btn.textContent = 'Send application';
+      showErr(['Your application could not be sent. ' + esc(why) + ' Nothing has been lost — press Send again.']);
+    }
   }
 }
 

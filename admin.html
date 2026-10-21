@@ -397,6 +397,14 @@
     input[type=checkbox],input[type=radio]{width:24px;height:24px;}
     header nav a,.hdr a{display:inline-flex;align-items:center;min-height:44px;}
   }
+  .typebox{border:1px solid var(--hair);border-radius:12px;padding:14px;margin:6px 0 12px;background:var(--bone-2);}
+  .typebox .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}
+  .typebox .fr.full{grid-column:1/-1;}
+  .qchips{display:flex;flex-wrap:wrap;gap:8px;}
+  .qchips label{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid var(--hair);border-radius:10px;
+    background:#fff;font-size:12.5px;font-weight:500;cursor:pointer;margin:0;text-transform:none;letter-spacing:0;}
+  .qchips input{width:auto;margin:0;padding:0;min-height:0;}
+  #typeEdit[hidden]{display:none;}
 </style>
 </head>
 <body>
@@ -1313,6 +1321,26 @@ function renderDash(){
 /* ============================================================
    APPLICATIONS
    ============================================================ */
+/* likely double registrations: same mobile number (last 7 digits) or the
+   same business name as another application or an existing business */
+const phoneKey = x => { const d = String(x || '').replace(/\D/g, ''); return d.length >= 7 ? d.slice(-7) : ''; };
+const nameKey = x => String(x || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '')
+  .replace(/(limited|ltd|company|co)$/, '');
+function dupesOf(a){
+  const ph = phoneKey(a.phone), nm = nameKey(a.business_name), out = [];
+  applications.forEach(b => {
+    if(b.id === a.id || b.status === 'rejected') return;
+    const why = ph && phoneKey(b.phone) === ph ? 'same mobile' : nm && nameKey(b.business_name) === nm ? 'same name' : '';
+    if(why) out.push(`application ${b.reference || ''} “${b.business_name}” (${why}, ${b.status})`);
+  });
+  smes.forEach(m => {
+    if(a.created_sme_id && m.id === a.created_sme_id) return;   // the business this application became
+    const why = ph && phoneKey(m.phone) === ph ? 'same mobile' : nm && nameKey(m.registered_name) === nm ? 'same name' : '';
+    if(why) out.push(`business “${m.registered_name}” already on the platform (${why})`);
+  });
+  return out;
+}
+
 function renderApps(){
   badges();
   const q = (document.getElementById('fAppQ').value||"").toLowerCase();
@@ -1329,7 +1357,8 @@ function renderApps(){
                   : '<span class="tag a">Pending</span>';
   document.getElementById('appRows').innerHTML = rows.length ? rows.map(a=>`
     <tr>
-      <td><div class="nm">${esc(a.business_name)}</div><div class="sub2">${esc(a.contact_name)} · ${esc(a.phone)}</div></td>
+      <td><div class="nm">${esc(a.business_name)}</div><div class="sub2">${esc(a.contact_name)} · ${esc(a.phone)}</div>
+        ${a.status==='pending' && dupesOf(a).length ? '<span class="tag r">Possible duplicate</span>' : ''}</td>
       <td>${esc(a.district)}</td>
       <td><span class="tag">${esc(ind(a.primary_industry, a.subcategory))}</span></td>
       <td>${a.ipa_status==='Registered' ? '<span class="tag g">Registered</span>'
@@ -1346,7 +1375,10 @@ async function openApp(id){
   const miss = v => v ? esc(v) : '<span class="v miss">not supplied</span>';
 
   document.getElementById('mTitle').textContent = a.business_name;
+  const dup = a.status === 'pending' ? dupesOf(a) : [];
   document.getElementById('mBody').innerHTML = `
+    ${dup.length ? `<div class="warnbox"><b>Possible duplicate.</b> This looks like ${dup.map(esc).join('; ')}.
+      Check with the business before approving — an LLG officer and the owner may both have registered it.</div>` : ''}
     <div class="kv"><span class="k">District</span><span class="v">${esc(a.district)}</span></div>
     <div class="kv"><span class="k">LLG</span><span class="v">${miss(a.llg)}</span></div>
     <div class="kv"><span class="k">Ward / village</span><span class="v">${miss(a.ward)}</span></div>
@@ -1698,6 +1730,36 @@ function renderSmes(){
       </div></td>
     </tr>`).join('') : `<tr><td colspan="6"><div class="empty">No businesses match.</div></td></tr>`;
 }
+/* the business's category, type and answers (categories.js) — the Division
+   can change all three; a seller can change only the answers */
+function editType(id){
+  const s = smes.find(x=>x.id===id); if(!s) return;
+  const box = document.getElementById('typeEdit');
+  box.hidden = false;
+  box.innerHTML = `<div class="typebox">
+    <div class="fr"><label for="te_sub">Type of business</label>
+      <select id="te_sub">${CATEGORIES.map(c=>`<optgroup label="${esc(c.label)}">` +
+        c.subs.map(x=>`<option value="${x.key}"${x.key===s.subcategory?' selected':''}>${esc(x.label)}</option>`).join('') + '</optgroup>').join('')}</select></div>
+    <div id="te_qs" class="grid2"></div>
+    <div class="mact"><button class="btn g btn-sm" onclick="saveType('${s.id}')">Save</button>
+      <button class="btn-o btn-sm" onclick="document.getElementById('typeEdit').hidden=true">Cancel</button></div>
+    <div class="hint">Changing the type does not change the business's existing listings — edit those under Listing review.</div></div>`;
+  const draw = () => { document.getElementById('te_qs').innerHTML = qsFormHTML(document.getElementById('te_sub').value, s.details, 'te_'); };
+  document.getElementById('te_sub').addEventListener('change', draw);
+  draw();
+}
+async function saveType(id){
+  const s = smes.find(x=>x.id===id); if(!s) return;
+  const sub = document.getElementById('te_sub').value;
+  const upd = {primary_industry:(catOfSub(sub)||{}).key, subcategory:sub, details:readQs(document.getElementById('te_qs'))};
+  if(LIVE){
+    const {error} = await sb.from('smes').update(upd).eq('id', id);
+    if(error) return alert('Could not save: ' + (error.message || error));
+  }
+  Object.assign(s, upd);
+  openSme(id); renderSmes();
+}
+
 function openSme(id){
   const s = smes.find(x=>x.id===id); if(!s) return;
   const p = s.priv || {};
@@ -1711,6 +1773,8 @@ function openSme(id){
     <div class="kv"><span class="k">Ward / village</span><span class="v">${miss(s.ward)}</span></div>
     <div class="kv"><span class="k">Industry</span><span class="v">${esc(ind(s.primary_industry, s.subcategory))}</span></div>
     ${detailLines(s.subcategory, s.details).map(([k,v])=>`<div class="kv"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('')}
+    <div class="mact" style="margin:6px 0 4px;"><button class="btn-o btn-sm" onclick="editType('${s.id}')">Change type or answers</button></div>
+    <div id="typeEdit" hidden></div>
     <div class="kv"><span class="k">Contact</span><span class="v">${miss(p.contact_name)}</span></div>
     <div class="kv"><span class="k">Phone</span><span class="v">${miss(p.phone)}</span></div>
     <div class="kv"><span class="k">Email</span><span class="v">${miss(p.email)}</span></div>

@@ -372,6 +372,11 @@
   .chkline input{width:20px;height:20px;}
   .bad{border-color:var(--red) !important;box-shadow:0 0 0 3px rgba(200,50,30,.12) !important;}
   [hidden]{display:none !important;}
+  /* questions for the type of business (categories.js qsFormHTML) */
+  .qchips{display:flex;flex-wrap:wrap;gap:8px;}
+  .qchips label{display:inline-flex;align-items:center;gap:7px;padding:9px 12px;border:1px solid var(--hair);border-radius:10px;
+    background:#fff;font-size:13px;font-weight:500;cursor:pointer;margin:0;text-transform:none;letter-spacing:0;}
+  .qchips input{width:auto;margin:0;padding:0;min-height:0;}
   td a[href^="tel:"]{color:var(--harbour);font-weight:700;}
 </style>
 </head>
@@ -655,6 +660,13 @@
             </div>
           </div>
         </div>
+        <div class="panel" id="typePanel">
+          <div class="panel-hd"><h2 id="typeTitle">About your business</h2><span class="sub2" id="typeName"></span></div>
+          <div class="panel-bd">
+            <div class="grid2" id="typeQs"></div>
+            <div class="hint">To change your type of business, contact the Division.</div>
+          </div>
+        </div>
         <div class="panel">
           <div class="panel-hd"><h2>Where your payouts go</h2><span id="bankTag"></span></div>
           <div class="panel-bd">
@@ -716,6 +728,7 @@ let products = [], orders = [], requests = [], payouts = [], balance = {held:0, 
 /* sample data for the design preview (no Supabase configured) */
 function loadSample(){
   sme = {id:'demo', slug:'kerevat', registered_name:'Kerevat Mill Co.', trading_name:'', district:'Gazelle',
+         primary_industry:'agriculture', subcategory:'copra', details:{supply_month:'40 drums of oil', season:'All year'},
          description:'Copra oil and coffee processed at the Kerevat mill, supplied direct from Gazelle District growers.'};
   priv = {contact_name:'P. Umong', phone:'+675 7100 0010', email:'', ipa_number:'', tin:'',
           bank_name:'BSP', account_name:'Kerevat Mill Co.', account_number:'1000123456', bank_verified:true};
@@ -804,7 +817,7 @@ async function signOut(){
 /* ---------- load everything for this seller ---------- */
 async function loadAll(){
   const {data:biz, error} = await sb.from('smes')
-    .select('id, slug, registered_name, trading_name, district, llg, primary_industry, subcategory, description, approved')
+    .select('id, slug, registered_name, trading_name, district, llg, primary_industry, subcategory, details, description, approved')
     .eq('owner_id', me.id).order('registered_name').limit(1);
   if(error) throw error;
   sme = (biz||[])[0] || null;
@@ -1232,6 +1245,11 @@ function renderSettings(){
   $('b_email').value = pv.email || '';
   $('b_ipa').value = pv.ipa_number || '';
   $('b_tin').value = pv.tin || '';
+  // the questions for this type of business (categories.js), with the saved answers
+  const qs = qsetFor(sme.subcategory);
+  $('typeTitle').textContent = qs ? qs.title : 'About your business';
+  $('typeName').textContent = catLine(sme.primary_industry, sme.subcategory);
+  $('typeQs').innerHTML = qsFormHTML(sme.subcategory, sme.details, 'bq_');
   $('b_bank').value = pv.bank_name || '';
   $('b_accno').value = pv.account_number || '';
   $('b_accname').value = pv.account_name || '';
@@ -1248,7 +1266,7 @@ async function saveBusiness(){
   if(bank.account_number && !/^\d{6,20}$/.test(bank.account_number)) return showErr('setErr', 'The account number should be digits only.');
   const btn = $('saveBizBtn'); busy(btn, true, 'Saving…');
   try{
-    const bizUpd = {trading_name:g('b_trading') || null, description:g('b_about') || null};
+    const bizUpd = {trading_name:g('b_trading') || null, description:g('b_about') || null, details:readQs($('typeQs'))};
     const privUpd = Object.assign({contact_name:g('b_contact') || null, phone:g('b_phone') || null, email:g('b_email') || null,
                                    ipa_number:g('b_ipa') || null, tin:g('b_tin') || null}, bank);
     if(LIVE){
