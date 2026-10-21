@@ -400,6 +400,9 @@
   .typebox .tq + .tq{border-top:1px solid var(--hair);}
   .typebox{border:1px solid var(--hair);border-radius:12px;padding:14px;margin:6px 0 12px;background:var(--bone-2);}
   .typebox .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}
+  .aedit .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}
+  @media (max-width:600px){ .aedit .grid2, .typebox .grid2{grid-template-columns:1fr;} }
+  .aedit .aep{background:#fff;}
   .typebox .fr.full{grid-column:1/-1;}
   .qchips{display:flex;flex-wrap:wrap;gap:8px;}
   .qchips label{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid var(--hair);border-radius:10px;
@@ -1403,6 +1406,7 @@ async function openApp(id){
         <textarea id="appNote" placeholder="Explain what is needed, in plain language."></textarea></div>
       <div class="mact">
         <button class="btn-o" onclick="closeModal()">Close</button>
+        <button class="btn-o" onclick="editApp('${a.id}')">Edit details</button>
         <button class="btn" onclick="decideApp('${a.id}',false)">Return to applicant</button>
         <button class="btn g" id="approveBtn" onclick="decideApp('${a.id}',true)">Approve &amp; create account</button>
       </div>`
@@ -1465,6 +1469,137 @@ async function setPhotoKind(photoId, value){
     : {kind:value, product_id:null};
   const {error} = await sb.from('application_photos').update(upd).eq('id', photoId);
   if(error) alert('That could not be saved: ' + error.message);
+}
+
+/* ---------- editing an application that is still waiting ----------
+   The applicant has no login until approval, so the Division corrects the
+   details here (a wrong phone number, a second type of business, a missing
+   product) instead of returning it and making them apply again. */
+let appEdit = null; // {id, prods:[{id?, name, price, unit, stock, description, subcategory}], dropped:[ids]}
+async function editApp(id){
+  const a = applications.find(x=>x.id===id); if(!a || a.status !== 'pending') return;
+  let prods = a.products || [];
+  if(LIVE){
+    const {data, error} = await sb.from('application_products').select('*').eq('application_id', id).order('sort_order');
+    if(error) return alert('Could not load their products: ' + error.message);
+    prods = data || [];
+  }
+  appEdit = {id, prods: prods.map(p => ({id:p.id, name:p.name||'', price:p.price ?? '', unit:p.unit||'', stock:p.stock||'',
+    description:p.description||'', subcategory:p.subcategory||a.subcategory})), dropped:[]};
+  const dist = DISTRICTS.map(d=>`<option${d===a.district?' selected':''}>${d}</option>`).join('');
+  const field = (key, label, val, extra) => `<div class="fr"><label for="ae_${key}">${label}</label><input id="ae_${key}" value="${esc(val||'')}"${extra||''}></div>`;
+  document.getElementById('mTitle').textContent = 'Edit ' + a.business_name;
+  document.getElementById('mBody').innerHTML = `<div class="aedit">
+    <div class="hint" style="margin-bottom:10px;">Correct anything that is wrong or missing, then save. Photographs stay as they are.</div>
+    <div class="grid2">
+      ${field('business_name', 'Business name', a.business_name)}
+      <div class="fr"><label for="ae_district">District</label><select id="ae_district" onchange="aeLlgs()">${dist}</select></div>
+      <div class="fr"><label for="ae_llg">LLG</label><select id="ae_llg"></select></div>
+      ${field('ward', 'Ward or village', a.ward)}
+      ${field('contact_name', 'Contact name', a.contact_name)}
+      ${field('phone', 'Mobile', a.phone, ' inputmode="tel"')}
+      ${field('email', 'Email', a.email, ' inputmode="email"')}
+    </div>
+    <h4 class="msec">Type of business</h4>
+    ${typeFieldsHTML(a.subcategory)}
+    <h4 class="msec">Products and services</h4>
+    <div id="ae_prods"></div>
+    <button class="btn-o btn-sm" onclick="aeAddProd()">+ Add a product</button>
+    <div class="mact">
+      <button class="btn-o" onclick="openApp('${a.id}')">Cancel</button>
+      <button class="btn g" id="aeSave" onclick="saveApp()">Save changes</button>
+    </div></div>`;
+  aeLlgs(a.llg);
+  mountTypes(a.extra_subs, a.details, aeDrawProds);
+}
+function aeLlgs(keep){
+  const d = document.getElementById('ae_district').value, sel = document.getElementById('ae_llg');
+  keep = keep !== undefined ? keep : sel.value;
+  const list = LLGS[d] || [];
+  sel.innerHTML = '<option value="">Not given</option>' + list.map(l=>`<option${l===keep?' selected':''}>${esc(l)}</option>`).join('') +
+    (keep && keep !== '?' && !list.includes(keep) ? `<option selected>${esc(keep)}</option>` : '') +
+    `<option value="?"${keep==='?'?' selected':''}>Not sure — to check</option>`;
+}
+// read what is typed in the product rows back into appEdit before redrawing
+function aeReadProds(){
+  document.querySelectorAll('#ae_prods .aep').forEach((row, i) => {
+    const p = appEdit.prods[i]; if(!p) return;
+    row.querySelectorAll('[data-f]').forEach(el => p[el.dataset.f] = el.value);
+  });
+}
+function aeDrawProds(){
+  if(!appEdit) return;
+  const box = document.getElementById('ae_prods'); if(!box) return;
+  if(box.children.length) aeReadProds();
+  const types = [document.getElementById('te_sub').value].concat([...document.querySelectorAll('#te_qs .tq')].slice(1).map(x => x.dataset.sub));
+  box.innerHTML = appEdit.prods.map((p, i) => {
+    if(!types.includes(p.subcategory)) p.subcategory = types[0];
+    return `<div class="aep typebox" style="margin-bottom:10px;">
+      <div class="grid2">
+        <div class="fr"><label>Name</label><input data-f="name" value="${esc(p.name)}"></div>
+        ${types.length > 1 ? `<div class="fr"><label>Part of the business</label><select data-f="subcategory">${types.map(t =>
+          `<option value="${t}"${t===p.subcategory?' selected':''}>${esc(subLabel(t))}</option>`).join('')}</select></div>` : ''}
+        <div class="fr"><label>Price (Kina)</label><input data-f="price" value="${esc(p.price)}" inputmode="decimal"></div>
+        <div class="fr"><label>Sold by</label><input data-f="unit" value="${esc(p.unit)}" placeholder="each · per kg"></div>
+        <div class="fr"><label>How many</label><input data-f="stock" value="${esc(p.stock)}"></div>
+        <div class="fr"><label>About it</label><input data-f="description" value="${esc(p.description)}"></div>
+      </div>
+      <button class="btn-o btn-sm" onclick="aeRemoveProd(${i})">Remove</button>
+    </div>`;
+  }).join('') || '<div class="hint">No products yet.</div>';
+}
+function aeAddProd(){ aeReadProds(); appEdit.prods.push({name:'', price:'', unit:'', stock:'', description:'', subcategory:document.getElementById('te_sub').value}); aeDrawProds(); }
+function aeRemoveProd(i){
+  aeReadProds();
+  const [p] = appEdit.prods.splice(i, 1);
+  if(p && p.id) appEdit.dropped.push(p.id);
+  aeDrawProds();
+}
+async function saveApp(){
+  const a = applications.find(x=>x.id===appEdit.id); if(!a) return;
+  aeReadProds();
+  const v = id => document.getElementById(id).value.trim();
+  const upd = Object.assign({
+    business_name: v('ae_business_name'), district: v('ae_district'), llg: v('ae_llg') || null, ward: v('ae_ward') || null,
+    contact_name: v('ae_contact_name'), phone: v('ae_phone'), email: v('ae_email') || null
+  }, readTypesForm());
+  const errs = [];
+  if(upd.business_name.length < 2) errs.push('a business name');
+  if(!/^\+?[0-9 ]{7,20}$/.test(upd.phone)) errs.push('a valid mobile number');
+  const prods = appEdit.prods.filter(p => p.name.trim());
+  prods.forEach(p => { if(p.price !== '' && !(Number(p.price) >= 0)) errs.push(`a price for ${p.name}`); });
+  if(errs.length) return alert('Please give ' + errs.join(', ') + '.');
+  const rows = prods.map((p, i) => ({
+    application_id: a.id, name: p.name.trim().slice(0, 120), category: (catOfSub(p.subcategory)||{}).key, subcategory: p.subcategory,
+    price: p.price === '' ? null : Number(p.price), unit: p.unit.trim() || null, stock: String(p.stock).trim() || null,
+    description: p.description.trim() || null, sort_order: i
+  }));
+  const btn = document.getElementById('aeSave'); btn.disabled = true; btn.textContent = 'Saving…';
+  if(LIVE){
+    const fail = msg => { btn.disabled = false; btn.textContent = 'Save changes'; alert('Could not save: ' + msg); };
+    const {error} = await sb.from('seller_applications').update(upd).eq('id', a.id).eq('status', 'pending');
+    if(error) return fail(error.message);
+    // a removed product's photos stay with the application, untagged
+    const gone = appEdit.dropped.concat(appEdit.prods.filter(p => p.id && !p.name.trim()).map(p => p.id));
+    if(gone.length){
+      const r1 = await sb.from('application_photos').update({product_id:null}).in('product_id', gone);
+      if(r1.error) return fail(r1.error.message);
+      const r2 = await sb.from('application_products').delete().in('id', gone);
+      if(r2.error) return fail(r2.error.message);
+    }
+    for(const [i, p] of prods.entries()){
+      const r = p.id ? await sb.from('application_products').update(rows[i]).eq('id', p.id)
+                     : await sb.from('application_products').insert(rows[i]);
+      if(r.error) return fail(r.error.message);
+    }
+  } else {
+    a.products = rows.map((r, i) => Object.assign({id: prods[i].id || 'np' + Date.now() + i}, r));
+  }
+  Object.assign(a, upd);
+  activity.unshift({t:`${a.business_name} application corrected by the Division`, w:"Just now", k:"ok"});
+  appEdit = null;
+  renderApps();
+  openApp(a.id);
 }
 
 async function decideApp(id, approve){
@@ -1740,24 +1875,34 @@ function editType(id){
   const s = smes.find(x=>x.id===id); if(!s) return;
   const box = document.getElementById('typeEdit');
   box.hidden = false;
-  const opts = sel => CATEGORIES.map(c=>`<optgroup label="${esc(c.label)}">` +
-    c.subs.map(x=>`<option value="${x.key}"${x.key===sel?' selected':''}>${esc(x.label)}</option>`).join('') + '</optgroup>').join('');
   box.innerHTML = `<div class="typebox">
-    <div class="fr"><label for="te_sub">Main type of business</label><select id="te_sub">${opts(s.subcategory)}</select></div>
-    <div class="fr"><label>Also does <span style="font-weight:400;">(up to 4)</span></label><div class="qchips" id="te_more"></div></div>
-    <div id="te_qs"></div>
+    ${typeFieldsHTML(s.subcategory)}
     <div class="mact"><button class="btn g btn-sm" onclick="saveType('${s.id}')">Save</button>
       <button class="btn-o btn-sm" onclick="document.getElementById('typeEdit').hidden=true">Cancel</button></div>
     <div class="hint">Changing the types does not change the business's existing listings — edit those under Listing review.</div></div>`;
-  let extras = (s.extra_subs || []).slice();
-  const more = (s.details || {}).more || {};
+  mountTypes(s.extra_subs, s.details);
+}
+
+/* the type fields shared by the business and application editors:
+   main type, up to 4 other types, and each type's questions */
+function typeFieldsHTML(sel){
+  const opts = CATEGORIES.map(c=>`<optgroup label="${esc(c.label)}">` +
+    c.subs.map(x=>`<option value="${x.key}"${x.key===sel?' selected':''}>${esc(x.label)}</option>`).join('') + '</optgroup>').join('');
+  return `<div class="fr"><label for="te_sub">Main type of business</label><select id="te_sub">${opts}</select></div>
+    <div class="fr"><label>Also does <span style="font-weight:400;">(up to 4)</span></label><div class="qchips" id="te_more"></div></div>
+    <div id="te_qs"></div>`;
+}
+function mountTypes(extraSubs, details, onChange){
+  let extras = (extraSubs || []).slice();
+  const more = (details || {}).more || {};
   const draw = () => {
     const main = document.getElementById('te_sub').value;
     extras = extras.filter(x => x !== main);
     document.getElementById('te_more').innerHTML = CATEGORIES.flatMap(c => c.subs).filter(x => x.key !== main).map(x =>
       `<label><input type="checkbox" value="${x.key}"${extras.includes(x.key)?' checked':''}> ${esc(x.label)}</label>`).join('');
     document.getElementById('te_qs').innerHTML = [main].concat(extras).map((t, i) => `<div class="tq" data-sub="${t}">
-      <h4 class="msec">${esc(subLabel(t))}</h4><div class="grid2">${qsFormHTML(t, i === 0 ? s.details : more[t], 'te_' + t + '_')}</div></div>`).join('');
+      <h4 class="msec">${esc(subLabel(t))}</h4><div class="grid2">${qsFormHTML(t, i === 0 ? details : more[t], 'te_' + t + '_')}</div></div>`).join('');
+    if(onChange) onChange();
   };
   document.getElementById('te_sub').addEventListener('change', draw);
   document.getElementById('te_more').addEventListener('change', e => {
@@ -1767,14 +1912,17 @@ function editType(id){
   });
   draw();
 }
-async function saveType(id){
-  const s = smes.find(x=>x.id===id); if(!s) return;
+function readTypesForm(){
   const sub = document.getElementById('te_sub').value;
   const secs = [...document.querySelectorAll('#te_qs .tq')];
   const details = readQs(secs[0]), more = {};
   secs.slice(1).forEach(sec => { const a = readQs(sec); if(Object.keys(a).length) more[sec.dataset.sub] = a; });
   if(Object.keys(more).length) details.more = more;
-  const upd = {primary_industry:(catOfSub(sub)||{}).key, subcategory:sub, extra_subs:secs.slice(1).map(x => x.dataset.sub), details};
+  return {primary_industry:(catOfSub(sub)||{}).key, subcategory:sub, extra_subs:secs.slice(1).map(x => x.dataset.sub), details};
+}
+async function saveType(id){
+  const s = smes.find(x=>x.id===id); if(!s) return;
+  const upd = readTypesForm();
   if(LIVE){
     const {error} = await sb.from('smes').update(upd).eq('id', id);
     if(error) return alert('Could not save: ' + (error.message || error));

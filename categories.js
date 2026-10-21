@@ -189,3 +189,11 @@ const catShort = k => (catByKey(k) || {}).short || "Other";
 const subLabel = k => (subByKey(k) || {}).label || "";
 /* "Agriculture & Farming · Galip Nut Industry" */
 const catLine  = (cat, sub, short) => [short === false ? catLabel(cat) : catShort(cat), subLabel(sub)].filter(Boolean).join(" · ");
+
+/* the 20 LLGs of East New Britain, by district (registration form and Division panel) */
+const LLGS = {
+  Gazelle: ["Central Gazelle Rural","Inland Baining Rural","Lassul Baining Rural","Livuan Rural","Reimber Rural","Toma Rural","Vunadidir Rural"],
+  Kokopo:  ["Bitapaka Rural","Duke of York Rural","Kokopo-Vunamami Urban","Raluana Rural"],
+  Pomio:   ["Central-Inland Pomio Rural","East Pomio Rural","Melkoi Rural","Sinivit Rural","West Pomio-Mamusi Rural"],
+  Rabaul:  ["Balanataman Rural","Kombiu Rural","Rabaul Urban","Watom Island Rural"],
+};
