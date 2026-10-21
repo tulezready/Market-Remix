@@ -1919,6 +1919,8 @@ function openListing(id){
   if(!l.photos) problems.push("No photograph supplied");
   if(!l.description) problems.push("No description supplied");
   if(l.stock === 0) problems.push("Stock is zero");
+  if(l.subcategory === 'livestock' && !l.pickup_only && /\blive\b/i.test(l.name + ' ' + (l.description || '')))
+    problems.push("This looks like live poultry — tick “Live poultry” below so buyers can only collect it");
 
   document.getElementById('mTitle').textContent = l.name;
   document.getElementById('mBody').innerHTML = `
@@ -1929,6 +1931,9 @@ function openListing(id){
     <div class="kv"><span class="k">Photographs</span><span class="v">${l.photos || '<span class="v miss">none supplied</span>'}</span></div>
     <div class="kv"><span class="k">Description</span><span class="v">${l.description ? esc(l.description) : '<span class="v miss">none supplied</span>'}</span></div>
     <div class="kv"><span class="k">Submitted</span><span class="v">${esc(l.submitted)}</span></div>
+    ${l.subcategory === 'livestock' ? `<label class="chkline" style="margin:10px 0;display:block;">
+      <input type="checkbox" ${l.pickup_only ? 'checked' : ''} onchange="setPickupOnly('${l.id}', this)">
+      Live poultry — buyers collect it from the business, no delivery</label>` : ''}
     ${problems.length ? `<div class="warnbox"><b>Before publishing:</b><br>• ${problems.join("<br>• ")}</div>` : ''}
     ${l.review_note ? `<div class="kv"><span class="k">Last note</span><span class="v">${esc(l.review_note)}</span></div>` : ''}
     ${l.status==='in_review' ? `
@@ -1942,6 +1947,16 @@ function openListing(id){
     : `<div class="mact"><button class="btn-o" onclick="closeModal()">Close</button></div>`}
   `;
   openModal();
+}
+
+async function setPickupOnly(id, box){
+  const l = listings.find(x=>x.id===id); if(!l) return;
+  if(LIVE){
+    const {error} = await sb.from('products').update({pickup_only: box.checked}).eq('id', id);
+    if(error){ box.checked = !box.checked; return alert('Could not save: ' + error.message); }
+  }
+  l.pickup_only = box.checked;
+  renderListings();
 }
 
 async function decideListing(id, publish){
