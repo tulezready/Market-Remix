@@ -167,7 +167,7 @@ function loadFromDb(){
       _uuid: s.id, sample: s.is_sample
     }));
     Shop.P = cat.map(r => ({
-      id: r.product_id, n: r.name, s: r.sme_slug, p: Number(r.price), c: r.category, sub: r.subcategory || '', b: r.badge || null,
+      id: r.product_id, n: r.name, s: r.sme_slug, p: Number(r.price), c: r.category, sub: r.subcategory || '', mode: r.mode || '', b: r.badge || null,
       ph: r.photo, u: r.unit, about: r.description, stock: r.stock, fresh: !!r.perishable
     }));
     Shop.SLIDES = smes.filter(s => s.featured && s.hero_photo_ref).map(s => ({

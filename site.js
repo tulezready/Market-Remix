@@ -119,6 +119,34 @@ const OVERLAYS = `<!-- BASKET -->
 
     <div class="mbd" id="coDone" hidden tabindex="-1"></div>
   </div>
+</div>
+
+<!-- BOOKING / QUOTE REQUEST -->
+<div class="movl" id="rqovl">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rqTitle">
+    <div class="mhd">
+      <h3 id="rqTitle">Request a booking</h3>
+      <button onclick="closeReq()" aria-label="Close">×</button>
+    </div>
+    <form class="mbd" id="rqForm" onsubmit="sendReq(event)" novalidate>
+      <p class="rq-for" id="rqFor"></p>
+      <div class="fr"><label for="rqName">Your full name</label><input id="rqName" autocomplete="name" required></div>
+      <div class="fr"><label for="rqPhone">Mobile number</label><input id="rqPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+675 7XX XXXXX" required></div>
+      <div id="rqBook">
+        <div class="rq-two">
+          <div class="fr"><label for="rqFrom">Date</label><input id="rqFrom" type="date"></div>
+          <div class="fr"><label for="rqTo">Until <small>(optional)</small></label><input id="rqTo" type="date"></div>
+        </div>
+        <div class="fr"><label for="rqPeople">How many people?</label><input id="rqPeople" type="number" min="1" max="500" inputmode="numeric" value="1"></div>
+      </div>
+      <div class="fr"><label for="rqMsg" id="rqMsgLabel">Message</label><textarea id="rqMsg" rows="3" maxlength="1000"></textarea></div>
+      <div class="coerr" id="rqErr" role="alert" hidden></div>
+      <button class="co-btn" id="rqBtn" type="submit">Send request</button>
+      <div class="mnote">Nothing is paid now. The business phones you to confirm and agree payment.</div>
+      <div class="mnote coterms">Your name and number go only to this business and the Division. <a href="legal.html#privacy">How we use your details</a>.</div>
+    </form>
+    <div class="mbd" id="rqDone" hidden tabindex="-1"></div>
+  </div>
 </div>`;
 const MBAR = `
 <nav class="mbar" aria-label="Shop">
@@ -213,6 +241,9 @@ function inBasket(i){ const c = getCart().find(x => String(x.i) === String(i)); 
 function ctaHTML(i, p){
   p = p || getProduct(i);
   const name = p ? clean(p.n) : 'this product';
+  const mode = modeOf(p);
+  if(mode !== 'buy')   // booked or quoted: a request, not the basket
+    return `<button class="addb req" onclick="openReq('${i}')" aria-label="${MODES[mode].btn}: ${esc(name)}">${MODES[mode].btn}</button>`;
   const q = inBasket(i);
   if(!q) return `<button class="addb" onclick="add('${i}')" aria-label="Add ${esc(name)} to basket"><svg class="icon" aria-hidden="true"><use href="#ic-bag"/></svg><span>Add to basket</span></button>`;
   return `<div class="qstep" role="group" aria-label="${esc(name)} in your basket">
@@ -241,6 +272,7 @@ function bump(){
   if(c && !reduce){ c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); }
 }
 function add(i){
+  if(modeOf(getProduct(i)) !== 'buy') return openReq(i);
   cartAdd(i, 1);
   renderCart(); bump();
   const p = getProduct(i);
@@ -358,6 +390,10 @@ async function placeOrder(ev){
   if(gift && (v('coRName').length < 2 || !/^\+?[0-9 ]{7,20}$/.test(v('coRPhone'))))
     return coError('Please enter the name and mobile number of the person receiving the order.');
   if(fulfil === 'delivery' && v('coAddr').length < 3) return coError('Please enter a delivery address.');
+  if(fulfil === 'delivery'){
+    const far = getCart().map(c => getProduct(c.i)).filter(p => p && p.fresh && (sme(p.s) || {}).d && sme(p.s).d !== v('coDist'));
+    if(far.length) return coError(`${clean(far[0].n)} is fresh, so it can only be delivered within ${sme(far[0].s).d} District. Choose collection, or a delivery address in ${sme(far[0].s).d} District.`);
+  }
 
   const order = {
     buyer_name: v('coName'), buyer_phone: v('coPhone'), buyer_email: v('coEmail'),
@@ -416,7 +452,64 @@ function pruneCart(){
   const kept = cart.filter(c => getProduct(c.i));
   if(kept.length !== cart.length) saveCart(kept);
 }
-document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCo(); closeCart(); } });
+/* ---------- booking and quote requests ----------
+   Saved by submit_enquiry(); the business sees it in the seller portal and
+   phones the buyer. Nothing is paid on the site. */
+let reqItem = null;
+function openReq(i){
+  const p = getProduct(i); if(!p) return;
+  const mode = modeOf(p), s = sme(p.s);
+  reqItem = p;
+  document.getElementById('rqTitle').textContent = MODES[mode].title;
+  document.getElementById('rqFor').innerHTML = `<b>${esc(clean(p.n))}</b>${s ? ' · ' + esc(clean(s.n)) : ''}<br><span>${money(p.p)}${p.u ? ' ' + esc(p.u) : ''}</span>`;
+  document.getElementById('rqBook').hidden = mode !== 'book';
+  document.getElementById('rqMsgLabel').innerHTML = mode === 'book' ? 'Anything the business should know? <small>(optional)</small>' : 'What do you need?';
+  document.getElementById('rqMsg').placeholder = mode === 'book' ? 'e.g. arriving on the afternoon boat' : 'e.g. the work, where, and when you need it';
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('rqFrom').min = today; document.getElementById('rqTo').min = today;
+  document.getElementById('rqForm').hidden = false;
+  document.getElementById('rqDone').hidden = true;
+  document.getElementById('rqErr').hidden = true;
+  const b = document.getElementById('rqBtn'); b.disabled = false; b.textContent = 'Send request';
+  document.getElementById('rqovl').classList.add('on');
+  setTimeout(() => document.getElementById('rqName').focus(), 50);
+}
+function closeReq(){ document.getElementById('rqovl').classList.remove('on'); }
+function reqError(msg){ const e = document.getElementById('rqErr'); e.textContent = msg; e.hidden = false; }
+async function sendReq(ev){
+  ev.preventDefault();
+  const p = reqItem; if(!p) return;
+  const v = id => document.getElementById(id).value.trim();
+  const booking = modeOf(p) === 'book';
+  if(v('rqName').length < 2) return reqError('Please enter your name.');
+  if(!/^\+?[0-9 ]{7,20}$/.test(v('rqPhone'))) return reqError('Please enter a valid mobile number.');
+  if(booking && !v('rqFrom')) return reqError('Please choose a date.');
+  if(booking && v('rqTo') && v('rqTo') < v('rqFrom')) return reqError('The end date is before the start date.');
+  if(!booking && v('rqMsg').length < 3) return reqError('Please say what you need.');
+  const req = { product_id: p.id, buyer_name: v('rqName'), buyer_phone: v('rqPhone'), message: v('rqMsg'),
+                date_from: booking ? v('rqFrom') : '', date_to: booking ? v('rqTo') : '', people: booking ? v('rqPeople') : '' };
+  const btn = document.getElementById('rqBtn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  let ref;
+  try{
+    if(Shop.LIVE){ const r = await dbRpc('submit_enquiry', { p: req }); ref = r.reference; }
+    else ref = 'ENB-R' + Math.floor(1000 + Math.random() * 9000);   // preview: nothing is sent
+  }catch(e){
+    btn.disabled = false; btn.textContent = 'Send request';
+    return reqError(e.message || 'The request could not be sent. Please try again.');
+  }
+  const s = sme(p.s);
+  document.getElementById('rqForm').hidden = true;
+  const d = document.getElementById('rqDone');
+  d.innerHTML = `<div class="done-ok" aria-hidden="true">✓</div>
+    <h4 class="done-h">Request sent</h4>
+    <p class="done-sub">${esc(clean(s ? s.n : 'The business'))} will phone you on ${esc(req.buyer_phone)} to confirm${booking ? ' the booking and agree payment' : ' and give you a price'}.</p>
+    <p class="done-sub">Your reference: <b>${esc(ref)}</b>${Shop.LIVE ? '' : ' (preview — nothing was sent)'}</p>
+    <button class="co-btn" onclick="closeReq()">Done</button>`;
+  d.hidden = false; d.focus();
+}
+
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCo(); closeCart(); closeReq(); } });
 // keep every open tab's basket in step
 window.addEventListener('storage', e=>{ if(e.key === CART_KEY) renderCart(); });
 

@@ -467,6 +467,7 @@
       <div class="grp">Operations</div>
       <button data-v="smes">Businesses <span class="pip z" id="pSme">0</span></button>
       <button data-v="orders">Orders <span class="pip z" id="pOrd">0</span></button>
+      <button data-v="requests">Requests <span class="pip z" id="pReq">0</span></button>
       <button data-v="agents">Agents <span class="pip z" id="pAg">0</span></button>
       <div class="grp">Content</div>
       <button data-v="notices">Notices <span class="pip z" id="pNot">0</span></button>
@@ -573,6 +574,24 @@
         <div class="panel"><div class="tbl-wrap"><table>
           <thead><tr><th>Business</th><th>District</th><th>Industry</th><th>Products</th><th>Status</th><th></th></tr></thead>
           <tbody id="smeRows"></tbody>
+        </table></div></div>
+      </section>
+
+      <!-- REQUESTS: bookings and quotes, across all businesses -->
+      <section class="view" id="v-requests" style="display:none;">
+        <div class="filters">
+          <select id="fReqS" onchange="renderRequests()">
+            <option value="">All requests</option>
+            <option value="new">New</option>
+            <option value="stale">New for more than 2 days</option>
+            <option value="contacted">Contacted</option>
+            <option value="done">Done</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="panel"><div class="tbl-wrap"><table>
+          <thead><tr><th>Request</th><th>Business</th><th>For</th><th>Buyer</th><th>Details</th><th>Status</th><th></th></tr></thead>
+          <tbody id="reqRows"></tbody>
         </table></div></div>
       </section>
 
@@ -841,6 +860,7 @@ const TITLES = {
   listings:["Listing review","Products submitted by sellers, awaiting publication."],
   smes:["Businesses","Every business on the platform."],
   orders:["Orders","Every order across all businesses."],
+  requests:["Requests","Bookings and quote requests. Follow up any left New for more than 2 days."],
   agents:["Agents","The agent network and commission rates."],
   notices:["Notices","Announcements shown on the public site."],
   progress:["Launch progress","Collection against the 35-business target."],
@@ -855,7 +875,7 @@ function show(v){
   document.getElementById('pTitle').textContent = TITLES[v][0];
   document.getElementById('pSub').textContent = TITLES[v][1];
   const R = {dash:renderDash, apps:renderApps, listings:renderListings, smes:renderSmes,
-             orders:renderOrders, agents:renderAgents, notices:renderNotices,
+             orders:renderOrders, requests:renderRequests, agents:renderAgents, notices:renderNotices,
              progress:renderProgress, payouts:renderPayouts};
   R[v]();
   window.scrollTo({top:0,behavior:'smooth'});
@@ -982,7 +1002,7 @@ async function loadAll(){
   await Promise.all([
     loadApplications(), loadSmes(), loadListings(),
     loadOrders(), loadAgents(), loadNotices(),
-    loadPayouts(), loadStaff(), loadLogins()
+    loadPayouts(), loadStaff(), loadLogins(), loadRequests()
   ]);
   // counts that depend on more than one table, computed once everything is in
   smes.forEach(s => s.products = listings.filter(l => l.smeId === s.id).length);
@@ -1116,6 +1136,48 @@ async function loadOrders(){
 
 /* ---------- payouts, balances, staff names, seller logins ---------- */
 let payouts = [], balances = [], staff = {}, logins = {};
+
+/* ---------- requests: bookings and quotes ---------- */
+let requests = LIVE ? [] : [
+  {id:'r1', reference:'ENB-R1002', kind:'booking', sme:'Toma Guest House', product_name:'Double room', buyer_name:'A. Varvaliu',
+   buyer_phone:'+675 7000 4444', date_from:'2026-11-14', date_to:'2026-11-16', people:2, message:'Arriving for the conference.',
+   status:'new', created_at:new Date(Date.now()-3*864e5).toISOString()}];
+const stale = q => q.status === 'new' && Date.now() - new Date(q.created_at) > 2 * 864e5;
+async function loadRequests(){
+  const {data, error} = await sb.from('enquiries').select('*, smes(registered_name)').order('created_at', {ascending:false}).limit(500);
+  if(error){ console.error('loadRequests', error); return; }
+  requests = (data||[]).map(r => Object.assign(r, {sme: r.smes ? r.smes.registered_name : '—'}));
+}
+const REQ_TAG = {new:'<span class="tag a">New</span>', contacted:'<span class="tag b">Contacted</span>',
+                 done:'<span class="tag g">Done</span>', cancelled:'<span class="tag">Cancelled</span>'};
+const rqDay = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-GB', {day:'numeric', month:'short'}) : '';
+function renderRequests(){
+  badges();
+  const f = document.getElementById('fReqS').value;
+  const list = requests.filter(q => !f || (f === 'stale' ? stale(q) : q.status === f));
+  document.getElementById('reqRows').innerHTML = list.length ? list.map(q => {
+    const bits = [];
+    if(q.date_from) bits.push(rqDay(q.date_from) + (q.date_to && q.date_to !== q.date_from ? ' – ' + rqDay(q.date_to) : ''));
+    if(q.people) bits.push(q.people + (q.people === 1 ? ' person' : ' people'));
+    return `<tr>
+      <td><div class="nm mono">${esc(q.reference)}</div><div class="sub2">${q.kind === 'booking' ? 'Booking' : 'Quote'} · ${esc(relTime(q.created_at))}</div></td>
+      <td>${esc(q.sme)}</td>
+      <td>${esc(q.product_name || '—')}</td>
+      <td><b>${esc(q.buyer_name)}</b><br>${esc(q.buyer_phone)}</td>
+      <td>${bits.length ? `<b>${esc(bits.join(' · '))}</b><br>` : ''}${esc(q.message || '')}</td>
+      <td>${REQ_TAG[q.status] || esc(q.status)}${stale(q) ? '<div class="sub2" style="color:var(--red);">Not answered in 2 days</div>' : ''}</td>
+      <td style="white-space:nowrap;">${['new','contacted'].includes(q.status) ? `<button class="btn-o btn-sm" onclick="setRequest('${q.id}','done')">Mark done</button>` : ''}</td>
+    </tr>`; }).join('') : `<tr><td colspan="7"><div class="empty">No requests${f ? ' with this status' : ' yet'}.</div></td></tr>`;
+}
+async function setRequest(id, status){
+  const q = requests.find(x => x.id === id); if(!q) return;
+  if(LIVE){
+    const {error} = await sb.from('enquiries').update({status, updated_at:new Date().toISOString()}).eq('id', id);
+    if(error) return alert('Could not update the request: ' + (error.message || error));
+    await loadRequests();
+  } else q.status = status;
+  renderRequests();
+}
 async function loadPayouts(){
   const [{data:p, error:e1}, {data:b, error:e2}] = await Promise.all([
     sb.from('payouts').select('*, payout_orders(order_id)').order('created_at', {ascending:false}),
@@ -1201,6 +1263,7 @@ function badges(){
   set('pSme', smes.length, false); set('pOrd', orders.length, false);
   set('pAg', agents.length, false); set('pNot', notices.length, false);
   set('pPay', payouts.filter(p=>p.status==='draft'||p.status==='approved').length, true);
+  set('pReq', requests.filter(stale).length, true);
 }
 
 /* ============================================================

@@ -88,8 +88,9 @@
 
       <ul class="prod-trust">
         <li><svg class="icon" aria-hidden="true"><use href="#ic-shield"/></svg><span>Seller verified by the Division of Commerce &amp; Industry</span></li>
-        <li><svg class="icon" aria-hidden="true"><use href="#ic-card"/></svg><span>Pay with cash through a local agent or by bank transfer — card payment coming soon</span></li>
-        <li><svg class="icon" aria-hidden="true"><use href="#ic-home"/></svg><span>Buying for family? Choose <b>Send home</b> at checkout</span></li>
+        <li id="tPay"><svg class="icon" aria-hidden="true"><use href="#ic-card"/></svg><span>Pay with cash through a local agent or by bank transfer — card payment coming soon</span></li>
+        <li id="tHomeLine"><svg class="icon" aria-hidden="true"><use href="#ic-home"/></svg><span>Buying for family? Choose <b>Send home</b> at checkout</span></li>
+        <li id="tFresh" hidden><svg class="icon" aria-hidden="true"><use href="#ic-home"/></svg><span>Fresh: collect it, or have it delivered within the seller's district</span></li>
         <li><svg class="icon" aria-hidden="true"><use href="#ic-help"/></svg><span>Problem with an order? <a href="about.html#contact">Contact the Division</a> — see <a href="legal.html#refunds">Refunds &amp; returns</a></span></li>
       </ul>
 
@@ -186,6 +187,7 @@ function stepQty(d){
 }
 function addThis(){
   if(currentId == null) return;
+  if(modeOf(getProduct(currentId)) !== 'buy') return openReq(currentId);   // booked or quoted
   cartAdd(currentId, qty);
   renderCart(); openCart();
   qty = 1; document.getElementById('p-qty').textContent = qty;
@@ -262,7 +264,18 @@ function boot(){
   document.getElementById('p-price').textContent = money(p.p);
   document.getElementById('p-unit').textContent = p.u || '';
   const stockEl = document.getElementById('p-stock');
-  if(typeof p.stock === 'number'){
+  const mode = modeOf(p);
+  if(mode !== 'buy'){
+    // booked or quoted: no basket, no quantity, no stock count
+    document.querySelector('.prod-actions .qty-step').hidden = true;
+    const btn = document.getElementById('addBtn');
+    btn.innerHTML = MODES[mode].btn; btn.classList.add('req');
+    document.querySelector('#tPay span').textContent = 'Nothing is paid on the site. The business phones you to confirm and agree payment.';
+    document.getElementById('tHomeLine').hidden = true;
+  }
+  if(p.fresh && mode === 'buy') document.getElementById('tFresh').hidden = false;
+  if(mode !== 'buy') stockEl.style.display = 'none';
+  else if(typeof p.stock === 'number'){
     stockEl.textContent = p.stock <= 0 ? 'Out of stock' : p.stock <= 5 ? `Only ${p.stock} left` : `${p.stock} in stock`;
     stockEl.className = 'prod-stock ' + (p.stock <= 0 ? 'out' : p.stock <= 5 ? 'low' : 'ok');
     const btn = document.getElementById('addBtn');

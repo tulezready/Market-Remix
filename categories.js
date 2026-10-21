@@ -22,9 +22,9 @@ const CATEGORIES = [
   {key:"tourism", label:"Tourism & Hospitality", short:"Tourism & Hospitality",
    icon:"ic-tourism", bg:"#FBE1EC", fg:"#9C2A5D",                    // Sulka pink
    subs:[
-     {key:"accommodation", label:"Accommodation & Guest Houses", set:"stay"},
-     {key:"tours",         label:"Tour and Travel Services", set:"tours"},
-     {key:"food_service",  label:"Restaurants, Cafes & Kaibars", set:"food"},
+     {key:"accommodation", label:"Accommodation & Guest Houses", set:"stay", mode:"book"},
+     {key:"tours",         label:"Tour and Travel Services", set:"tours", mode:"book"},
+     {key:"food_service",  label:"Restaurants, Cafes & Kaibars", set:"food", mode:"quote"},
      {key:"arts_crafts",   label:"Arts, Crafts & Tailoring", set:"crafts"},
    ]},
   {key:"fisheries", label:"Fisheries & Marine Resources", short:"Fisheries & Marine",
@@ -42,14 +42,14 @@ const CATEGORIES = [
   {key:"transport", label:"Transport & Logistics", short:"Transport & Logistics",
    icon:"ic-transport", bg:"#ECE8E3", fg:"#4F4943",                  // Tavurvur ash
    subs:[
-     {key:"pmv_taxi",     label:"PMV (Public Motor Vehicles) & Taxi Services", set:"pmv"},
-     {key:"cargo_rental", label:"Cargo & Freight/Car Rentals", set:"cargo"},
+     {key:"pmv_taxi",     label:"PMV (Public Motor Vehicles) & Taxi Services", set:"pmv", mode:"quote"},
+     {key:"cargo_rental", label:"Cargo & Freight/Car Rentals", set:"cargo", mode:"book"},
    ]},
   {key:"services", label:"Professional, Construction & Technical Services", short:"Professional & Technical",
    icon:"ic-services", bg:"#F1E4D8", fg:"#5B3220",                   // Gazelle cocoa
    subs:[
-     {key:"construction", label:"Building & Civil Construction", set:"build"},
-     {key:"it_office",    label:"Information Technology & Office Services", set:"office"},
+     {key:"construction", label:"Building & Civil Construction", set:"build", mode:"quote"},
+     {key:"it_office",    label:"Information Technology & Office Services", set:"office", mode:"quote"},
    ]},
 ];
 
@@ -117,6 +117,16 @@ const QSETS = {
     q:[{k:"offered", t:"checks", label:"You offer", opts:["Printing and photocopying","Typing and documents","Computer repair","Phone repair","Internet access","Training","Other"]},
        HOURS]},
 };
+/* How a listing works on the site. Set per sub-category above (default
+   "buy"); a seller can switch one listing, e.g. a bulk lot to "quote".
+   The database has the same defaults: sub_mode() in db/requests.sql. */
+const MODES = {
+  buy:   {btn:"Add to basket"},
+  book:  {btn:"Request a booking", title:"Request a booking", kind:"booking"},
+  quote: {btn:"Ask for a quote",   title:"Ask for a quote",   kind:"quote"},
+};
+const modeOf = p => (p && (p.mode || (subByKey(p.sub) || {}).mode)) || "buy";
+
 const qsetFor = sub => QSETS[(subByKey(sub) || {}).set] || null;
 /* one line per answer, for the Division panel */
 const detailLines = (sub, d) => {
