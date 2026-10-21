@@ -22,6 +22,8 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import mm
 from reportlab.lib.colors import HexColor, white
 from reportlab.pdfgen import canvas
+from reportlab.platypus import Table, TableStyle, Paragraph
+from reportlab.lib.styles import ParagraphStyle
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "forms")
@@ -279,7 +281,7 @@ def officer_guide(c, llg=None, district=None):
         "Explain the marketplace using the points below. Ask the owner to read section 7 or read it to them.",
         "Fill in the form with the owner, in their words. Write prices in kina and say what each price is for "
         "(each, per kg, per night, per trip). On page 3, fill in only the box for their type of business.",
-        "Take the photos listed in section 5 with your phone, in daylight.",
+        "Take the photos with your phone, in daylight. The photo guide lists what to take for each type of business.",
         "The owner signs section 7. You sign the officer's part. Without both signatures we cannot list them.",
         f"Enter the form online on your phone at  {ONLINE_URL}  and add the photos there. "
         "Keep the signed paper form for your records.",
@@ -738,6 +740,94 @@ def instructions(path):
     c.save()
 
 # ---------------------------------------------------------------- build everything
+# ---------------------------------------------------------------- photo guide (1 page)
+# What to photograph for each type of business, and how many. The online
+# form takes up to 12 photos per business, so every row stays under 12.
+PHOTO_GUIDE = [
+    ("Cocoa · Copra & coconut · Galip · Fresh produce",
+     "Each product as it is sold (bag, bundle, bottle, pack). One with a hand or scale beside it to show the size. "
+     "The garden, block or nursery. Drying, fermenting or processing, if they do it.", "2 per product + 2", "6–10"),
+    ("Fishing and fish farming",
+     "Each kind of fish or catch on a clean surface or tray. Smoked, dried or frozen fish as it is packed. "
+     "The boat or the ponds. The cooler or freezer they keep it in.", "2 per product + 2", "6–8"),
+    ("Trade stores and distributors",
+     "Outside of the shop with its sign. Inside: the shelves. Each pack or bundle sold online, with everything "
+     "in it laid out so buyers see what they get.", "1–2 per product + 2", "6–10"),
+    ("Arts, crafts and tailoring",
+     "Each item from the front, then a close-up of the weaving, carving or stitching. One held or worn so buyers "
+     "see the size.", "2–3 per item", "8–12"),
+    ("Guest houses and accommodation",
+     "Outside of the building. Each kind of room: the bed and the bathroom or shower. The eating or sitting area "
+     "and the view. A meal, if meals are included.", "2 per room type + 3", "8–12"),
+    ("Tours and travel",
+     "The best places on each tour. The boat or vehicle used. The guide with guests (ask them first).",
+     "3–4 per tour + 2", "6–10"),
+    ("Restaurants, cafes and kaibars",
+     "Outside, with the sign. The seating area. The main dishes, each on a plate, taken from above in daylight. "
+     "A clean counter or kitchen.", "1 per main dish + 3", "6–10"),
+    ("PMV and taxi",
+     "Each vehicle from the side, showing it is in good order. Inside: the seats. The route sign if the PMV has one. "
+     "Do not photograph the permit; write its number on the form.", "2–3 per vehicle", "4–8"),
+    ("Cargo, freight and car rental",
+     "Each vehicle from the side, and the tray or load area. One loading or on a job.", "2 per vehicle + 1", "5–9"),
+    ("Building and civil construction",
+     "Finished jobs, each from a good angle. One job in progress. The main equipment. "
+     "No clients' faces or house numbers.", "3–4 jobs + 2", "7–10"),
+    ("IT and office services",
+     "Outside of the shop with its sign. Inside, with the computers and printers. A few samples of the work "
+     "(printing, a repaired phone).", "3–4", "5–6"),
+]
+
+
+def photo_guide(c):
+    p = Page(c)
+    header(p, "Photo guide — what to take for each business",
+           "For LLG officers and business owners. Up to 12 photos per business.", show_box=False)
+    p.para("Good photos sell. Buyers cannot touch or smell anything online, so the photos have to show what they "
+           "get. A phone camera is fine.", size=9.4)
+    p.y -= 3 * mm
+
+    # rules for every business
+    rules = [
+        ("Every business", "1 of the owner at work, at the stall, garden, boat or workshop: this is the photo that makes it real. "
+                           "1 wide photo of the place, held sideways, with empty space on the left for the website heading."),
+        ("Light", "Daylight, outside or by a door. No flash. Not into the sun, and not in dark shade."),
+        ("Frame", "Hold the phone steady and fill the frame with the thing being sold. Plain background: a cloth, a mat, a clean table."),
+        ("Clean", "Wipe the camera lens. Clear away rubbish, bags and other people's things."),
+        ("Ask first", "Ask before photographing anyone. No children without a parent's okay. No ID cards, permits or bank papers."),
+    ]
+    st = ParagraphStyle("b", fontName="Helvetica", fontSize=8.2, leading=10.4, textColor=INK)
+    sb = ParagraphStyle("h", fontName="Helvetica-Bold", fontSize=8.2, leading=10.4, textColor=INK)
+    t = Table([[Paragraph(k, sb), Paragraph(v, st)] for k, v in rules], colWidths=[28 * mm, CW - 28 * mm])
+    t.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), TINT), ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                           ("BOX", (0, 0), (-1, -1), 0.8, INK), ("LINEBELOW", (0, 0), (-1, -2), 0.4, SOFT),
+                           ("TOPPADDING", (0, 0), (-1, -1), 3.2), ("BOTTOMPADDING", (0, 0), (-1, -1), 3.2),
+                           ("LEFTPADDING", (0, 0), (-1, -1), 5)]))
+    w, h = t.wrapOn(c, CW, 200 * mm); t.drawOn(c, M, p.y - h); p.y -= h + 6 * mm
+
+    # by type of business
+    c.setFont("Helvetica-Bold", 11); c.setFillColor(RED)
+    c.drawString(M, p.y, "What to photograph, by type of business"); p.y -= 3 * mm
+    sh = ParagraphStyle("th", fontName="Helvetica-Bold", fontSize=7.4, leading=9, textColor=white)
+    sn = ParagraphStyle("n", fontName="Helvetica", fontSize=8, leading=9.8, textColor=INK)
+    rows = [[Paragraph("TYPE OF BUSINESS", sh), Paragraph("WHAT TO PHOTOGRAPH (plus the two above)", sh),
+             Paragraph("HOW MANY", sh), Paragraph("TOTAL", sh)]]
+    rows += [[Paragraph(a, sb), Paragraph(b, sn), Paragraph(n, sn), Paragraph(tot, sb)] for a, b, n, tot in PHOTO_GUIDE]
+    t = Table(rows, colWidths=[38 * mm, CW - 38 * mm - 27 * mm - 13 * mm, 27 * mm, 13 * mm], repeatRows=1)
+    t.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), INK), ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                           ("ROWBACKGROUNDS", (0, 1), (-1, -1), [white, TINT]),
+                           ("LINEBELOW", (0, 0), (-1, -1), 0.4, SOFT), ("BOX", (0, 0), (-1, -1), 0.8, INK),
+                           ("TOPPADDING", (0, 0), (-1, -1), 3), ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                           ("LEFTPADDING", (0, 0), (-1, -1), 4), ("RIGHTPADDING", (0, 0), (-1, -1), 4)]))
+    w, h = t.wrapOn(c, CW, 300 * mm); t.drawOn(c, M, p.y - h); p.y -= h + 5 * mm
+
+    p.para("Sending them: in the online form, choose under each photo which product it shows, or \"owner at work\" or "
+           "\"wide photo\". If photos go by WhatsApp or email instead, name them DISTRICT_Business_subject_01.jpg — "
+           "for example GAZELLE_Abuta_seedlings_01.jpg — or start the message with the business name.", size=8.4, color=MUTED)
+    p.footer(FOOT)
+    c.showPage()
+
+
 def doc(path, title):
     c = canvas.Canvas(path, pagesize=A4)
     c.setTitle(title); c.setAuthor("Division of Commerce & Industry, ENBPA"); c.setSubject("MaketPles ENB")
@@ -770,6 +860,8 @@ def main():
             officer_guide(guides, l, d + " District"); entry_form(forms, l, d + " District", pad=True)
     allc.save(); guides.save(); forms.save()
 
+    c = doc(os.path.join(OUT, "photo-guide.pdf"), "Photo guide — MaketPles ENB")
+    photo_guide(c); c.save()
     tracking_sheet(os.path.join(OUT, "llg-tracking-sheet.pdf"))
     instructions(os.path.join(OUT, "instructions.pdf"))
     print("Wrote", OUT)
