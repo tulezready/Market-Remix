@@ -18,6 +18,7 @@ const CATEGORIES = [
      {key:"copra",   label:"Copra & Coconut Products", set:"supply"},
      {key:"galip",   label:"Galip Nut Industry", set:"supply"},
      {key:"produce", label:"Fresh Produce & Horticulture", set:"supply"},
+     {key:"livestock", label:"Livestock & Poultry", set:"livestock"},   // added for the trial: not on the Division's list
    ]},
   {key:"tourism", label:"Tourism & Hospitality", short:"Tourism & Hospitality",
    icon:"ic-tourism", bg:"#FBE1EC", fg:"#9C2A5D",                    // Sulka pink
@@ -68,6 +69,11 @@ const QSETS = {
   supply: {goods:true, title:"What you grow or make",
     q:[{k:"supply_month", t:"text", label:"How much can you supply each month?", ph:"e.g. 20 bags of 60kg"},
        {k:"season", t:"text", label:"Which months is it available?", ph:"All year, or e.g. March to July"}]},
+  livestock: {goods:true, title:"Your animals",
+    q:[{k:"animals", t:"checks", label:"What do you keep?", opts:["Chickens for meat","Laying hens (eggs)","Pigs","Ducks","Goats","Cattle","Other"]},
+       {k:"sold_as", t:"checks", label:"Sold as", opts:["Live","Dressed or cut meat","Eggs"]},
+       {k:"per_week", t:"text", label:"How many can you sell each week?", ph:"e.g. 30 chickens, 20 trays of eggs"},
+       {k:"freezer", t:"yesno", label:"Do you have a freezer for meat?"}]},
   fish: {goods:true, title:"Your catch",
     q:[{k:"catch", t:"text", label:"What do you catch or farm?", ph:"e.g. reef fish, tuna, tilapia, mud crab"},
        {k:"sold_as", t:"checks", label:"Sold as", opts:["Fresh","Smoked","Frozen","Dried"]},
@@ -159,12 +165,21 @@ function readQs(root){
   return out;
 }
 
-/* one line per answer, for the Division panel */
-const detailLines = (sub, d) => {
-  const qs = qsetFor(sub); if(!qs || !d) return [];
-  return qs.q.filter(q => d[q.k] != null && d[q.k] !== '' && !(Array.isArray(d[q.k]) && !d[q.k].length))
-    .map(q => [q.label, Array.isArray(d[q.k]) ? d[q.k].join(', ') : String(d[q.k])]);
+/* one line per answer, for the Division panel. A business with more than
+   one type keeps the main type's answers at the top of `details` and the
+   others under details.more[<sub>]; pass `extras` to list those too. */
+const detailLines = (sub, d, extras) => {
+  const one = (s, a, pre) => {
+    const qs = qsetFor(s); if(!qs || !a) return [];
+    return qs.q.filter(q => a[q.k] != null && a[q.k] !== '' && !(Array.isArray(a[q.k]) && !a[q.k].length))
+      .map(q => [pre + q.label, Array.isArray(a[q.k]) ? a[q.k].join(', ') : String(a[q.k])]);
+  };
+  const more = (d && d.more) || {};
+  return one(sub, d, '').concat(...(extras || []).map(x => one(x, more[x], subLabel(x) + ': ')));
 };
+/* "Fisheries & Marine · Inland Fish Farming, also Livestock & Poultry" */
+const typesLine = (cat, sub, extras, short) =>
+  catLine(cat, sub, short) + ((extras && extras.length) ? ', also ' + extras.map(subLabel).filter(Boolean).join(', ') : '');
 
 const catByKey = k => CATEGORIES.find(c => c.key === k) || null;
 const subByKey = k => { for(const c of CATEGORIES){ const s = c.subs.find(x => x.key === k); if(s) return s; } return null; };

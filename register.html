@@ -108,7 +108,12 @@
   .draftacts{display:flex;gap:8px;}
   .draftacts .btn,.draftacts .btn-o{padding:9px 14px;font-size:13px;}
   /* step 4: questions for the chosen type of business */
-  #extraQs{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;margin:4px 0 10px;}
+  #extraQs{margin:4px 0 10px;}
+  .qgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;}
+  .qgrid .fr.wide{grid-column:1/-1;}
+  .qsec + .qsec{border-top:1px solid var(--hair);margin-top:8px;padding-top:6px;}
+  #moreWrap[hidden]{display:none;}
+  .moregrp{margin:10px 0 4px;font-size:12px;font-weight:700;color:var(--muted);}
   #extraQs .fr.wide{grid-column:1/-1;}
   .qchips{display:flex;flex-wrap:wrap;gap:8px;}
   .qchips label{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--hair);border-radius:10px;
@@ -118,7 +123,7 @@
   .grid2 .fr.wide{grid-column:1/-1;}
   .qchips label:has(input:checked){border-color:var(--green);box-shadow:0 0 0 3px rgba(46,125,58,.09);}
   .subh{font-size:15px;font-weight:700;margin:14px 0 10px;}
-  @media (max-width:640px){ #extraQs{grid-template-columns:1fr;} }
+  @media (max-width:640px){ .qgrid{grid-template-columns:1fr;} }
   #subRadios{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));}
   .radio{display:flex;gap:11px;align-items:flex-start;padding:13px 15px;
     border:1px solid var(--hair);border-radius:11px;background:#fff;cursor:pointer;transition:.18s;}
@@ -410,6 +415,11 @@
         <label>Which of these? <span class="req">*</span></label>
         <div class="radios" id="subRadios"></div>
       </div>
+      <div class="fr full" id="moreWrap" hidden>
+        <label>Does the business also do any of these? <span class="opt">(optional — tick up to 4)</span></label>
+        <div class="hint" style="margin:0 0 6px;">For example, a fish farm that also keeps chickens. Leave empty if it only does one thing.</div>
+        <div id="moreTypes"></div>
+      </div>
       <div class="fr full">
         <label>Tell us about your business <span class="opt">(optional but helpful)</span></label>
         <textarea id="f_message" placeholder="What do you make or sell? What makes it different from the next stall?"></textarea>
@@ -679,6 +689,25 @@ document.getElementById('industryRadios').innerHTML = CATEGORIES.map(c=>`
     <input type="radio" name="industry" value="${c.key}">
     <span><span class="t">${esc(c.label)}</span><span class="d">${esc(c.subs.map(x=>x.label).join(' · '))}</span></span>
   </label>`).join('');
+/* other types the business also does (step 1) */
+function drawMoreTypes(){
+  const wrap = document.getElementById('moreWrap'), main = picked('sub');
+  wrap.hidden = !main;
+  if(!main) return;
+  data.extras = (data.extras || []).filter(x => x !== main);
+  document.getElementById('moreTypes').innerHTML = CATEGORIES.map(c => {
+    const subs = c.subs.filter(x => x.key !== main);
+    return subs.length ? `<div class="moregrp">${esc(c.short)}</div><div class="qchips">${subs.map(x =>
+      `<label><input type="checkbox" data-more="${x.key}"${data.extras.includes(x.key) ? ' checked' : ''}> ${esc(x.label)}</label>`).join('')}</div>` : '';
+  }).join('');
+}
+document.getElementById('moreTypes').addEventListener('change', e=>{
+  const el = e.target; if(!el.dataset.more) return;
+  const on = [...document.querySelectorAll('#moreTypes input[data-more]:checked')].map(x => x.dataset.more);
+  if(on.length > 4){ el.checked = false; showErr(['Please choose up to 4 other types — the main one, plus up to 4 more.']); return; }
+  data.extras = on;
+});
+
 function fillSubs(main, keep){
   const c = catByKey(main), wrap = document.getElementById('subWrap');
   wrap.hidden = !c;
@@ -708,27 +737,25 @@ document.addEventListener('click', e=>{
       document.getElementById('ipaHelp').style.display    = v==='Not registered' ? 'block' : 'none';
       if(v==='Not registered') document.getElementById('f_wants_help').checked = true;
     }
-    if(g==='industry' && r.dataset.v !== data._main){ data._main = r.dataset.v; fillSubs(r.dataset.v); }
+    if(g==='industry' && r.dataset.v !== data._main){ data._main = r.dataset.v; fillSubs(r.dataset.v); drawMoreTypes(); }
+    if(g==='sub') drawMoreTypes();
     clearErr();
   }
 });
 
-/* ---------- step 4: questions for this type of business ---------- */
-let details = {};
+/* ---------- step 4: questions for each type of business ----------
+   The main type's answers go at the top of `details`; any other types
+   the business does (step 1, "also does") answer under details.more. */
+let details = {}, moreDetails = {};
 const curSet = () => qsetFor(data.subcategory);
-function drawExtras(){
-  const qs = curSet(), goods = !qs || qs.goods;
-  document.getElementById('p4Title').textContent = qs ? qs.title : 'What you sell';
-  document.getElementById('p4Lead').textContent = goods
-    ? 'Add your best sellers. You can add more once your business is approved.'
-    : 'A few questions about your business, then your services and prices. You can add more once you are approved.';
-  const lt = document.getElementById('p4ListTitle');
-  lt.hidden = goods; lt.textContent = 'Services and prices';
-  document.getElementById('addpBtn').textContent = goods ? '+ Add another product' : '+ Add another ' + (qs.item || 'service').toLowerCase();
-  const box = document.getElementById('extraQs');
-  if(!qs){ box.innerHTML = ''; return; }
-  box.innerHTML = qs.q.map(q=>{
-    const v = details[q.k], id = 'q_' + q.k;
+const myTypes = () => [data.subcategory].concat(data.extras || []).filter(Boolean);
+const answersFor = sub => sub === data.subcategory ? details : (moreDetails[sub] = moreDetails[sub] || {});
+const rowSub = p => (p.sub && (data.extras || []).includes(p.sub)) ? p.sub : data.subcategory;
+function qFields(sub){
+  const qs = qsetFor(sub), d = answersFor(sub);
+  const pre = sub === data.subcategory ? 'q_' : 'q_' + sub + '_';   // the main type keeps the plain ids
+  return qs.q.map(q=>{
+    const v = d[q.k], id = pre + q.k;
     const lab = `<label for="${id}">${esc(q.label)} <span class="opt">(optional)</span></label>`;
     if(q.t==='text') return `<div class="fr wide">${lab}<input id="${id}" data-q="${q.k}" value="${esc(v||'')}" placeholder="${esc(q.ph||'')}" maxlength="200"></div>`;
     if(q.t==='num') return `<div class="fr">${lab}<input id="${id}" data-q="${q.k}" value="${esc(v||'')}" inputmode="numeric" placeholder="${esc(q.ph||'e.g. 4')}" maxlength="10"></div>`;
@@ -740,28 +767,56 @@ function drawExtras(){
     return '';
   }).join('');
 }
+function drawExtras(){
+  const types = myTypes().filter(t => qsetFor(t));
+  const qs = curSet(), multi = (data.extras || []).length > 0;
+  const anyGoods = myTypes().some(t => (qsetFor(t) || {goods:true}).goods);
+  const allServices = myTypes().length && !anyGoods;
+  document.getElementById('p4Title').textContent = multi ? 'What you sell and offer' : (qs ? qs.title : 'What you sell');
+  document.getElementById('p4Lead').textContent = multi
+    ? 'A few questions for each part of your business, then everything you sell or offer. You can add more once you are approved.'
+    : !allServices ? 'Add your best sellers. You can add more once your business is approved.'
+    : 'A few questions about your business, then your services and prices. You can add more once you are approved.';
+  const lt = document.getElementById('p4ListTitle');
+  lt.hidden = !multi && !allServices; lt.textContent = multi ? 'Products and services' : 'Services and prices';
+  document.getElementById('addpBtn').textContent = multi ? '+ Add another' :
+    !allServices ? '+ Add another product' : '+ Add another ' + (qs.item || 'service').toLowerCase();
+  document.getElementById('extraQs').innerHTML = types.map(t => `
+    <div class="qsec wide" data-sub="${t}">
+      ${multi ? `<h3 class="subh">${esc(qsetFor(t).title)} <span class="opt">— ${esc(subLabel(t))}</span></h3>` : ''}
+      <div class="qgrid">${qFields(t)}</div>
+    </div>`).join('');
+}
 document.getElementById('extraQs').addEventListener('input', e=>{
   const el = e.target, k = el.dataset.q; if(!k) return;
+  const sec = el.closest('.qsec'); if(!sec) return;
+  const d = answersFor(sec.dataset.sub);
   if(el.type==='checkbox'){
-    details[k] = [...document.querySelectorAll(`#extraQs input[type=checkbox][data-q="${k}"]:checked`)].map(x=>x.value);
-  } else details[k] = el.value;
+    d[k] = [...sec.querySelectorAll(`input[type=checkbox][data-q="${k}"]:checked`)].map(x=>x.value);
+  } else d[k] = el.value;
 });
-/* only the answers for the chosen type are sent */
-function cleanDetails(){
-  const qs = curSet(), out = {};
-  if(!qs) return out;
+/* only the answers for the chosen types are sent */
+function cleanOne(sub, d){
+  const qs = qsetFor(sub), out = {};
+  if(!qs || !d) return out;
   qs.q.forEach(q=>{
-    let v = details[q.k];
+    let v = d[q.k];
     if(Array.isArray(v)){ if(v.length) out[q.k] = v; }
     else if(v != null && String(v).trim()) out[q.k] = String(v).trim().slice(0,200);
   });
+  return out;
+}
+function cleanDetails(){
+  const out = cleanOne(data.subcategory, details), more = {};
+  (data.extras || []).forEach(x => { const a = cleanOne(x, moreDetails[x]); if(Object.keys(a).length) more[x] = a; });
+  if(Object.keys(more).length) out.more = more;
   return out;
 }
 
 /* ---------- products ---------- */
 function addProduct(){
   products.push({id:'pr'+Date.now()+Math.random().toString(36).slice(2,5),
-                 name:'', price:'', unit:'', stock:'', description:''});
+                 name:'', price:'', unit:'', stock:'', description:'', sub:''});
   drawProducts();
 }
 function removeProduct(id){
@@ -770,14 +825,21 @@ function removeProduct(id){
   drawProducts();
 }
 function drawProducts(){
-  const qs = curSet(), goods = !qs || qs.goods;
-  const item = goods ? 'Product' : (qs.item || 'Service');
-  document.getElementById('prodList').innerHTML = products.map((p,i)=>`
+  const multi = (data.extras || []).length > 0;
+  document.getElementById('prodList').innerHTML = products.map((p,i)=>{
+    const qs = qsetFor(rowSub(p)), goods = !qs || qs.goods;
+    const item = multi ? 'Item' : goods ? 'Product' : (qs.item || 'Service');
+    return `
     <div class="prod">
       <span class="no">${esc(item)} ${i+1}</span>
       ${products.length>1?`<button class="rm" onclick="removeProduct('${p.id}')">Remove</button>`:''}
+      ${multi ? `<div class="fr">
+        <label>Which part of the business?</label>
+        <select onchange="upd('${p.id}','sub',this.value); drawProducts();">${myTypes().map(t =>
+          `<option value="${t}"${t === rowSub(p) ? ' selected' : ''}>${esc(subLabel(t))}</option>`).join('')}</select>
+      </div>` : ''}
       <div class="fr">
-        <label>${goods ? 'Product name' : esc(item)} ${i===0?'<span class="req">*</span>':''}</label>
+        <label>${goods ? 'Product name' : esc(qs.item || 'Service')} ${i===0?'<span class="req">*</span>':''}</label>
         <input value="${esc(p.name)}" oninput="upd('${p.id}','name',this.value)"
                placeholder="${goods ? 'Include the size, e.g. Copra Oil (500ml)' : esc(qs.itemPh || '')}">
       </div>
@@ -802,7 +864,7 @@ function drawProducts(){
                  placeholder="${goods ? 'How it is grown or made' : 'e.g. meals, fuel, materials'}">
         </div>
       </div>
-    </div>`).join('');
+    </div>`;}).join('');
   drawPicRoles();
 }
 function upd(id,k,v){ const p = products.find(x=>x.id===id); if(p) p[k]=v; }
@@ -824,7 +886,7 @@ function saveDraft(){
       if(/^f_officer/.test(el.id)) return;   // officer details are kept separately
       fields[el.id] = el.type === 'checkbox' ? el.checked : el.value;
     });
-    const draft = { at: Date.now(), fields, products, details,
+    const draft = { at: Date.now(), fields, products, details, moreDetails, extras: data.extras || [],
       picks: { industry: picked('industry'), sub: picked('sub'), ipa: picked('ipa') },
       sent: sent ? sent.reference : null };
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -861,6 +923,8 @@ function useDraft(){
   }
   if(Array.isArray(d.products) && d.products.length){ products = d.products; drawProducts(); }
   if(d.details && typeof d.details === 'object') details = d.details;
+  if(d.moreDetails && typeof d.moreDetails === 'object') moreDetails = d.moreDetails;
+  if(Array.isArray(d.extras)){ data.extras = d.extras; drawMoreTypes(); }
 }
 function dropDraft(){
   draftOffered = false; clearDraft();
@@ -1014,8 +1078,8 @@ function validate(n){
     if(!picked('ipa')) p.push('Please tell us your IPA registration status');
   }
   if(n===4){
-    const qs = curSet(), goods = !qs || qs.goods;
-    const item = goods ? 'product' : (qs.item || 'service').toLowerCase();
+    const qs = products[0] ? qsetFor(rowSub(products[0])) : curSet(), goods = !qs || qs.goods;
+    const item = (data.extras || []).length ? 'item' : goods ? 'product' : (qs.item || 'service').toLowerCase();
     const first = products[0];
     if(!first || !first.name.trim()) p.push('Please add at least one ' + item);
     else{
@@ -1122,11 +1186,11 @@ function capture(n){
 }
 
 function buildReview(){
-  const ind = catLine(data.primary_industry, data.subcategory, false);
+  const ind = typesLine(data.primary_industry, data.subcategory, data.extras, false);
   const row = (k,v,none) => `<div class="kv"><span class="k">${k}</span>`+
     `<span class="v${v?'':' none'}">${v || (none||'not supplied')}</span></div>`;
   const plist = products.filter(p=>p.name.trim())
-    .map(p=>`${esc(p.name)} — K${esc(p.price)} ${esc(p.unit)}`).join('<br>');
+    .map(p=>`${esc(p.name)} — K${esc(p.price)} ${esc(p.unit)}${(data.extras||[]).length ? ' <span class="opt">(' + esc(subLabel(rowSub(p))) + ')</span>' : ''}`).join('<br>');
   document.getElementById('review').innerHTML =
     row('Business name', esc(data.business_name)) +
     row('District', esc(data.district)) +
@@ -1140,8 +1204,8 @@ function buildReview(){
     row('IPA status', esc(data.ipa_status)) +
     (data.ipa_number ? row('IPA number', esc(data.ipa_number)) : '') +
     row('Wants Division help', data.wants_help ? 'Yes' : 'No') +
-    detailLines(data.subcategory, cleanDetails()).map(([k,v])=>row(esc(k), esc(v))).join('') +
-    row(curSet() && !curSet().goods ? 'Services and prices' : 'Products', plist) +
+    detailLines(data.subcategory, cleanDetails(), data.extras).map(([k,v])=>row(esc(k), esc(v))).join('') +
+    row((data.extras||[]).length ? 'Products and services' : curSet() && !curSet().goods ? 'Services and prices' : 'Products', plist) +
     row('Photographs', pics.length + ' photo' + (pics.length===1?'':'s'));
 }
 
@@ -1192,6 +1256,7 @@ async function submitApp(){
       unit: p.unit.trim(),
       stock: p.stock.trim(),
       description: p.description.trim(),
+      subcategory: rowSub(p),
       sort_order: i
     }));
     const res = await sb.rpc('submit_application', {
@@ -1203,6 +1268,7 @@ async function submitApp(){
         primary_industry: data.primary_industry,
         subcategory:      data.subcategory,
         details:          cleanDetails(),
+        extra_subs:       data.extras || [],
         contact_name:     data.contact_name,
         phone:            data.phone,
         email:            data.email || '',

@@ -397,6 +397,7 @@
     input[type=checkbox],input[type=radio]{width:24px;height:24px;}
     header nav a,.hdr a{display:inline-flex;align-items:center;min-height:44px;}
   }
+  .typebox .tq + .tq{border-top:1px solid var(--hair);}
   .typebox{border:1px solid var(--hair);border-radius:12px;padding:14px;margin:6px 0 12px;background:var(--bone-2);}
   .typebox .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}
   .typebox .fr.full{grid-column:1/-1;}
@@ -1030,6 +1031,7 @@ async function loadApplications(){
     primary_industry: r.primary_industry,
     subcategory: r.subcategory,
     details: r.details || {},
+    extra_subs: r.extra_subs || [],
     contact_name: r.contact_name,
     phone: r.phone,
     email: r.email,
@@ -1070,7 +1072,7 @@ async function loadListings(){
 async function loadSmes(){
   // contact details live in sme_private (Division and owner only), not on the public smes table
   const {data, error} = await sb.from('smes')
-    .select('id, slug, owner_id, registered_name, trading_name, district, llg, ward, primary_industry, subcategory, details, approved, featured, consent, is_sample, ' +
+    .select('id, slug, owner_id, registered_name, trading_name, district, llg, ward, primary_industry, subcategory, extra_subs, details, approved, featured, consent, is_sample, ' +
             'sme_private(contact_name, phone, email, ipa_number, tin, bank_name, account_name, account_number, bank_verified, bank_verified_at, bank_verified_by)')
     .order('registered_name');
   if(error){ console.error('loadSmes', error); return; }
@@ -1084,6 +1086,7 @@ async function loadSmes(){
     primary_industry: r.primary_industry,
     subcategory: r.subcategory,
     details: r.details || {},
+    extra_subs: r.extra_subs || [],
     contact_name: (r.sme_private || {}).contact_name || '',
     phone: (r.sme_private || {}).phone || '',
     priv: r.sme_private || {},
@@ -1382,8 +1385,8 @@ async function openApp(id){
     <div class="kv"><span class="k">District</span><span class="v">${esc(a.district)}</span></div>
     <div class="kv"><span class="k">LLG</span><span class="v">${miss(a.llg)}</span></div>
     <div class="kv"><span class="k">Ward / village</span><span class="v">${miss(a.ward)}</span></div>
-    <div class="kv"><span class="k">Industry</span><span class="v">${esc(ind(a.primary_industry, a.subcategory))}</span></div>
-    ${detailLines(a.subcategory, a.details).map(([k,v])=>`<div class="kv"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('')}
+    <div class="kv"><span class="k">Industry</span><span class="v">${esc(typesLine(a.primary_industry, a.subcategory, a.extra_subs, false))}</span></div>
+    ${detailLines(a.subcategory, a.details, a.extra_subs).map(([k,v])=>`<div class="kv"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('')}
     <div class="kv"><span class="k">Contact</span><span class="v">${miss(a.contact_name)}</span></div>
     <div class="kv"><span class="k">Phone</span><span class="v">${miss(a.phone)}</span></div>
     <div class="kv"><span class="k">Email</span><span class="v">${miss(a.email)}</span></div>
@@ -1736,22 +1739,41 @@ function editType(id){
   const s = smes.find(x=>x.id===id); if(!s) return;
   const box = document.getElementById('typeEdit');
   box.hidden = false;
+  const opts = sel => CATEGORIES.map(c=>`<optgroup label="${esc(c.label)}">` +
+    c.subs.map(x=>`<option value="${x.key}"${x.key===sel?' selected':''}>${esc(x.label)}</option>`).join('') + '</optgroup>').join('');
   box.innerHTML = `<div class="typebox">
-    <div class="fr"><label for="te_sub">Type of business</label>
-      <select id="te_sub">${CATEGORIES.map(c=>`<optgroup label="${esc(c.label)}">` +
-        c.subs.map(x=>`<option value="${x.key}"${x.key===s.subcategory?' selected':''}>${esc(x.label)}</option>`).join('') + '</optgroup>').join('')}</select></div>
-    <div id="te_qs" class="grid2"></div>
+    <div class="fr"><label for="te_sub">Main type of business</label><select id="te_sub">${opts(s.subcategory)}</select></div>
+    <div class="fr"><label>Also does <span style="font-weight:400;">(up to 4)</span></label><div class="qchips" id="te_more"></div></div>
+    <div id="te_qs"></div>
     <div class="mact"><button class="btn g btn-sm" onclick="saveType('${s.id}')">Save</button>
       <button class="btn-o btn-sm" onclick="document.getElementById('typeEdit').hidden=true">Cancel</button></div>
-    <div class="hint">Changing the type does not change the business's existing listings — edit those under Listing review.</div></div>`;
-  const draw = () => { document.getElementById('te_qs').innerHTML = qsFormHTML(document.getElementById('te_sub').value, s.details, 'te_'); };
+    <div class="hint">Changing the types does not change the business's existing listings — edit those under Listing review.</div></div>`;
+  let extras = (s.extra_subs || []).slice();
+  const more = (s.details || {}).more || {};
+  const draw = () => {
+    const main = document.getElementById('te_sub').value;
+    extras = extras.filter(x => x !== main);
+    document.getElementById('te_more').innerHTML = CATEGORIES.flatMap(c => c.subs).filter(x => x.key !== main).map(x =>
+      `<label><input type="checkbox" value="${x.key}"${extras.includes(x.key)?' checked':''}> ${esc(x.label)}</label>`).join('');
+    document.getElementById('te_qs').innerHTML = [main].concat(extras).map((t, i) => `<div class="tq" data-sub="${t}">
+      <h4 class="msec">${esc(subLabel(t))}</h4><div class="grid2">${qsFormHTML(t, i === 0 ? s.details : more[t], 'te_' + t + '_')}</div></div>`).join('');
+  };
   document.getElementById('te_sub').addEventListener('change', draw);
+  document.getElementById('te_more').addEventListener('change', e => {
+    const on = [...document.querySelectorAll('#te_more input:checked')].map(x => x.value);
+    if(on.length > 4){ e.target.checked = false; return alert('Up to 4 other types.'); }
+    extras = on; draw();
+  });
   draw();
 }
 async function saveType(id){
   const s = smes.find(x=>x.id===id); if(!s) return;
   const sub = document.getElementById('te_sub').value;
-  const upd = {primary_industry:(catOfSub(sub)||{}).key, subcategory:sub, details:readQs(document.getElementById('te_qs'))};
+  const secs = [...document.querySelectorAll('#te_qs .tq')];
+  const details = readQs(secs[0]), more = {};
+  secs.slice(1).forEach(sec => { const a = readQs(sec); if(Object.keys(a).length) more[sec.dataset.sub] = a; });
+  if(Object.keys(more).length) details.more = more;
+  const upd = {primary_industry:(catOfSub(sub)||{}).key, subcategory:sub, extra_subs:secs.slice(1).map(x => x.dataset.sub), details};
   if(LIVE){
     const {error} = await sb.from('smes').update(upd).eq('id', id);
     if(error) return alert('Could not save: ' + (error.message || error));
@@ -1771,8 +1793,8 @@ function openSme(id){
     <div class="kv"><span class="k">District</span><span class="v">${esc(s.district)}</span></div>
     <div class="kv"><span class="k">LLG</span><span class="v">${miss(s.llg)}</span></div>
     <div class="kv"><span class="k">Ward / village</span><span class="v">${miss(s.ward)}</span></div>
-    <div class="kv"><span class="k">Industry</span><span class="v">${esc(ind(s.primary_industry, s.subcategory))}</span></div>
-    ${detailLines(s.subcategory, s.details).map(([k,v])=>`<div class="kv"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('')}
+    <div class="kv"><span class="k">Industry</span><span class="v">${esc(typesLine(s.primary_industry, s.subcategory, s.extra_subs, false))}</span></div>
+    ${detailLines(s.subcategory, s.details, s.extra_subs).map(([k,v])=>`<div class="kv"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('')}
     <div class="mact" style="margin:6px 0 4px;"><button class="btn-o btn-sm" onclick="editType('${s.id}')">Change type or answers</button></div>
     <div id="typeEdit" hidden></div>
     <div class="kv"><span class="k">Contact</span><span class="v">${miss(p.contact_name)}</span></div>

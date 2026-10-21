@@ -373,6 +373,8 @@
   .bad{border-color:var(--red) !important;box-shadow:0 0 0 3px rgba(200,50,30,.12) !important;}
   [hidden]{display:none !important;}
   /* questions for the type of business (categories.js qsFormHTML) */
+  .tq + .tq{border-top:1px solid var(--hair);margin-top:10px;padding-top:6px;}
+  .tqh{font-size:14px;margin:8px 0 0;}
   .qchips{display:flex;flex-wrap:wrap;gap:8px;}
   .qchips label{display:inline-flex;align-items:center;gap:7px;padding:9px 12px;border:1px solid var(--hair);border-radius:10px;
     background:#fff;font-size:13px;font-weight:500;cursor:pointer;margin:0;text-transform:none;letter-spacing:0;}
@@ -663,7 +665,7 @@
         <div class="panel" id="typePanel">
           <div class="panel-hd"><h2 id="typeTitle">About your business</h2><span class="sub2" id="typeName"></span></div>
           <div class="panel-bd">
-            <div class="grid2" id="typeQs"></div>
+            <div id="typeQs"></div>
             <div class="hint">To change your type of business, contact the Division.</div>
           </div>
         </div>
@@ -817,7 +819,7 @@ async function signOut(){
 /* ---------- load everything for this seller ---------- */
 async function loadAll(){
   const {data:biz, error} = await sb.from('smes')
-    .select('id, slug, registered_name, trading_name, district, llg, primary_industry, subcategory, details, description, approved')
+    .select('id, slug, registered_name, trading_name, district, llg, primary_industry, subcategory, extra_subs, details, description, approved')
     .eq('owner_id', me.id).order('registered_name').limit(1);
   if(error) throw error;
   sme = (biz||[])[0] || null;
@@ -1246,15 +1248,26 @@ function renderSettings(){
   $('b_ipa').value = pv.ipa_number || '';
   $('b_tin').value = pv.tin || '';
   // the questions for this type of business (categories.js), with the saved answers
-  const qs = qsetFor(sme.subcategory);
-  $('typeTitle').textContent = qs ? qs.title : 'About your business';
-  $('typeName').textContent = catLine(sme.primary_industry, sme.subcategory);
-  $('typeQs').innerHTML = qsFormHTML(sme.subcategory, sme.details, 'bq_');
+  const qs = qsetFor(sme.subcategory), extras = sme.extra_subs || [], more = (sme.details || {}).more || {};
+  $('typeTitle').textContent = extras.length ? 'About your business' : qs ? qs.title : 'About your business';
+  $('typeName').textContent = typesLine(sme.primary_industry, sme.subcategory, extras);
+  $('typeQs').innerHTML = `<div class="tq full" data-sub="${esc(sme.subcategory || '')}">` +
+      (extras.length ? `<h3 class="tqh">${esc(subLabel(sme.subcategory))}</h3>` : '') + `<div class="grid2">${qsFormHTML(sme.subcategory, sme.details, 'bq_')}</div></div>` +
+    extras.map(x => `<div class="tq full" data-sub="${esc(x)}"><h3 class="tqh">${esc(subLabel(x))}</h3>
+      <div class="grid2">${qsFormHTML(x, more[x], 'bq_' + x + '_')}</div></div>`).join('');
   $('b_bank').value = pv.bank_name || '';
   $('b_accno').value = pv.account_number || '';
   $('b_accname').value = pv.account_name || '';
   $('bankTag').innerHTML = pv.bank_verified ? '<span class="tag g">Confirmed by the Division</span>'
     : pv.account_number ? '<span class="tag a">Waiting for the Division to confirm</span>' : '<span class="tag r">Not added yet</span>';
+}
+/* answers for the main type at the top, the others under .more */
+function readTypes(){
+  const secs = [...$('typeQs').querySelectorAll('.tq')];
+  const out = secs.length ? readQs(secs[0]) : {}, more = {};
+  secs.slice(1).forEach(sec => { const a = readQs(sec); if(Object.keys(a).length) more[sec.dataset.sub] = a; });
+  if(Object.keys(more).length) out.more = more;
+  return out;
 }
 async function saveBusiness(){
   const g = id => $(id).value.trim();
@@ -1266,7 +1279,7 @@ async function saveBusiness(){
   if(bank.account_number && !/^\d{6,20}$/.test(bank.account_number)) return showErr('setErr', 'The account number should be digits only.');
   const btn = $('saveBizBtn'); busy(btn, true, 'Saving…');
   try{
-    const bizUpd = {trading_name:g('b_trading') || null, description:g('b_about') || null, details:readQs($('typeQs'))};
+    const bizUpd = {trading_name:g('b_trading') || null, description:g('b_about') || null, details:readTypes()};
     const privUpd = Object.assign({contact_name:g('b_contact') || null, phone:g('b_phone') || null, email:g('b_email') || null,
                                    ipa_number:g('b_ipa') || null, tin:g('b_tin') || null}, bank);
     if(LIVE){

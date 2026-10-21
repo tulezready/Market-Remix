@@ -163,7 +163,7 @@ function loadFromDb(){
   ]).then(([smes, cat, settings]) => {
     Shop.SMES = smes.map(s => ({
       id: s.slug, n: s.name, d: s.district, llg: [s.ward, s.llg].filter(Boolean).join(', '), about: s.description, photo: s.photo_ref,
-      f: catLine(s.primary_industry, s.subcategory), cat: s.primary_industry, sub: s.subcategory || '',
+      f: typesLine(s.primary_industry, s.subcategory, s.extra_subs), cat: s.primary_industry, sub: s.subcategory || '', extras: s.extra_subs || [],
       _uuid: s.id, sample: s.is_sample
     }));
     Shop.P = cat.map(r => ({
@@ -172,7 +172,7 @@ function loadFromDb(){
     }));
     Shop.SLIDES = smes.filter(s => s.featured && s.hero_photo_ref).map(s => ({
       img: s.hero_photo_ref, biz: s.name, loc: s.district + ' District',
-      ind: catLine(s.primary_industry, s.subcategory)
+      ind: typesLine(s.primary_industry, s.subcategory, s.extra_subs)
     }));
     if(settings && settings[0]) Shop.SETTINGS = Object.assign({}, SETTINGS_DEFAULT, settings[0]);
     Shop.CONFIG = CONFIG_DEFAULT;

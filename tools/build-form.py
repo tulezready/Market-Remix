@@ -50,6 +50,11 @@ TYPE_QUESTIONS = [
     ("Cocoa · Copra & coconut · Galip · Fresh produce", [
         ("text", "How much can you supply each month?", None),
         ("text", "Which months is it available?", None)]),
+    ("Livestock and poultry", [
+        ("checks", "Keeps", ["Chickens (meat)", "Laying hens", "Pigs", "Ducks", "Goats", "Cattle"]),
+        ("checks", "Sold as", ["Live", "Dressed or cut meat", "Eggs"]),
+        ("text", "How many can you sell each week?", None),
+        ("yesno", "Freezer for meat?", None)]),
     ("Fishing and fish farming", [
         ("text", "What do you catch or farm?", None),
         ("checks", "Sold as", ["Fresh", "Smoked", "Frozen", "Dried"]),
@@ -104,7 +109,8 @@ TYPE_QUESTIONS = [
 # short wording that fits one line of the paper form. The website's list is
 # categories.js; keep the two in step.
 CATEGORIES = [
-    ("Agriculture & farming",     ["Cocoa", "Copra & coconut", "Galip nut", "Fresh produce & horticulture"]),
+    ("Agriculture & farming",     ["Cocoa", "Copra & coconut", "Galip nut", "Fresh produce & horticulture",
+                                   "Livestock & poultry"]),
     ("Tourism & hospitality",     ["Accommodation & guest houses", "Tours & travel", "Restaurants, cafes & kaibars",
                                    "Arts, crafts & tailoring"]),
     ("Fisheries & marine",        ["Coastal fishing & trading", "Inland fish farming"]),
@@ -280,7 +286,7 @@ def officer_guide(c, llg=None, district=None):
     block("On the visit", [
         "Explain the marketplace using the points below. Ask the owner to read section 7 or read it to them.",
         "Fill in the form with the owner, in their words. Write prices in kina and say what each price is for "
-        "(each, per kg, per night, per trip). On page 3, fill in only the box for their type of business.",
+        "(each, per kg, per night, per trip). On page 3, fill in the box for each type of business they do.",
         "Take the photos with your phone, in daylight. The photo guide lists what to take for each type of business.",
         "The owner signs section 7. You sign the officer's part. Without both signatures we cannot list them.",
         f"Enter the form online on your phone at  {ONLINE_URL}  and add the photos there. "
@@ -333,7 +339,7 @@ def entry_form(c, llg=None, district=None, pad=False):
     p.field(M + CW * 0.40, p.y, CW * 0.34, "LLG" if llg else "LLG — one of your district's LLGs", llg)
     p.field(M + CW * 0.78, p.y, CW * 0.22, "District", district)
     p.y -= 13 * mm
-    p.label(M, p.y, "What kind of business is it? Tick one box")
+    p.label(M, p.y, "What kind of business is it? Tick every type it does, and circle the main one")
     p.y -= 6 * mm
     for main, subs in CATEGORIES:
         c.setFont("Helvetica-Bold", 8); c.setFillColor(INK)
@@ -463,14 +469,15 @@ def type_page(c, llg=None):
     p.c.drawRightString(M + CW, p.y - 3 * mm, f"LLG: {llg}" if llg else "LLG: ______________________________")
     p.ribbon(p.y - 6.5 * mm)
     p.y -= 13 * mm
-    p.section(8, "Questions for this type of business", "Fill in ONE box only")
-    p.para("Use the box that matches the type you ticked in section 1. Leave the others empty.", size=8.6, color=MUTED)
+    p.section(8, "Questions for each type of business", "Fill in a box for each type ticked")
+    p.para("Fill in the box for each type you ticked in section 1 — for a fish farm that also keeps chickens, both boxes. Leave the others empty.", size=8.6, color=MUTED)
     p.y -= 3 * mm
 
     gap = 5 * mm
     colw = (CW - gap) / 2
-    ROW, HEAD, PAD = 6.6 * mm, 7.6 * mm, 2.6 * mm
+    HEAD, PAD, GAP = 7.6 * mm, 2.6 * mm, 3.4 * mm
     sz = 7.6
+    room = p.y - (M + 14 * mm)   # stop above the footer
 
     def lines_for(kind, label, opts):
         """how many rows a question needs in a column"""
@@ -521,18 +528,28 @@ def type_page(c, llg=None):
                 yy -= ROW
         return h
 
-    # fill the left column, then the right, keeping the order
-    hs = [height(qs) for _, qs in TYPE_QUESTIONS]
-    half, run, split = sum(hs) / 2, 0, len(hs)
-    for i, h in enumerate(hs):
-        if run + h / 2 > half:
-            split = i; break
-        run += h
+    def layout():
+        """fill the left column, then the right, keeping the order"""
+        hs = [height(qs) for _, qs in TYPE_QUESTIONS]
+        half, run, split = sum(hs) / 2, 0, len(hs)
+        for i, h in enumerate(hs):
+            if run + h / 2 > half:
+                split = i; break
+            run += h
+        tall = max(sum(hs[:split]), sum(hs[split:])) + GAP * max(split, len(hs) - split)
+        return split, tall
+
+    # shrink the row height until both columns fit on the page
+    ROW = 6.6 * mm
+    split, tall = layout()
+    while tall > room and ROW > 4.8 * mm:
+        ROW -= 0.2 * mm
+        split, tall = layout()
     top0 = p.y
     for col, chunk in enumerate([TYPE_QUESTIONS[:split], TYPE_QUESTIONS[split:]]):
         top = top0
         for title, qs in chunk:
-            top -= draw_box(M + col * (colw + gap), top, title, qs) + 3.4 * mm
+            top -= draw_box(M + col * (colw + gap), top, title, qs) + GAP
     p.footer(FOOT, 3, 3)
     c.showPage()
 
@@ -747,6 +764,9 @@ PHOTO_GUIDE = [
     ("Cocoa · Copra & coconut · Galip · Fresh produce",
      "Each product as it is sold (bag, bundle, bottle, pack). One with a hand or scale beside it to show the size. "
      "The garden, block or nursery. Drying, fermenting or processing, if they do it.", "2 per product + 2", "6–10"),
+    ("Livestock and poultry",
+     "The animals in their pen, coop or yard, clean and healthy. Each product as sold: a dressed chicken, a tray of eggs, "
+     "a cut of pork. Never an animal being killed.", "2 per product + 1", "5–9"),
     ("Fishing and fish farming",
      "Each kind of fish or catch on a clean surface or tray. Smoked, dried or frozen fish as it is packed. "
      "The boat or the ponds. The cooler or freezer they keep it in.", "2 per product + 2", "6–8"),
@@ -823,7 +843,8 @@ def photo_guide(c):
 
     p.para("Sending them: in the online form, choose under each photo which product it shows, or \"owner at work\" or "
            "\"wide photo\". If photos go by WhatsApp or email instead, name them DISTRICT_Business_subject_01.jpg — "
-           "for example GAZELLE_Abuta_seedlings_01.jpg — or start the message with the business name.", size=8.4, color=MUTED)
+           "for example GAZELLE_Abuta_seedlings_01.jpg — or start the message with the business name. "
+           "A business with more than one type (a fish farm that also keeps chickens): follow each row, still up to 12 in all.", size=8.4, color=MUTED)
     p.footer(FOOT)
     c.showPage()
 
