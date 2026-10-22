@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Reset your password — MaketPles ENB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700&family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  /* the same look as the Division panel's sign-in */
+  :root{
+    --red:#C8321E; --red-dp:#9E2414; --green:#2E7D3A; --green-br:#3A9A49;
+    --ink:#161214; --bone:#FAF4EA; --muted:#6E6157;
+    --hair:rgba(22,18,20,0.13); --hair-2:rgba(22,18,20,0.06);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;background:var(--ink);}
+  .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px 16px;position:relative;overflow:hidden;}
+  .wrap::before{content:"";position:absolute;inset:0;
+    background:radial-gradient(60% 80% at 78% 12%, rgba(46,125,58,.16), transparent 62%),
+               radial-gradient(50% 70% at 12% 88%, rgba(200,50,30,.2), transparent 60%);}
+  .card{position:relative;z-index:2;background:var(--bone);border-radius:20px;
+    width:420px;max-width:100%;padding:34px 28px;border-top:3px solid var(--green-br);}
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+  .brand img{width:44px;height:44px;border-radius:50%;background:#fff;padding:2px;box-shadow:0 0 0 1.5px var(--red);}
+  .brand .nm{font-family:'Unbounded',sans-serif;font-weight:700;letter-spacing:-0.015em;font-size:21px;line-height:1;}
+  .brand .nm b{color:var(--red);}
+  .brand .dv{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);margin-top:4px;}
+  h1{font-family:'Unbounded',sans-serif;font-weight:700;letter-spacing:-0.015em;font-size:25px;margin:0 0 7px;}
+  .lead{font-size:13.5px;color:var(--muted);margin:0 0 22px;line-height:1.6;}
+  .fr{margin-bottom:15px;}
+  label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;}
+  input{width:100%;padding:12px 14px;border:1px solid var(--hair);border-radius:10px;background:#fff;outline:none;font:inherit;}
+  input:focus{border-color:var(--green);box-shadow:0 0 0 4px rgba(46,125,58,.09);}
+  .btn{width:100%;margin-top:8px;background:var(--green);color:#fff;border:none;padding:12px 17px;border-radius:100px;
+    font:inherit;font-weight:700;font-size:13.5px;cursor:pointer;}
+  .btn:hover{background:#005423;} .btn:disabled{opacity:.6;cursor:default;}
+  .msg{border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.55;margin-bottom:16px;display:none;}
+  .msg.show{display:block;}
+  .msg.bad{background:#F8E0DA;color:#9E2414;}
+  .msg.ok{background:#E2F1E4;color:#1F5A29;}
+  .alt{text-align:center;font-size:12.5px;color:var(--muted);margin-top:20px;padding-top:18px;border-top:1px solid var(--hair-2);line-height:1.7;}
+  a{color:var(--red);}
+  [hidden]{display:none !important;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="brand">
+      <img src="logo-96.png" width="96" height="96" alt="">
+      <div><div class="nm">MaketPles <b>ENB</b></div><div class="dv">Password reset</div></div>
+    </div>
+
+    <div class="msg" id="msg" role="alert"></div>
+
+    <!-- 1. a valid link: choose the new password -->
+    <div id="setStep" hidden>
+      <h1>Choose a new password</h1>
+      <p class="lead">For <b id="who"></b>. Use at least 10 characters, something only you know.</p>
+      <div class="fr"><label for="pw1">New password</label><input id="pw1" type="password" autocomplete="new-password"></div>
+      <div class="fr"><label for="pw2">The same again</label><input id="pw2" type="password" autocomplete="new-password"></div>
+      <button class="btn" id="setBtn" onclick="setPassword()">Save new password</button>
+    </div>
+
+    <!-- 2. no link, or an expired one: ask for a fresh link -->
+    <div id="askStep" hidden>
+      <h1>Reset your password</h1>
+      <p class="lead">Enter the email you sign in with. We will send a link to choose a new password. The link works once, for one hour — use the newest email if you get more than one.</p>
+      <div class="fr"><label for="email">Email</label><input id="email" type="email" autocomplete="username" placeholder="you@enbpa.gov.pg"></div>
+      <button class="btn" id="askBtn" onclick="askLink()">Send me a link</button>
+    </div>
+
+    <!-- 3. done -->
+    <div id="doneStep" hidden>
+      <h1>Password changed</h1>
+      <p class="lead">Sign in again with your new password.</p>
+      <a class="btn" style="display:block;text-align:center;text-decoration:none;" href="admin.html">Division panel sign-in</a>
+    </div>
+
+    <div class="alt">Sellers signing in with a mobile number: ask the Division or your district commerce office for a new password.</div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+/* The reset email links here (Supabase "Site URL" / redirect). The link
+   carries a one-time sign-in in the address; supabase-js reads it, and the
+   person then sets a new password. An expired or used link arrives with
+   error_code in the address instead, and the page offers a fresh link. */
+const CFG = window.MAKETPLES || {};
+const $ = id => document.getElementById(id);
+const show = id => ['setStep', 'askStep', 'doneStep'].forEach(s => $(s).hidden = s !== id);
+const say = (text, ok) => { const m = $('msg'); m.textContent = text; m.className = 'msg show ' + (ok ? 'ok' : 'bad'); };
+const hush = () => { $('msg').className = 'msg'; };
+
+const hash = new URLSearchParams(location.hash.slice(1));
+let sb = null;
+try{ sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey); }catch(e){}
+
+async function start(){
+  if(!sb){ say('The site is not connected right now. Please try again later.'); return; }
+  if(hash.get('error_code') || hash.get('error')){
+    history.replaceState(null, '', location.pathname);
+    say(hash.get('error_code') === 'otp_expired'
+      ? 'That link has expired or was already used. Ask for a new one below and use it straight away.'
+      : 'That link did not work. Ask for a new one below.');
+    show('askStep'); return;
+  }
+  // supabase-js signs in from the link on its own; wait for it, then check
+  const {data:{session}} = await sb.auth.getSession();
+  if(session && hash.get('type') === 'recovery'){
+    history.replaceState(null, '', location.pathname);
+    $('who').textContent = session.user.email || 'your account';
+    show('setStep'); $('pw1').focus(); return;
+  }
+  show('askStep');
+}
+
+async function setPassword(){
+  hush();
+  const a = $('pw1').value, b = $('pw2').value;
+  if(a.length < 10) return say('Use at least 10 characters.');
+  if(a !== b) return say('The two passwords are different.');
+  const btn = $('setBtn'); btn.disabled = true; btn.textContent = 'Saving…';
+  const {error} = await sb.auth.updateUser({password:a, data:{must_change_password:false}});
+  if(error){ btn.disabled = false; btn.textContent = 'Save new password'; return say(error.message); }
+  await sb.auth.signOut();
+  show('doneStep');
+}
+
+async function askLink(){
+  hush();
+  const email = $('email').value.trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return say('Please enter your email address.');
+  const btn = $('askBtn'); btn.disabled = true; btn.textContent = 'Sending…';
+  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: location.origin + '/reset.html'});
+  btn.disabled = false; btn.textContent = 'Send me a link';
+  if(error) return say(/rate|seconds|too many/i.test(error.message)
+    ? 'A link was sent a moment ago. Please wait a minute, then try again.' : error.message);
+  // the same answer whether or not the email has an account
+  say('If that email has an account, a link is on its way. Open the newest email and press its button once.', true);
+}
+
+start();
+</script>
+</body>
+</html>

@@ -17,6 +17,9 @@
 /seller*
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store
+/reset*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
 
 # Photos rarely change; let browsers keep them for a week.
 /photos/*

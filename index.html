@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>
+  // a password-reset email that opens the home page: pass it on to the reset page
+  if(/(^|[#&])(type=recovery|error_code=)/.test(location.hash)) location.replace('reset.html' + location.hash);
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MaketPles ENB — Shop East New Britain</title>
 <meta name="description" content="The official marketplace of East New Britain Province — cocoa, vanilla, bilum, coffee and more from verified local businesses.">

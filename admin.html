@@ -445,6 +445,7 @@
       <input id="l_pass" type="password" placeholder="Your password" autocomplete="current-password">
     </div>
     <button class="btn g" id="loginBtn" onclick="signIn()">Sign in</button>
+    <p class="lead" id="forgotLink" style="text-align:center;margin:14px 0 0;"><a href="reset.html">Forgotten your password?</a></p>
 
     <div id="pwStep" hidden>
       <div class="err" id="pwErr" role="alert"></div>
@@ -952,7 +953,7 @@ async function signIn(){
 
     // a temporary password issued with the account must be replaced first
     if(data.user.user_metadata && data.user.user_metadata.must_change_password){
-      document.querySelectorAll('#loginWrap .login > .fr, #loginBtn').forEach(e=>e.hidden = true);
+      document.querySelectorAll('#loginWrap .login > .fr, #loginBtn, #forgotLink').forEach(e=>e.hidden = true);
       document.getElementById('pwStep').hidden = false;
       document.getElementById('pw1').focus();
       return;
