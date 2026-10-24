@@ -565,6 +565,7 @@
         <div class="filters">
           <input type="text" id="fListQ" placeholder="Search product…" oninput="renderListings()">
           <select id="fListS" onchange="renderListings()">
+            <option value="todo">To do — in review or returned</option>
             <option value="in_review">In review</option>
             <option value="live">Live</option>
             <option value="needs_changes">Needs changes</option>
@@ -1893,7 +1894,7 @@ function renderListings(){
   const q = (document.getElementById('fListQ').value||"").toLowerCase();
   const s = document.getElementById('fListS').value;
   const rows = listings.filter(l=>{
-    if(s && l.status!==s) return false;
+    if(s === 'todo' ? !['in_review','needs_changes'].includes(l.status) : s && l.status!==s) return false;
     if(q && !(l.name+" "+l.sme).toLowerCase().includes(q)) return false;
     return true;
   });
@@ -1911,7 +1912,7 @@ function renderListings(){
       <td><span class="tag">${esc(ind(l.category, l.subcategory))}</span></td>
       <td class="mono">${k(l.price)}</td>
       <td>${tag(l.status)}</td>
-      <td><button class="btn-o btn-sm" onclick="openListing('${l.id}')">${l.status==='in_review'?'Review':'View'}</button></td>
+      <td><button class="btn-o btn-sm" onclick="openListing('${l.id}')">${l.status==='live'?'View':'Review'}</button></td>
     </tr>`).join('') : `<tr><td colspan="6"><div class="empty">No listings match.</div></td></tr>`;
 }
 
