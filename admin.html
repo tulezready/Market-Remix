@@ -1055,7 +1055,7 @@ async function loadApplications(){
 
 async function loadListings(){
   const {data, error} = await sb.from('products')
-    .select('*, smes(registered_name, district), product_images(id)')
+    .select('*, smes(registered_name, district), product_images(id, storage_path, sort_order)')
     .order('created_at', {ascending:false});
   if(error){ console.error('loadListings', error); return; }
   listings = (data||[]).map(r => ({
@@ -1070,6 +1070,7 @@ async function loadListings(){
     stock: r.stock,
     status: r.status,
     photos: (r.product_images||[]).length,
+    images: (r.product_images||[]).slice().sort((a, b) => (a.sort_order||0) - (b.sort_order||0)),
     description: r.description,
     review_note: r.review_note,
     pickup_only: !!r.pickup_only,
@@ -1931,7 +1932,14 @@ function openListing(id){
     <div class="kv"><span class="k">Industry</span><span class="v">${esc(ind(l.category, l.subcategory))}</span></div>
     <div class="kv"><span class="k">Price</span><span class="v">${k(l.price)} ${esc(l.unit||'')}</span></div>
     <div class="kv"><span class="k">Stock</span><span class="v">${l.stock}</span></div>
-    <div class="kv"><span class="k">Photographs</span><span class="v">${l.photos || '<span class="v miss">none supplied</span>'}</span></div>
+    <div class="fr full"><label>Photographs (${l.photos || 0})</label>
+      <div class="app-photo-grid" id="lrPics">${(l.images || []).map(im => `<div class="app-photo">
+        <img src="${esc(im.storage_path)}" alt="">
+        <button class="btn-o btn-sm" style="width:100%;border-radius:0;border-width:1px 0 0;" onclick="removeListingPhoto('${l.id}', '${im.id}')">Remove</button>
+      </div>`).join('') || '<span class="v miss">none supplied</span>'}</div>
+      <label class="btn-o btn-sm" id="lrAdd" style="display:inline-block;margin-top:10px;cursor:pointer;">+ Add photographs
+        <input type="file" accept="image/*" multiple hidden onchange="addListingPhotos('${l.id}', this)"></label>
+    </div>
     <div class="kv"><span class="k">Description</span><span class="v">${l.description ? esc(l.description) : '<span class="v miss">none supplied</span>'}</span></div>
     <div class="kv"><span class="k">Submitted</span><span class="v">${esc(l.submitted)}</span></div>
     ${l.subcategory === 'livestock' || /kerosen|kerosin/i.test(l.name) ? `<label class="chkline" style="margin:10px 0;display:block;">
@@ -1939,7 +1947,8 @@ function openListing(id){
       Collect only (live poultry, kerosene) — no delivery</label>` : ''}
     ${problems.length ? `<div class="warnbox"><b>Before publishing:</b><br>• ${problems.join("<br>• ")}</div>` : ''}
     ${l.review_note ? `<div class="kv"><span class="k">Last note</span><span class="v">${esc(l.review_note)}</span></div>` : ''}
-    ${l.status==='in_review' ? `
+    ${l.status==='in_review' || l.status==='needs_changes' ? `
+      ${l.status==='needs_changes' ? `<div class="hint">Returned to the seller. If you have made the change yourself, publish it.</div>` : ''}
       <div class="fr"><label>Note to the seller (required if returning)</label>
         <textarea id="listNote" placeholder="e.g. Photograph is too dark — please retake in daylight."></textarea></div>
       <div class="mact">
@@ -1950,6 +1959,47 @@ function openListing(id){
     : `<div class="mact"><button class="btn-o" onclick="closeModal()">Close</button></div>`}
   `;
   openModal();
+}
+
+/* the Division adds or removes a listing's photographs itself — for a seller
+   who is not online, or when a returned listing only needs one more photo */
+async function addListingPhotos(id, input){
+  const l = listings.find(x=>x.id===id); if(!l) return;
+  const files = [...input.files]; input.value = '';
+  const add = document.getElementById('lrAdd'); if(add) add.firstChild.textContent = 'Adding… ';
+  let order = (l.images || []).reduce((m, im) => Math.max(m, (im.sort_order||0) + 1), 0);
+  for(const f of files){
+    if((l.images || []).length >= 12){ alert('Twelve photographs is the maximum.'); break; }
+    let shrunk;
+    try{ shrunk = await shrinkPhoto(f); }catch(e){ alert(f.name + ' could not be read as a photograph.'); continue; }
+    let url = shrunk.dataUrl, imgId = 'li' + Date.now() + order;
+    if(LIVE){
+      const path = `sme/${l.smeId}/${id}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
+      const up = await sb.storage.from(SUPABASE.PHOTOS_BUCKET).upload(path, shrunk.blob, {contentType:'image/jpeg', upsert:false});
+      if(up.error){ alert('Could not upload ' + f.name + ': ' + up.error.message); break; }
+      url = sb.storage.from(SUPABASE.PHOTOS_BUCKET).getPublicUrl(path).data.publicUrl;
+      const {data, error} = await sb.from('product_images').insert({product_id:id, storage_path:url, sort_order:order}).select('id').single();
+      if(error){ alert('Could not save ' + f.name + ': ' + error.message); break; }
+      imgId = data.id;
+    }
+    l.images = (l.images || []).concat({id:imgId, storage_path:url, sort_order:order++});
+    l.photos = l.images.length;
+  }
+  renderListings(); openListing(id);
+}
+async function removeListingPhoto(id, imgId){
+  const l = listings.find(x=>x.id===id); if(!l) return;
+  const im = (l.images || []).find(x => x.id === imgId); if(!im) return;
+  if(!confirm('Remove this photograph from the listing?')) return;
+  if(LIVE){
+    const {error} = await sb.from('product_images').delete().eq('id', imgId);
+    if(error) return alert('Could not remove it: ' + error.message);
+    const path = im.storage_path.split('/' + SUPABASE.PHOTOS_BUCKET + '/')[1];
+    if(path) await sb.storage.from(SUPABASE.PHOTOS_BUCKET).remove([decodeURIComponent(path)]);
+  }
+  l.images = l.images.filter(x => x.id !== imgId);
+  l.photos = l.images.length;
+  renderListings(); openListing(id);
 }
 
 async function setPickupOnly(id, box){

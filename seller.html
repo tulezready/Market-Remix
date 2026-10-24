@@ -568,7 +568,7 @@
                 <label class="chkline"><input type="checkbox" id="p_fresh"> Fresh produce — must be collected or delivered quickly</label>
               </div>
               <div class="fr full" id="p_liveWrap" hidden>
-                <label class="chkline"><input type="checkbox" id="p_live"> Live poultry — buyers collect it from you, no delivery</label>
+                <label class="chkline"><input type="checkbox" id="p_live"> Collect only (live poultry, kerosene) — buyers collect it from you, no delivery</label>
               </div>
               <div class="fr full">
                 <label for="p_desc">Description <span class="opt">(recommended)</span></label>
@@ -1068,7 +1068,7 @@ async function saveProduct(target){
 
   const sub = $('p_cat').value;
   const rec = {name:g('p_name'), category:(catOfSub(sub)||{}).key, subcategory:sub, price:Math.round(price*100)/100, unit:g('p_unit'),
-               stock, description:g('p_desc') || null, perishable:$('p_fresh').checked, pickup_only:$('p_cat').value === 'livestock' && $('p_live').checked, mode:$('p_mode').value || null};
+               stock, description:g('p_desc') || null, perishable:$('p_fresh').checked, pickup_only:$('p_liveWrap').hidden ? !!(editing && editing.pickup_only) : $('p_live').checked, mode:$('p_mode').value || null};
   if(target !== 'live') rec.status = target;   // 'live' means: keep it live, just save the changes
 
   const btns = [...document.querySelectorAll('#formActs button')]; btns.forEach(b=>b.disabled = true);
@@ -1181,10 +1181,12 @@ function syncMode(){
   const usual = (subByKey($('p_cat').value) || {}).mode || 'buy';
   $('p_modeHint').textContent = 'Usual for this type: ' + MODES[usual].btn + '. Choose another for a bulk lot or made-to-order work.';
   $('p_stockWrap').hidden = effMode() !== 'buy';
-  $('p_liveWrap').hidden = $('p_cat').value !== 'livestock';
+  // live poultry and kerosene are collected from the business only
+  $('p_liveWrap').hidden = $('p_cat').value !== 'livestock' && !/kerosen|kerosin/i.test($('p_name').value);
 }
 $('p_mode').addEventListener('change', syncMode);
 $('p_cat').addEventListener('change', syncMode);
+$('p_name').addEventListener('input', syncMode);
 
 /* ---------- requests: bookings and quotes ---------- */
 const REQ_TAG = {new:'<span class="tag a">New</span>', contacted:'<span class="tag b">Contacted</span>',
