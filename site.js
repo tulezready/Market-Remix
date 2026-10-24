@@ -353,7 +353,7 @@ function coUpdate(){
   if(live) sel.value = 'sme_pickup';
   const pn = document.getElementById('coPickNote');
   pn.hidden = !live;
-  if(live) pn.textContent = `${clean(live.n)} is live poultry, so it is collected from the business.`;
+  if(live) pn.textContent = `${clean(live.n)} is collected from the business — it cannot be delivered.`;
   const fulfil = sel.value;
   document.getElementById('coDelivery').hidden = fulfil !== 'delivery';
   const del = (fulfil === 'delivery' && sub < Number(s.free_delivery_over || 150)) ? Number(s.delivery_fee || 15) : 0;
@@ -400,7 +400,7 @@ async function placeOrder(ev){
   if(gift && (v('coRName').length < 2 || !/^\+?[0-9 ]{7,20}$/.test(v('coRPhone'))))
     return coError('Please enter the name and mobile number of the person receiving the order.');
   if(fulfil !== 'sme_pickup' && pickupOnly())
-    return coError(`${clean(pickupOnly().n)} is live poultry, so it can only be collected from the business. Choose "Collect from the business".`);
+    return coError(`${clean(pickupOnly().n)} can only be collected from the business. Choose "Collect from the business".`);
   if(fulfil === 'delivery' && v('coAddr').length < 3) return coError('Please enter a delivery address.');
   if(fulfil === 'delivery'){
     const far = getCart().map(c => getProduct(c.i)).filter(p => p && p.fresh && (sme(p.s) || {}).d && sme(p.s).d !== v('coDist'));

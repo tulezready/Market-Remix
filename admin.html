@@ -1903,7 +1903,7 @@ function renderListings(){
     <tr>
       <td><div class="rowflex">
         <div class="thumb">${l.photos ? `<svg class="icon" aria-hidden="true" style="width:18px;height:18px;"><use href="#ic-photo"/></svg>` : '<span style="font-size:11px;color:var(--red)">none</span>'}</div>
-        <div><div class="nm">${esc(l.name)}${l.pickup_only ? ' <span class="tag a">Live poultry · collect only</span>' : ''}</div>
+        <div><div class="nm">${esc(l.name)}${l.pickup_only ? ' <span class="tag a">Collect only</span>' : ''}</div>
              <div class="sub2">${l.photos} photo${l.photos===1?'':'s'}${l.stock===0?' · no stock':''}</div></div>
       </div></td>
       <td>${esc(l.sme)}</td>
@@ -1921,7 +1921,9 @@ function openListing(id){
   if(!l.description) problems.push("No description supplied");
   if(l.stock === 0) problems.push("Stock is zero");
   if(l.subcategory === 'livestock' && !l.pickup_only && /\blive\b/i.test(l.name + ' ' + (l.description || '')))
-    problems.push("This looks like live poultry — tick “Live poultry” below so buyers can only collect it");
+    problems.push("This looks like live poultry — tick “Collect only” below so buyers can only collect it");
+  if(/kerosen|kerosin/i.test(l.name) && !l.pickup_only)
+    problems.push("Kerosene — tick “Collect only” below so buyers can only collect it");
 
   document.getElementById('mTitle').textContent = l.name;
   document.getElementById('mBody').innerHTML = `
@@ -1932,9 +1934,9 @@ function openListing(id){
     <div class="kv"><span class="k">Photographs</span><span class="v">${l.photos || '<span class="v miss">none supplied</span>'}</span></div>
     <div class="kv"><span class="k">Description</span><span class="v">${l.description ? esc(l.description) : '<span class="v miss">none supplied</span>'}</span></div>
     <div class="kv"><span class="k">Submitted</span><span class="v">${esc(l.submitted)}</span></div>
-    ${l.subcategory === 'livestock' ? `<label class="chkline" style="margin:10px 0;display:block;">
+    ${l.subcategory === 'livestock' || /kerosen|kerosin/i.test(l.name) ? `<label class="chkline" style="margin:10px 0;display:block;">
       <input type="checkbox" ${l.pickup_only ? 'checked' : ''} onchange="setPickupOnly('${l.id}', this)">
-      Live poultry — buyers collect it from the business, no delivery</label>` : ''}
+      Collect only (live poultry, kerosene) — no delivery</label>` : ''}
     ${problems.length ? `<div class="warnbox"><b>Before publishing:</b><br>• ${problems.join("<br>• ")}</div>` : ''}
     ${l.review_note ? `<div class="kv"><span class="k">Last note</span><span class="v">${esc(l.review_note)}</span></div>` : ''}
     ${l.status==='in_review' ? `
