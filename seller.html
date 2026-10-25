@@ -750,6 +750,8 @@ function loadSample(){
      fulfilment:'delivery', delivery_district:'Kokopo', delivery_address:'Section 12, Lot 4', seller_net:115.20, items:[{product_name:'Cold-Pressed Copra Oil (500ml)', quantity:4}]},
     {id:'o2', order_number:'ENB-1038', status:'processing', created_at:new Date(Date.now()-864e5).toISOString(), buyer_name:'M. Kaputin', buyer_phone:'+61 400 000 000',
      is_gift:true, recipient_name:'R. Kaputin', recipient_phone:'+675 7000 2222', fulfilment:'sme_pickup', seller_net:441, items:[{product_name:'Copra Oil, 20L Bulk Drum', quantity:1}]},
+    {id:'o3', order_number:'ENB-1045', status:'pending_payment', payment_method:'on_collection', created_at:new Date().toISOString(), buyer_name:'J. ToLiman', buyer_phone:'+675 7000 4444',
+     fulfilment:'sme_pickup', subtotal:64, seller_net:64, items:[{product_name:'Cold-Pressed Copra Oil (500ml)', quantity:2}]},
   ];
   requests = [{id:'q1', reference:'ENB-R1001', kind:'quote', product_name:'Copra Oil, 20L Bulk Drum', buyer_name:'K. Tamur', buyer_phone:'+675 7000 3333',
                 message:'Price for 10 drums delivered to Kokopo wharf?', status:'new', created_at:new Date().toISOString()}];
@@ -835,7 +837,7 @@ async function loadAll(){
     sb.from('sme_private').select('*').eq('sme_id', id).maybeSingle(),
     sb.from('products').select('id, name, category, subcategory, mode, price, unit, stock, description, perishable, pickup_only, status, review_note, created_at, product_images(id, storage_path, sort_order)')
       .eq('sme_id', id).order('created_at', {ascending:false}),
-    sb.from('orders').select('id, order_number, status, created_at, buyer_name, buyer_phone, is_gift, recipient_name, recipient_phone, fulfilment, delivery_address, delivery_district, subtotal, platform_fee, agent_fee, seller_net, paid_at, fulfilled_at, order_items(product_name, quantity, unit)')
+    sb.from('orders').select('id, order_number, status, payment_method, created_at, buyer_name, buyer_phone, is_gift, recipient_name, recipient_phone, fulfilment, delivery_address, delivery_district, subtotal, platform_fee, agent_fee, seller_net, paid_at, fulfilled_at, order_items(product_name, quantity, unit)')
       .eq('sme_id', id).order('created_at', {ascending:false}),
     sb.from('seller_balances').select('*').eq('sme_id', id).maybeSingle(),
     sb.from('payouts').select('id, amount, status, created_at, paid_at, bank_reference, payout_orders(order_id)').eq('sme_id', id).order('created_at', {ascending:false}),
@@ -901,7 +903,9 @@ $('nav').addEventListener('click', e=>{
   const b = e.target.closest('button[data-v]'); if(b) show(b.dataset.v);
 });
 
-const toPrepare = () => orders.filter(o=>o.status==='paid');
+const cashOrder = o => o.payment_method === 'on_collection';
+// paid through the Division and waiting to be prepared, or a new pay-on-collection order to confirm
+const toPrepare = () => orders.filter(o => o.status === 'paid' || (cashOrder(o) && o.status === 'pending_payment'));
 function badges(){
   const set=(id,n,warn)=>{const e=$(id);e.textContent=n;e.className="pip"+(warn&&n>0?"":" z");};
   set('pProd', products.length, false);
@@ -923,8 +927,10 @@ function renderDash(){
   else if(priv && !priv.bank_verified) todo.push({t:'Your bank details are <b>waiting for the Division to confirm them</b> by phone. Payouts wait until then.', a:''});
   requests.filter(q=>q.status==='new').forEach(q=>todo.push({t:`New ${q.kind==='booking'?'booking request':'quote request'} from <b>${esc(q.buyer_name)}</b> — phone ${esc(q.buyer_phone)}`,
      a:`<button class="btn btn-sm" onclick="show('requests')">See it</button>`}));
-  toPrepare().forEach(o=>todo.push({t:`Order <b>${esc(o.order_number)}</b> is paid and waiting to be prepared`,
-     a:`<button class="btn btn-sm" onclick="advance('${o.id}')">Start preparing</button>`}));
+  toPrepare().forEach(o=>todo.push({t: cashOrder(o)
+       ? `New order <b>${esc(o.order_number)}</b> from <b>${esc(o.buyer_name)}</b> — phone ${esc(o.buyer_phone)} to confirm. They pay you when they collect.`
+       : `Order <b>${esc(o.order_number)}</b> is paid and waiting to be prepared`,
+     a:`<button class="btn btn-sm" onclick="advance('${o.id}')">${nextLabel(o)}</button>`}));
   products.filter(p=>p.status==='needs_changes').forEach(p=>todo.push(
     {t:`<b>${esc(p.name)}</b> needs changes — ${esc(p.review_note||'see the Division note')}`,
      a:`<button class="btn btn-sm" onclick="editProduct('${p.id}')">Fix it</button>`}));
@@ -1139,6 +1145,11 @@ const ORDER_TAG = {
 };
 const NEXT = {paid:'processing', processing:'ready', ready:'fulfilled'};
 const NEXT_LABEL = {paid:'Start preparing', processing:'Mark ready', ready:'Mark collected'};
+// pay on collection: the seller confirms the order and takes the money at hand-over
+const CASH_NEXT = {pending_payment:'processing', processing:'ready', ready:'fulfilled'};
+const CASH_LABEL = {pending_payment:'Confirm order', processing:'Mark ready', ready:'Collected and paid'};
+const nextOf = o => (cashOrder(o) ? CASH_NEXT : NEXT)[o.status];
+const nextLabel = o => (cashOrder(o) ? CASH_LABEL : NEXT_LABEL)[o.status];
 function route(o){
   const where = o.fulfilment === 'delivery' ? `Deliver to ${esc(o.delivery_address||'')}${o.delivery_district?', '+esc(o.delivery_district):''}`
               : o.fulfilment === 'agent_handoff' ? 'Hand to the agent' : 'Buyer collects from you';
@@ -1149,29 +1160,48 @@ function route(o){
 }
 function renderOrders(){
   badges();
-  const waiting = orders.filter(o=>o.status==='pending_payment').length;
-  const shown = orders.filter(o=>!['pending_payment','cancelled'].includes(o.status));
-  $('ordInfo').innerHTML = 'An order shows here once the Division has confirmed the buyer paid. Prepare it, mark it ready, then mark it collected when it is handed over.' +
+  const waiting = orders.filter(o=>o.status==='pending_payment' && !cashOrder(o)).length;
+  const shown = orders.filter(o=>o.status !== 'cancelled' && (o.status !== 'pending_payment' || cashOrder(o)));
+  $('ordInfo').innerHTML = '<b>Pay on collection:</b> phone the buyer to confirm, mark it ready, then press <i>Collected and paid</i> when they pick it up and pay you. ' +
+    'Cancel it if they do not come. <br><b>Paid on the site:</b> these show once the Division has confirmed payment — prepare it, mark it ready, then mark it collected.' +
     (waiting ? `<br><b>${waiting} more order${waiting===1?' is':'s are'} waiting for the buyer to pay</b> — don't prepare ${waiting===1?'it':'them'} yet.` : '');
   $('ordRows').innerHTML = shown.length ? shown.map(o=>`
     <tr>
       <td><div class="nm mono">${esc(o.order_number)}</div><div class="sub2">${esc(when(o.created_at))}</div></td>
       <td>${(o.items||[]).map(i=>`${esc(i.product_name)} × ${i.quantity}`).join('<br>') || '—'}</td>
       <td>${route(o)}</td>
-      <td class="mono"><b>${K(o.seller_net)}</b></td>
-      <td>${ORDER_TAG[o.status] || esc(o.status)}</td>
-      <td>${NEXT[o.status] ? `<button class="btn btn-sm" onclick="advance('${o.id}')">${NEXT_LABEL[o.status]}</button>` : ''}</td>
-    </tr>`).join('') : `<tr><td colspan="6"><div class="empty">No paid orders yet.</div></td></tr>`;
+      <td class="mono"><b>${K(o.seller_net)}</b>${cashOrder(o) ? '<div class="sub2">buyer pays you</div>' : ''}</td>
+      <td>${cashOrder(o) && o.status === 'pending_payment' ? '<span class="tag a">New — confirm it</span>'
+           : cashOrder(o) && o.status === 'fulfilled' ? '<span class="tag g">Collected and paid</span>'
+           : ORDER_TAG[o.status] || esc(o.status)}</td>
+      <td>${nextOf(o) ? `<button class="btn btn-sm" onclick="advance('${o.id}')">${nextLabel(o)}</button>` : ''}
+          ${cashOrder(o) && ['pending_payment','processing','ready'].includes(o.status)
+            ? `<button class="btn-o btn-sm" onclick="cancelOrder('${o.id}')">Cancel</button>` : ''}</td>
+    </tr>`).join('') : `<tr><td colspan="6"><div class="empty">No orders yet.</div></td></tr>`;
 }
 async function advance(id){
   const o = orders.find(x=>x.id===id);
-  const next = NEXT[o.status]; if(!next) return;
-  if(next === 'fulfilled' && !confirm(`Has ${o.order_number} been handed over to the buyer${o.is_gift?' or recipient':''}?`)) return;
+  const next = nextOf(o); if(!next) return;
+  if(next === 'fulfilled' && !confirm(cashOrder(o)
+      ? `Has ${o.order_number} been collected, and have you been paid ${K(o.seller_net)}?`
+      : `Has ${o.order_number} been handed over to the buyer${o.is_gift?' or recipient':''}?`)) return;
   if(LIVE){
     const {error} = await sb.from('orders').update({status:next}).eq('id', id);
     if(error) return alert('Could not update the order: ' + friendly(error));
     await reload();
   } else o.status = next;
+  show(currentView);
+}
+
+// a pay-on-collection order the buyer did not come for
+async function cancelOrder(id){
+  const o = orders.find(x=>x.id===id); if(!o) return;
+  if(!confirm(`Cancel ${o.order_number}? Do this only if the buyer is not coming or you cannot supply it.`)) return;
+  if(LIVE){
+    const {error} = await sb.from('orders').update({status:'cancelled'}).eq('id', id);
+    if(error) return alert('Could not cancel the order: ' + friendly(error));
+    await reload();
+  } else o.status = 'cancelled';
   show(currentView);
 }
 

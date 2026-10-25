@@ -78,7 +78,7 @@
           <input type="search" name="q" id="heroQ" placeholder="What are you looking for? Try cocoa, bilum…" aria-label="Search the market" autocomplete="off">
           <button class="btn" type="submit">Search</button>
         </form>
-        <div class="quick rv" style="--d:280ms">
+        <div class="quick rv" style="--d:280ms" id="quick">
           <span class="ql">Popular</span>
           <a href="shop.html?q=Cocoa">Cocoa</a>
           <a href="shop.html?q=Vanilla">Vanilla</a>
@@ -195,7 +195,7 @@
 <div class="hero-trust">
   <div class="wrap">
     <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-shield"/></svg><span><b>Verified sellers</b>Every SME checked by the Division</span></div>
-    <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-card"/></svg><span><b>Pay your way</b>Card, BSP Pay or cash via an agent</span></div>
+    <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-card"/></svg><span><b>Pay when you collect</b>Cash or mobile money, straight to the seller</span></div>
     <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-home"/></svg><span><b>Send it home</b>Buy from anywhere for family in ENB</span></div>
     <div class="it"><svg class="icon" aria-hidden="true"><use href="#ic-people"/></svg><span><b>Money stays local</b>Paid straight to the business</span></div>
   </div>
@@ -278,7 +278,7 @@
           <span class="logo-ring" style="width:38px;height:38px;"><img src="logo-96.png" width="96" height="96" alt=""></span>
           <span class="nm">MaketPles <b>ENB</b></span>
         </div>
-        <p class="fnote">Preview. “MaketPles ENB” is a working name. The businesses, products, figures and notices shown are samples until the first East New Britain businesses are loaded. Orders placed during the preview are for testing — please don’t pay for them.</p>
+        <p class="fnote">Trial. “MaketPles ENB” is a working name. The site is in its trial with the first East New Britain businesses, checked by the Division of Commerce &amp; Industry. More are joining every week.</p>
       </div>
       <div class="flinks">
         <a href="shop.html">Shop</a>
@@ -463,8 +463,19 @@ function stop(){ clearInterval(timer); timer = null; }
 function goSlide(k){ stop(); show(k); play(); }
 
 
+// "Popular" under the search box: the kinds of thing actually for sale now
+function renderQuick(){
+  const count = {};
+  Shop.P.forEach(p => { if(p.sub) count[p.sub] = (count[p.sub] || 0) + 1; });
+  const subs = Object.keys(count).filter(k => subByKey(k)).sort((a, b) => count[b] - count[a]).slice(0, 5);
+  if(!subs.length) return;   // keep the built-in examples
+  document.getElementById('quick').innerHTML = '<span class="ql">Popular</span>' +
+    subs.map(k => `<a href="shop.html?sub=${k}">${esc(subLabel(k))}</a>`).join('');
+}
+
 function boot(){
   SLIDES = Shop.SLIDES; SLIDE_MS = Shop.CONFIG.slideMs || SLIDE_MS_DEFAULT;
+  renderQuick();
   renderCats(); renderRail(); renderDistricts(); renderSmes(); renderPicks();
   stop();
   if(wide.matches){

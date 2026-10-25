@@ -86,7 +86,6 @@ const OVERLAYS = `<!-- BASKET -->
         <label for="coFulfil">How will it be received?</label>
         <select id="coFulfil" onchange="coUpdate()">
           <option value="sme_pickup">Collect from the business</option>
-          <option value="agent_handoff">Collect from a local agent</option>
           <option value="delivery">Delivery — Kokopo and Rabaul urban areas</option>
         </select>
         <div class="mnote" id="coPickNote" hidden></div>
@@ -97,10 +96,11 @@ const OVERLAYS = `<!-- BASKET -->
           <select id="coDist"><option>Kokopo</option><option>Rabaul</option><option>Gazelle</option><option>Pomio</option></select></div>
       </div>
 
+      <!-- Paying a local agent (and collecting from one) comes back once agents are signed up. -->
       <fieldset class="paychoice">
         <legend>How will you pay?</legend>
-        <label class="pc"><input type="radio" name="coPay" value="agent_cash" checked onchange="coUpdate()">
-          <span><b>Cash through a local agent</b><small>Pay at a trade store or market agent. Your order number is all they need.</small></span></label>
+        <label class="pc" id="coCashOpt"><input type="radio" name="coPay" value="on_collection" checked onchange="coUpdate()">
+          <span><b>Pay the seller when you collect</b><small id="coCashNote">Cash or mobile money, handed to the business when you pick up your order.</small></span></label>
         <label class="pc"><input type="radio" name="coPay" value="bank_transfer" onchange="coUpdate()">
           <span><b>Bank transfer</b><small>Pay into the MaketPles account using your order number as the reference.</small></span></label>
         <label class="pc" id="coCardOpt"><input type="radio" name="coPay" value="card" disabled>
@@ -356,6 +356,13 @@ function coUpdate(){
   if(live) pn.textContent = `${clean(live.n)} is collected from the business — it cannot be delivered.`;
   const fulfil = sel.value;
   document.getElementById('coDelivery').hidden = fulfil !== 'delivery';
+  // paying the seller in person only works when the buyer collects from them
+  const cash = document.querySelector('input[name="coPay"][value="on_collection"]');
+  cash.disabled = fulfil !== 'sme_pickup';
+  document.getElementById('coCashNote').textContent = cash.disabled
+    ? 'Only when you collect from the business.'
+    : 'Cash or mobile money, handed to the business when you pick up your order.';
+  if(cash.disabled && cash.checked) document.querySelector('input[name="coPay"][value="bank_transfer"]').checked = true;
   const del = (fulfil === 'delivery' && sub < Number(s.free_delivery_over || 150)) ? Number(s.delivery_fee || 15) : 0;
   document.getElementById('coSub').textContent = money(sub);
   document.getElementById('coDel').textContent = fulfil === 'delivery' ? (del ? money(del) : 'Free') : '—';
@@ -370,7 +377,7 @@ function openCo(){
   document.getElementById('coDone').hidden = true;
   document.getElementById('coErr').hidden = true;
   document.getElementById('coNote').textContent = Shop.LIVE
-    ? 'You pay after the order is placed. Nothing is charged now.'
+    ? 'Nothing is charged on the site.'
     : 'Preview mode: no order will be sent.';
   coUpdate();
   document.getElementById('movl').classList.add('on');
@@ -402,6 +409,8 @@ async function placeOrder(ev){
   if(fulfil !== 'sme_pickup' && pickupOnly())
     return coError(`${clean(pickupOnly().n)} can only be collected from the business. Choose "Collect from the business".`);
   if(fulfil === 'delivery' && v('coAddr').length < 3) return coError('Please enter a delivery address.');
+  if(coSelected('coPay') === 'on_collection' && fulfil !== 'sme_pickup')
+    return coError('Paying the seller when you collect is only for orders you collect from the business.');
   if(fulfil === 'delivery'){
     const far = getCart().map(c => getProduct(c.i)).filter(p => p && p.fresh && (sme(p.s) || {}).d && sme(p.s).d !== v('coDist'));
     if(far.length) return coError(`${clean(far[0].n)} is fresh, so it can only be delivered within ${sme(far[0].s).d} District. Choose collection, or a delivery address in ${sme(far[0].s).d} District.`);
@@ -445,15 +454,17 @@ function showDone(r, order){
     ? `<h4>Pay by bank transfer</h4><p>Transfer <b>${money(r.total)}</b> and use <b>${esc(refs)}</b> as the reference.</p>` +
       (s.bank_transfer_details ? `<pre class="bankbox">${esc(s.bank_transfer_details)}</pre>`
                                : `<p>The Division will send you the account details by SMS.</p>`)
+    : r.payment_method === 'on_collection'
+    ? `<h4>Pay when you collect</h4><p>The business will phone you to say when your order is ready. Pay <b>${money(r.total)}</b> to them when you pick it up, and give your order number${(r.orders||[]).length>1?'s':''} <b>${esc(refs)}</b>.</p>`
     : `<h4>Pay through a local agent</h4><p>Take your order number${(r.orders||[]).length>1?'s':''} <b>${esc(refs)}</b> to a MaketPles agent at a trade store or market and pay <b>${money(r.total)}</b> in cash.</p>`;
   const box = document.getElementById('coDone');
   box.innerHTML = `
     <div class="done-ok" aria-hidden="true">✓</div>
     <h3 class="done-h">${r.preview ? 'Preview only — no order was sent' : 'Order placed. Tenkyu tru!'}</h3>
-    <p class="done-sub">${order.is_gift ? `For ${esc(order.recipient_name)}. ` : ''}We'll send updates to ${esc(order.buyer_phone)}.</p>
+    <p class="done-sub">${order.is_gift ? `For ${esc(order.recipient_name)}. ` : ''}The business will contact you on ${esc(order.buyer_phone)}.</p>
     <ul class="done-list">${list}</ul>
     <div class="done-pay">${how}</div>
-    <p class="done-sub">Each business prepares its own part of your order once payment is confirmed.</p>
+    <p class="done-sub">${r.payment_method === 'on_collection' ? 'Each business prepares its own part of your order.' : 'Each business prepares its own part of your order once payment is confirmed.'}</p>
     <button class="co-btn" type="button" onclick="closeCo()">Done</button>`;
   document.getElementById('coForm').hidden = true;
   box.hidden = false; box.focus();

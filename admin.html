@@ -657,16 +657,17 @@
 
       <!-- PROGRESS -->
       <section class="view" id="v-progress" style="display:none;">
+        <div class="stats" id="progStats"></div>
         <div class="panel">
-          <div class="panel-hd"><h2>By industry</h2><span class="n">TARGET 5 EACH · 35 TOTAL</span></div>
-          <div class="panel-bd" id="progInd"></div>
-        </div>
-        <div class="panel">
-          <div class="panel-hd"><h2>By district</h2><span class="n">ALL FOUR REQUIRED</span></div>
+          <div class="panel-hd"><h2>By district and LLG</h2><span class="n" id="llgN"></span></div>
           <div class="panel-bd" id="progDist"></div>
         </div>
         <div class="panel">
-          <div class="panel-hd"><h2>Readiness</h2></div>
+          <div class="panel-hd"><h2>By type of business</h2><span class="n" id="indN"></span></div>
+          <div class="panel-bd" id="progInd"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-hd"><h2>Still to do before launch</h2></div>
           <div class="panel-bd" id="readiness"></div>
         </div>
       </section>
@@ -778,7 +779,7 @@ const SAMPLE_SMES = [
   {id:"s1", registered_name:"Kokopo Trade Supplies", district:"Kokopo", primary_industry:"trade", subcategory:"distribution",
    contact_name:"D. Toliman", phone:"+675 7100 0004", approved:true, featured:true, consent:true, products:4},
   {id:"s2", registered_name:"Kerevat Mill Co.", district:"Gazelle", primary_industry:"agriculture", subcategory:"copra",
-   contact_name:"P. Umong", phone:"+675 7100 0010", approved:true, featured:true, consent:true, products:6},
+   contact_name:"P. Umong", phone:"+675 7100 0010", priv:{phone:"+675 7100 0010"}, approved:true, featured:true, consent:true, products:6},
   {id:"s3", registered_name:"Rabaul Harbour Tours", district:"Rabaul", primary_industry:"tourism", subcategory:"tours",
    contact_name:"E. Bedi", phone:"+675 7100 0011", approved:true, featured:false, consent:true, products:5},
   {id:"s4", registered_name:"Warangoi Rice Growers", district:"Gazelle", primary_industry:"agriculture", subcategory:"produce",
@@ -819,6 +820,9 @@ const SAMPLE_ORDERS = [
   {id:"o5", order_number:"ENB-1044", sme:"Rabaul Harbour Tours", buyer:"S. Tovue", route:"Collect from SME — Rabaul",
    agent:null, subtotal:60.00, total:60.00, platform_fee:6.00, agent_fee:0, seller_net:54.00,
    status:"pending_payment", gift:false, created:"Today"},
+  {id:"o6", order_number:"ENB-1046", sme:"Kerevat Mill Co.", smeId:"s2", buyer:"J. ToLiman", buyer_name:"J. ToLiman", buyer_phone:"+675 7000 4444",
+   route:"Collect from SME — Gazelle", agent:null, subtotal:64.00, total:64.00, platform_fee:0, agent_fee:0, seller_net:64.00,
+   status:"pending_payment", payment_method:"on_collection", gift:false, created:"10 minutes ago", items:"Cold-Pressed Copra Oil (500ml) × 2"},
 ];
 
 const SAMPLE_AGENTS = [
@@ -877,7 +881,7 @@ const TITLES = {
   requests:["Requests","Bookings and quote requests. Follow up any left New for more than 2 days."],
   agents:["Agents","The agent network and commission rates."],
   notices:["Notices","Announcements shown on the public site."],
-  progress:["Launch progress","Collection against the 35-business target."],
+  progress:["Launch progress","Real businesses on the site, against the launch targets. Sample businesses are not counted."],
   payouts:["Payouts","Prepare, approve and record payments to businesses."],
 };
 
@@ -1151,7 +1155,9 @@ async function loadOrders(){
     payment_ref: r.payment_ref,
     paid_at: r.paid_at,
     paid_marked_by: r.paid_marked_by,
-    fulfilled_at: r.fulfilled_at
+    fulfilled_at: r.fulfilled_at,
+    seller_told_at: r.seller_told_at,
+    seller_told_by: r.seller_told_by
   }));
 }
 
@@ -1281,7 +1287,8 @@ function badges(){
     e.className = "pip" + (warn && n>0 ? "" : " z");
   };
   set('pApps', a, true); set('pList', l, true);
-  set('pSme', smes.length, false); set('pOrd', orders.length, false);
+  set('pSme', smes.length, false);
+  set('pOrd', orders.filter(o => needsTelling(o) || (o.status==='pending_payment' && o.payment_method!=='on_collection')).length, true);
   set('pAg', agents.length, false); set('pNot', notices.length, false);
   set('pPay', payouts.filter(p=>p.status==='draft'||p.status==='approved').length, true);
   set('pReq', requests.filter(stale).length, true);
@@ -1306,7 +1313,9 @@ function renderDash(){
                      w:a.created, act:`<button class="btn btn-sm" onclick="openApp('${a.id}')">Review</button>`})),
     ...rev.map(l=>({t:`<b>${esc(l.name)}</b> submitted by ${esc(l.sme)}`,
                     w:l.submitted, act:`<button class="btn btn-sm" onclick="openListing('${l.id}')">Review</button>`})),
-    ...(() => { const n = orders.filter(o=>o.status==='pending_payment').length;
+    ...orders.filter(needsTelling).map(o => ({t:`New order <b>${esc(o.order_number)}</b> for ${esc(o.sme)} — tell the seller`,
+                    w:o.created, act:`<button class="btn btn-sm" onclick="openOrder('${o.id}')">Tell them</button>`})),
+    ...(() => { const n = orders.filter(o=>o.status==='pending_payment' && o.payment_method!=='on_collection').length;
         return n ? [{t:`<b>${n}</b> order${n===1?'':'s'} waiting for payment — mark each paid when the agent or bank confirms`,
           w:'Orders', act:`<button class="btn btn-sm" onclick="document.getElementById('fOrdS').value='pending_payment';show('orders')">Open</button>`}] : []; })(),
     ...payouts.filter(p=>p.status==='draft' && p.created_by!==currentUserId).map(p=>({
@@ -1750,13 +1759,16 @@ async function decideApp(id, approve){
     a.status = approve ? 'approved' : 'rejected';
     a.review_note = note;
     if(approve){
-      smes.push({id:"s"+Date.now(), registered_name:a.business_name, district:a.district,
+      const sid = "s"+Date.now();
+      smes.push({id:sid, registered_name:a.business_name, district:a.district,
         primary_industry:a.primary_industry, subcategory:a.subcategory, contact_name:a.contact_name, phone:a.phone,
-        approved:true, featured:false, consent:true, products:0});
+        approved:true, featured:false, consent:true, products:0, owner_id:'preview'});
+      logins[sid] = {email:a.phone};
       activity.unshift({t:`${a.business_name} approved and now live`, w:"Just now", k:"ok"});
-    } else {
-      activity.unshift({t:`${a.business_name} returned to applicant`, w:"Just now", k:"warn"});
+      renderApps(); badges();
+      return approvedBox(a, {total:0}, {login:a.phone, password:'abcd-efgh-jkmn'});
     }
+    activity.unshift({t:`${a.business_name} returned to applicant`, w:"Just now", k:"warn"});
     closeModal(); renderApps(); badges();
     return;
   }
@@ -1782,18 +1794,43 @@ async function decideApp(id, approve){
 
     const migrated = await migrateApplicationPhotos(id, newSmeId);
 
+    // the seller login, made straight away with the mobile number they applied with
+    let cred;
+    try{
+      if(btn) btn.textContent = 'Creating their login…';
+      cred = await sellerFn({action:'create', sme_id:newSmeId, login:a.phone, name:a.contact_name || ''});
+    }catch(e){ cred = {error: e.message || String(e)}; }
+
     await loadAll();
-    closeModal();
     renderApps(); badges();
-    alert(`${a.business_name} approved.` +
-      (migrated.total ? ` ${migrated.ok} of ${migrated.total} photograph(s) moved to the live listing.` +
-        (migrated.fail ? ` ${migrated.fail} could not be moved (${migrated.error}). Open the application and press "Move photos again".` : '')
-        : ' No photographs were submitted with this application.'));
+    approvedBox(a, migrated, cred, newSmeId);
 
   }catch(err){
     if(btn){ btn.disabled = false; btn.textContent = 'Approve & create account'; }
     alert('Could not approve this application: ' + (err.message || err));
   }
+}
+
+// what happened on approval, with the new seller login to hand over
+function approvedBox(a, migrated, cred, smeId){
+  const photos = migrated.total
+    ? `${migrated.ok} of ${migrated.total} photograph(s) moved to the live listing.` +
+      (migrated.fail ? ` ${migrated.fail} could not be moved (${esc(migrated.error)}). Open the application and press “Move photos again”.` : '')
+    : 'No photographs were submitted with this application.';
+  const login = !cred ? ''
+    : cred.error ? `<div class="warnbox"><b>The seller login could not be made:</b> ${esc(cred.error)}<br>
+        Create it under Businesses → ${esc(a.business_name)} → Create login.</div>`
+    : cred.existing ? `<div class="okbox">Linked to the existing login <b class="mono">${esc(showLogin(cred.login))}</b>. Their password has not changed.</div>`
+    : passwordBox(cred.login, cred.password);
+  document.getElementById('mTitle').textContent = a.business_name + ' approved';
+  document.getElementById('mBody').innerHTML = `
+    <div class="okbox"><b>${esc(a.business_name)} is now on the site.</b> ${photos}
+      Its products wait in Listing review until you publish them.</div>
+    ${login}
+    <div class="mact">
+      ${smeId ? `<button class="btn-o" onclick="openSme('${smeId}')">Open the business</button>` : ''}
+      <button class="btn g" onclick="closeModal()">Done</button></div>`;
+  openModal();
 }
 
 async function retryPhotos(appId){
@@ -2319,12 +2356,13 @@ function renderOrders(){
       <td>${esc(o.buyer)}${o.gift?' <span class="tag b">Send home</span>':''}</td>
       <td class="sub2">${esc(o.route)}</td>
       <td class="mono">${k(o.total)}</td>
-      <td>${tag(o.status)}</td>
+      <td>${o.payment_method === 'on_collection' && o.status === 'pending_payment' ? '<span class="tag a">New — seller to confirm</span>' : tag(o.status)}
+          ${needsTelling(o) ? '<br><span class="tag r">Seller not told</span>' : ''}</td>
       <td><button class="btn-o btn-sm" onclick="openOrder('${o.id}')">Open</button></td>
     </tr>`).join('') : `<tr><td colspan="7"><div class="empty">No orders match.</div></td></tr>`;
 }
 
-const PAY_LABEL = {agent_cash:'Cash through an agent', bank_transfer:'Bank transfer', card:'Card', bsp_pay:'BSP Pay'};
+const PAY_LABEL = {on_collection:'Paid to the seller on collection', agent_cash:'Cash through an agent', bank_transfer:'Bank transfer', card:'Card', bsp_pay:'BSP Pay'};
 const STATUS_LABEL = {pending_payment:'Waiting for payment', paid:'Paid', processing:'Being prepared', ready:'Ready',
   fulfilled:'Fulfilled', cancelled:'Cancelled', refunded:'Refunded', disputed:'Disputed'};
 
@@ -2332,7 +2370,13 @@ async function openOrder(id){
   const o = orders.find(x=>x.id===id); if(!o) return;
   const inPayout = payouts.some(p => p.status !== 'cancelled' && (p.payout_orders||[]).some(x => x.order_id === id));
   let act = '';
-  if(o.status === 'pending_payment'){
+  if(o.status === 'pending_payment' && o.payment_method === 'on_collection'){
+    act = `<div class="okbox">The buyer pays the business when they collect. The business confirms the order and marks it
+        collected and paid from their seller page. Nothing to mark paid here.</div>
+      <div class="mact">
+        <button class="btn-o" onclick="closeModal()">Close</button>
+        <button class="btn" onclick="setOrderStatus('${o.id}','cancelled')">Cancel order</button></div>`;
+  } else if(o.status === 'pending_payment'){
     act = `<div class="fr"><label for="payRef">${o.payment_method === 'bank_transfer' ? 'Bank transfer reference' : 'Agent receipt number'}</label>
         <input id="payRef" placeholder="${o.payment_method === 'bank_transfer' ? 'As shown on the bank statement' : 'From the agent\'s receipt book'}"></div>
       <div class="sub2" style="margin:-4px 0 12px;">Only mark it paid once the money is in the MaketPles account or held by the agent. Check the amount is <b>${k(o.total)}</b>.</div>
@@ -2380,6 +2424,7 @@ async function openOrder(id){
     ${o.agent_fee?`<div class="kv"><span class="k">Agent fee</span><span class="v mono">−${k(o.agent_fee)}</span></div>`:''}
     <div class="kv"><span class="k">Owed to business</span><span class="v mono"><b>${k(o.seller_net)}</b></span></div>
     ${o.note?`<div class="warnbox"><b>Note:</b> ${esc(o.note)}</div>`:''}
+    ${tellBox(o)}
     ${act}`;
   openModal();
   if(LIVE){
@@ -2389,6 +2434,68 @@ async function openOrder(id){
       : (data||[]).map(i => `${esc(i.product_name)} × ${i.quantity}${i.unit ? ' <span class="sub2">('+esc(i.unit)+')</span>' : ''} — <span class="mono">${k(i.line_total)}</span>`).join('<br>') || '—';
   }
 }
+/* ---------- telling the seller about a new order ----------
+   Until automatic SMS is set up, staff send the seller a ready-written
+   message with one tap. Pressing a button records who told them and when. */
+const ACTIVE_ORDER = ['pending_payment','paid','processing','ready'];
+// a new order the seller has not been told about yet (an unpaid bank-transfer order waits for payment first)
+const needsTelling = o => !o.seller_told_at && ACTIVE_ORDER.includes(o.status)
+  && (o.payment_method === 'on_collection' || o.status !== 'pending_payment');
+function sellerPhones(o){
+  const s = smes.find(x => x.id === o.smeId) || {};
+  const p = s.priv || {};
+  return [p.business_phone, p.phone || s.phone].filter((v, i, a) => v && a.indexOf(v) === i);
+}
+// +675 7xxx xxxx, 7xxxxxxx or 675… → 6757xxxxxxx (WhatsApp and SMS links want the full number)
+function intlPhone(v){
+  let d = String(v || '').replace(/\D/g, '');
+  if(d.length === 8 && /^[7-9]/.test(d)) d = '675' + d;
+  return d;
+}
+async function tellText(o){
+  let items = o.items || '';
+  if(LIVE){
+    const {data} = await sb.from('order_items').select('product_name, quantity').eq('order_id', o.id);
+    items = (data || []).map(i => `${i.product_name} x${i.quantity}`).join(', ');
+  }
+  const cash = o.payment_method === 'on_collection';
+  return `MaketPles ENB: new order ${o.order_number} from ${o.buyer_name || o.buyer} (${o.buyer_phone || 'no phone'}): ${items}. ` +
+    (cash ? `The buyer pays you ${k(o.total)} when they collect. Please phone them to confirm, then mark it on your seller page: `
+          : `It is paid. Please prepare it and mark it on your seller page: `) +
+    location.origin + '/seller.html';
+}
+function tellBox(o){
+  if(!ACTIVE_ORDER.includes(o.status) || (o.status === 'pending_payment' && o.payment_method !== 'on_collection')) return '';
+  const phones = sellerPhones(o);
+  const told = o.seller_told_at ? `<div class="sub2">Told ${esc(relTime(o.seller_told_at))}${o.seller_told_by ? ' by ' + esc(who(o.seller_told_by)) : ''}.</div>` : '';
+  if(!phones.length) return `<div class="warnbox"><b>Tell the seller:</b> no phone number is on record for this business. Add one under Businesses.</div>`;
+  return `<div class="${o.seller_told_at ? 'okbox' : 'warnbox'}"><b>${o.seller_told_at ? 'The seller has been told.' : 'Tell the seller about this order.'}</b>
+      ${told}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        ${phones.map(ph => `<span class="mono" style="align-self:center;">${esc(ph)}</span>
+          <button class="btn btn-sm" onclick="tellSeller('${o.id}','sms','${esc(ph)}')">SMS</button>
+          <button class="btn btn-sm" onclick="tellSeller('${o.id}','whatsapp','${esc(ph)}')">WhatsApp</button>
+          <button class="btn-o btn-sm" onclick="tellSeller('${o.id}','call','${esc(ph)}')">Call</button>`).join('')}
+      </div></div>`;
+}
+async function tellSeller(id, how, phone){
+  const o = orders.find(x => x.id === id); if(!o) return;
+  const num = intlPhone(phone);
+  if(how === 'call') location.href = 'tel:+' + num;
+  else {
+    const text = await tellText(o);
+    if(how === 'whatsapp') window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(text), '_blank', 'noopener');
+    else location.href = 'sms:+' + num + '?&body=' + encodeURIComponent(text);
+  }
+  const at = new Date().toISOString();
+  if(LIVE){
+    const {error} = await sb.from('orders').update({seller_told_at: at, seller_told_by: currentUserId}).eq('id', id);
+    if(error) return alert('The message was opened, but it could not be recorded: ' + error.message);
+  }
+  o.seller_told_at = at; o.seller_told_by = currentUserId;
+  renderOrders(); openOrder(id);
+}
+
 async function markPaid(id){
   const ref = (document.getElementById('payRef').value||'').trim();
   if(!ref){ alert('Enter the agent receipt number or bank reference first.'); return; }
@@ -2457,35 +2564,65 @@ async function toggleNotice(id){
    ============================================================ */
 function renderProgress(){
   badges();
-  document.getElementById('progInd').innerHTML = INDUSTRIES.map(i=>{
-    const n = smes.filter(s=>s.primary_industry===i.key).length;
+  // only real businesses that are on the site; hidden samples and test entries don't count
+  const live = smes.filter(x => x.approved && !x.is_sample);
+  const ids = new Set(live.map(x => x.id));
+  const liveListings = listings.filter(l => l.status === 'live' && ids.has(l.smeId));
+  const allLlgs = Object.values(LLGS).flat();
+  const covered = new Set(live.map(x => x.llg).filter(l => allLlgs.includes(l)));
+  const week = Date.now() - 7 * 864e5;
+  const realOrders = orders.filter(o => !o.smeId || ids.has(o.smeId));
+  const thisWeek = realOrders.filter(o => o.created_at && new Date(o.created_at).getTime() > week).length;
+  const withLogin = live.filter(x => x.owner_id).length;
+  const tile = (n, label, cls) => `<div class="stat"><div class="n ${cls||''}">${n}</div><div class="l">${label}</div></div>`;
+  document.getElementById('progStats').innerHTML =
+    tile(live.length, `Businesses on the site <br>(target ${TARGET_TOTAL})`, 'g') +
+    tile(applications.filter(a => a.status === 'pending').length, 'Applications waiting', 'a') +
+    tile(`${covered.size}<small style="font-size:15px;">/${allLlgs.length}</small>`, 'LLGs with a business', '') +
+    tile(liveListings.length, 'Products and services live', 'g') +
+    tile(listings.filter(l => l.status === 'in_review').length, 'Listings waiting for review', 'a') +
+    tile(realOrders.filter(o => o.status !== 'cancelled').length, `Orders${thisWeek ? ` · ${thisWeek} this week` : ''}`, '') +
+    tile(requests.length, 'Booking and quote requests', '') +
+    tile(`${withLogin}<small style="font-size:15px;">/${live.length}</small>`, 'Businesses with a seller login', withLogin < live.length ? 'r' : 'g');
+
+  document.getElementById('llgN').textContent = `${covered.size} OF ${allLlgs.length} LLGS`;
+  const max = Math.max(1, ...DISTRICTS.map(d => live.filter(x => x.district === d).length));
+  document.getElementById('progDist').innerHTML = DISTRICTS.map(d => {
+    const n = live.filter(x => x.district === d).length;
+    const llgs = LLGS[d] || [];
+    const missing = llgs.filter(l => !covered.has(l));
+    return `<div class="prow">
+      <div class="lbl">${d}<small>${n} business${n===1?'':'es'} · ${llgs.length - missing.length} of ${llgs.length} LLGs</small></div>
+      <div class="track"><div class="fill${n>0?' done':''}" style="width:${n/max*100}%"></div></div>
+      <div class="val">${n}</div></div>
+      ${missing.length ? `<div class="sub2" style="margin:-4px 0 12px;">Still to find: ${missing.map(esc).join(', ')}</div>` : ''}`;
+  }).join('');
+
+  // a business counts under its main type and under each other type it does
+  const does = (x, key) => x.primary_industry === key || (x.extra_subs || []).some(t => (catOfSub(t) || {}).key === key);
+  document.getElementById('indN').textContent = `TARGET ${TARGET_EACH} EACH`;
+  document.getElementById('progInd').innerHTML = INDUSTRIES.map(i => {
+    const n = live.filter(x => does(x, i.key)).length;
     return `<div class="prow">
       <div class="lbl">${esc(i.label)}<small>${n} of ${TARGET_EACH}</small></div>
       <div class="track"><div class="fill${n>=TARGET_EACH?' done':''}" style="width:${Math.min(100,n/TARGET_EACH*100)}%"></div></div>
       <div class="val">${n}/${TARGET_EACH}</div></div>`;
   }).join('');
 
-  const max = Math.max(1, ...DISTRICTS.map(d=>smes.filter(s=>s.district===d).length));
-  document.getElementById('progDist').innerHTML = DISTRICTS.map(d=>{
-    const n = smes.filter(s=>s.district===d).length;
-    return `<div class="prow">
-      <div class="lbl">${d}<small>${n} business${n===1?'':'es'}</small></div>
-      <div class="track"><div class="fill${n>0?' done':''}" style="width:${n/max*100}%"></div></div>
-      <div class="val">${n}</div></div>`;
-  }).join('');
-
   const issues = [];
-  const tot = smes.length;
-  if(tot < TARGET_TOTAL) issues.push(`<b>${TARGET_TOTAL-tot}</b> more businesses needed to reach the launch target of ${TARGET_TOTAL}`);
-  INDUSTRIES.forEach(i=>{
-    const n = smes.filter(s=>s.primary_industry===i.key).length;
-    if(n < TARGET_EACH) issues.push(`<b>${esc(i.label)}</b> — ${TARGET_EACH-n} short`);
-  });
-  DISTRICTS.forEach(d=>{ if(!smes.some(s=>s.district===d)) issues.push(`<b>${d} District</b> — no businesses yet`); });
-  const noConsent = smes.filter(s=>!s.consent).length;
+  if(live.length < TARGET_TOTAL) issues.push(`<b>${TARGET_TOTAL - live.length}</b> more businesses to reach the launch target of ${TARGET_TOTAL}`);
+  if(covered.size < allLlgs.length) issues.push(`<b>${allLlgs.length - covered.size}</b> LLGs without a business yet`);
+  const noLogin = live.filter(x => !x.owner_id);
+  if(noLogin.length) issues.push(`<b>${noLogin.length}</b> business${noLogin.length===1?' has':'es have'} no seller login: ${noLogin.map(x => esc(x.registered_name)).join(', ')}`);
+  const noProducts = live.filter(x => !liveListings.some(l => l.smeId === x.id));
+  if(noProducts.length) issues.push(`<b>${noProducts.length}</b> business${noProducts.length===1?' has':'es have'} nothing live in the shop: ${noProducts.map(x => esc(x.registered_name)).join(', ')}`);
+  const waiting = listings.filter(l => l.status === 'in_review').length;
+  if(waiting) issues.push(`<b>${waiting}</b> listing${waiting===1?'':'s'} waiting for review`);
+  const untold = orders.filter(needsTelling).length;
+  if(untold) issues.push(`<b>${untold}</b> new order${untold===1?'':'s'} the seller has not been told about`);
+  if(!live.some(x => x.featured)) issues.push('No business is featured on the home page yet — feature those with the best wide photos (the banner shows each business’s photo until then)');
+  const noConsent = live.filter(x => !x.consent).length;
   if(noConsent) issues.push(`<b>${noConsent}</b> business(es) without recorded consent to publish`);
-  const feat = smes.filter(s=>s.featured).length;
-  if(feat < 6) issues.push(`<b>${6-feat}</b> more businesses needed for the homepage slideshow (6 minimum)`);
 
   document.getElementById('readiness').innerHTML = issues.length
     ? issues.map(t=>`<div class="prow" style="grid-template-columns:1fr;"><div style="font-size:13px;">${t}</div></div>`).join('')

@@ -170,10 +170,13 @@ function loadFromDb(){
       id: r.product_id, n: r.name, s: r.sme_slug, p: Number(r.price), c: r.category, sub: r.subcategory || '', mode: r.mode || '', b: r.badge || null,
       ph: r.photo, u: r.unit, about: r.description, stock: r.stock, fresh: !!r.perishable, pickup: !!r.pickup_only
     }));
-    Shop.SLIDES = smes.filter(s => s.featured && s.hero_photo_ref).map(s => ({
-      img: s.hero_photo_ref, biz: s.name, loc: s.district + ' District',
-      ind: typesLine(s.primary_industry, s.subcategory, s.extra_subs)
-    }));
+    // featured businesses with a wide photo; until the Division features any,
+    // every business with a photo takes a turn, so the banner is never empty
+    const slide = (s, img) => ({ img, biz: s.name, loc: s.district + ' District',
+      ind: typesLine(s.primary_industry, s.subcategory, s.extra_subs) });
+    Shop.SLIDES = smes.filter(s => s.featured && s.hero_photo_ref).map(s => slide(s, s.hero_photo_ref));
+    if(!Shop.SLIDES.length)
+      Shop.SLIDES = smes.filter(s => s.hero_photo_ref || s.photo_ref).slice(0, 6).map(s => slide(s, s.hero_photo_ref || s.photo_ref));
     if(settings && settings[0]) Shop.SETTINGS = Object.assign({}, SETTINGS_DEFAULT, settings[0]);
     Shop.CONFIG = CONFIG_DEFAULT;
     Shop.IS_SAMPLE = false;
