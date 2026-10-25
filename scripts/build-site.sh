@@ -16,7 +16,7 @@ find photos -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -i
   while read -r f; do mkdir -p "dist/$(dirname "$f")"; cp "$f" "dist/$f"; done
 
 # district officers' intake tool and printable form
-cp tools/intake.html tools/sme-form.pdf tools/forms/photo-guide.pdf dist/tools/
+cp tools/intake.html tools/sme-form.pdf tools/forms/photo-guide.pdf tools/forms/seller-guide.pdf dist/tools/
 
 # safety check: nothing internal slipped through
 if find dist -name '*.sql' -o -name '*.md' -o -name '*.py' | grep -q .; then

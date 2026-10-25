@@ -22,7 +22,7 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import mm
 from reportlab.lib.colors import HexColor, white
 from reportlab.pdfgen import canvas
-from reportlab.platypus import Table, TableStyle, Paragraph
+from reportlab.platypus import Table, TableStyle, Paragraph, Frame, Spacer
 from reportlab.lib.styles import ParagraphStyle
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -121,6 +121,7 @@ CATEGORIES = [
 
 # Where officers enter the form online. Change this when the site moves to its own domain.
 ONLINE_URL = "market-remix.lesleywaninara.workers.dev/register?officer"
+SELLER_URL = "market-remix.lesleywaninara.workers.dev/seller"
 
 W, H = A4
 M = 14 * mm
@@ -291,10 +292,11 @@ def officer_guide(c, llg=None, district=None):
         "The owner signs section 7. You sign the officer's part. Without both signatures we cannot list them.",
         f"Enter the form online on your phone at  {ONLINE_URL}  and add the photos there. "
         "Keep the signed paper form for your records.",
+        "Once the business is approved, give the owner the seller guide with their login written on its front.",
     ], numbered=True)
     block("What to tell the owner — honestly", [
-        "Joining is free. When selling starts, a small fee is taken from each sale. The Division will explain it "
-        "before anything is sold, and the owner can say no.",
+        "Joining is free. Buyers pay the business directly when they collect, and no fee is taken from those sales. "
+        "If the Division later takes payments for them, any fee will be explained first, and the owner can say no.",
         "Nothing is sold yet. This form only gets the business ready to be listed.",
         "Their phone number is never shown to buyers. Bank details are not collected on this form.",
         "They can ask for their business to be removed at any time.",
@@ -432,7 +434,8 @@ def entry_form(c, llg=None, district=None, pad=False):
     p.box(M, p.y, "I agree to my business name, district, products, prices and photos being shown on MaketPles ENB", size=8.6)
     p.y -= 4.6 * mm
     p.para("and in demonstrations by the Division of Commerce & Industry. I understand that my phone number is not "
-           "shown to buyers, that joining is free and a fee on each sale will be explained before anything is sold, "
+           "shown to buyers, that joining is free, that buyers who collect pay me directly with no fee taken, "
+           "that any fee on payments through the Division will be explained before it applies, "
            "and that I can ask for my business to be removed at any time.", x=M + 5 * mm, width=CW - 5 * mm, size=8.6)
     p.y -= 6 * mm
     third = (CW - 8 * mm) / 3
@@ -655,6 +658,8 @@ def instructions(path):
         ["print-guides-single-sided.pdf", "A4, single-sided", "20 — one officer guide per LLG"],
         ["print-forms-double-sided.pdf", "A4, double-sided, flip on long edge", "20 — each LLG's form on two sheets"],
         ["sme-entry-form.pdf", "A4, double-sided — a few spares", "For an officer's second business"],
+        ["photo-guide.pdf", "A4, single-sided", "20 — one per officer"],
+        ["seller-guide.pdf", "A4, double-sided", "One per business, given once it is approved"],
         ["llg-tracking-sheet.pdf", "A4 landscape, single-sided", "1 — kept by the Division"],
     ], [0.36, 0.34, 0.30])
     p.para("Each guide and form already shows its LLG and district. The by-llg folder has the same for one LLG at a "
@@ -851,6 +856,166 @@ def photo_guide(c):
     c.showPage()
 
 
+# ---------------------------------------------------------------- seller guide
+# One sheet, both sides, left with each business: signing in, handling an
+# order paid on collection, keeping listings right, and the rules.
+def seller_guide(c):
+    sb = ParagraphStyle("sb", fontName="Helvetica-Bold", fontSize=9, leading=11.6, textColor=INK)
+    st = ParagraphStyle("st", fontName="Helvetica", fontSize=9, leading=11.6, textColor=INK)
+    sm = ParagraphStyle("sm", fontName="Helvetica", fontSize=8.2, leading=10.4, textColor=MUTED)
+    sh = ParagraphStyle("sh", fontName="Helvetica-Bold", fontSize=11.5, leading=14, textColor=RED, spaceBefore=3, spaceAfter=4)
+    num = ParagraphStyle("num", fontName="Helvetica-Bold", fontSize=13, leading=14, textColor=white, alignment=1)
+
+    def rows(pairs, kw=30 * mm):
+        t = Table([[Paragraph(k, sb), Paragraph(v, st)] for k, v in pairs], colWidths=[kw, CW - kw])
+        t.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), TINT), ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                               ("BOX", (0, 0), (-1, -1), 0.8, INK), ("LINEBELOW", (0, 0), (-1, -2), 0.4, SOFT),
+                               ("TOPPADDING", (0, 0), (-1, -1), 3.4), ("BOTTOMPADDING", (0, 0), (-1, -1), 3.4),
+                               ("LEFTPADDING", (0, 0), (-1, -1), 5)]))
+        return t
+
+    def steps(items):
+        t = Table([[Paragraph(str(i + 1), num), Paragraph(a, sb), Paragraph(b, st)] for i, (a, b) in enumerate(items)],
+                  colWidths=[9 * mm, 38 * mm, CW - 47 * mm])
+        t.setStyle(TableStyle([("BACKGROUND", (0, 0), (0, -1), GREEN), ("BACKGROUND", (1, 0), (-1, -1), white),
+                               ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("BOX", (0, 0), (-1, -1), 0.8, INK),
+                               ("LINEBELOW", (0, 0), (-1, -2), 0.4, SOFT),
+                               ("TOPPADDING", (0, 0), (-1, -1), 4), ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                               ("LEFTPADDING", (1, 0), (-1, -1), 5)]))
+        return t
+
+    def ticks(items):
+        # an empty square to tick by hand (the font has no box character)
+        sq = lambda: Table([[""]], colWidths=[3.6 * mm], rowHeights=[3.6 * mm],
+                           style=[("BOX", (0, 0), (-1, -1), 0.8, INK), ("BACKGROUND", (0, 0), (-1, -1), white)])
+        t = Table([[sq(), Paragraph(v, st)] for v in items], colWidths=[9 * mm, CW - 9 * mm])
+        t.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), TINT), ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                               ("BOX", (0, 0), (-1, -1), 0.8, INK), ("LINEBELOW", (0, 0), (-1, -2), 0.4, SOFT),
+                               ("TOPPADDING", (0, 0), (-1, -1), 3.4), ("BOTTOMPADDING", (0, 0), (-1, -1), 3.4),
+                               ("LEFTPADDING", (0, 0), (-1, -1), 5)]))
+        return t
+
+    # filled in by hand: the login and the Division's number stay off the internet
+    blank = "_" * 34
+    card = Table([[Paragraph("Sign in at", sb), Paragraph(SELLER_URL, sb)],
+                  [Paragraph("My login (mobile number)", sb), Paragraph(blank, st)],
+                  [Paragraph("Temporary password (first time only)", sb), Paragraph(blank, st)],
+                  [Paragraph("Division contact", sb), Paragraph(blank, st)]],
+                 colWidths=[58 * mm, CW - 58 * mm])
+    card.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), TINT), ("BOX", (0, 0), (-1, -1), 1.2, RED),
+                              ("LINEBELOW", (0, 0), (-1, -2), 0.4, SOFT), ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                              ("TOPPADDING", (0, 0), (-1, -1), 5), ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                              ("LEFTPADDING", (0, 0), (-1, -1), 6)]))
+
+    flow = [
+        card, Spacer(1, 4 * mm),
+        Paragraph("1. Signing in", sh),
+        rows([
+            ("On your phone", f"Open <b>{SELLER_URL}</b> and add it to your home screen, so it is one tap away."),
+            ("Login", "The mobile number you applied with, for example 7XXX XXXX."),
+            ("First time", "Type the temporary password the Division gave you, then choose your own: at least 8 characters. "
+                           "Do not share it, not even with the Division."),
+            ("Forgotten it?", "Phone the Division or your district commerce office for a new temporary password."),
+        ]),
+        Spacer(1, 3 * mm),
+        Paragraph("2. When an order comes in", sh),
+        Paragraph("Most orders are <b>pay when you collect</b>: the buyer pays you the price on the order, in cash or by "
+                  "mobile money, when they pick it up. No fee is taken from these orders.", st),
+        Spacer(1, 2.4 * mm),
+        steps([
+            ("You get a message", "The Division sends you an SMS or WhatsApp: the order number, the buyer’s name and phone, "
+                                  "and what they want. It is also under <b>Orders</b> when you sign in."),
+            ("Phone the buyer", "Agree when they will come. Then press <b>Confirm order</b>."),
+            ("Get it ready", "When it is packed and waiting, press <b>Mark ready</b>."),
+            ("They collect and pay", "Check the money, hand it over, then press <b>Collected and paid</b>. "
+                                     "Only press it once you have been paid."),
+            ("They don’t come", "Phone them first. If the order is off, or you cannot supply it, press <b>Cancel</b>."),
+        ]),
+        Spacer(1, 2 * mm),
+        Paragraph("An order marked <b>Paid — prepare it</b> was paid through the Division: prepare it, mark it ready, then "
+                  "collected. The Division pays you for these later, into the bank account under <b>My business</b>.", sm),
+        Spacer(1, 3 * mm),
+        Paragraph("3. Keeping your shop right", sh),
+        rows([
+            ("Price or stock changed", "<b>My products</b> → <b>Edit</b> → change it → <b>Save changes</b>. "
+                                       "Keep prices the same as at your stall."),
+            ("Sold out", "Set <b>How many do you have?</b> to 0, or press <b>Stop selling</b>."),
+            ("Something new", "<b>+ Add a product</b>: the name with its size, the price, what the price is for "
+                              "(each, per kg, per bundle), how many you have, and 2–3 photos. Then <b>Send for review</b>. "
+                              "The Division checks it, usually within 2 working days."),
+            ("Sent back to you", "<b>My products</b> shows <b>Needs changes</b> with the Division’s note. "
+                                 "Press <b>Fix</b>, make the change, then <b>Send for review</b> again."),
+            ("Photos", "Daylight, plain background, the item filling the photo. See the photo guide."),
+            ("Your details", "Keep your phone numbers right under <b>My business</b>, or orders can’t reach you."),
+        ], kw=34 * mm),
+        Spacer(1, 3 * mm),
+        Paragraph("4. Bookings and quotes", sh),
+        Paragraph("Guest houses, tours, transport, building and similar services get <b>requests</b>, not orders. "
+                  "Open <b>Requests</b>, phone the buyer within 2 days, agree the price and how they pay, then mark it "
+                  "<b>Contacted</b> and later <b>Done</b>.", st),
+        Spacer(1, 3 * mm),
+        Paragraph("5. The rules", sh),
+        rows([
+            ("Not allowed", "Alcohol and home brew · tobacco and buai · medicines · petrol, diesel and gas · wildlife · "
+                            "weapons · fake or copied goods · services that need a licence you don’t hold."),
+            ("Collect only", "Live poultry and kerosene (in sealed containers) can be sold, but only for the buyer to "
+                             "collect from you. The site will not let them be delivered."),
+            ("Fresh food", "Collected, or delivered only within your own district."),
+            ("Be fair", "Sell only what your listing shows, at its price. If something is wrong with an order, "
+                        "sort it out with the buyer; the Division will help if you can’t agree."),
+        ], kw=26 * mm),
+        Spacer(1, 4 * mm),
+        Paragraph("6. What your orders say", sh),
+        rows([
+            ("New — confirm it", "A buyer has ordered and will pay you on collection. Phone them, then <b>Confirm order</b>."),
+            ("Preparing", "You confirmed it. Press <b>Mark ready</b> when it is packed."),
+            ("Ready for collection", "Waiting for the buyer. Press <b>Collected and paid</b> once they have paid you."),
+            ("Collected and paid", "Done. It stays in your list as a record."),
+            ("Paid — prepare it", "Paid through the Division. Prepare it; the Division pays you later."),
+        ], kw=38 * mm),
+        Spacer(1, 4 * mm),
+        Paragraph("7. Your first week", sh),
+        ticks([
+            "Sign in and choose your own password.",
+            "Open <b>My products</b>: check every price, what it is for, and how many you have.",
+            "Add the Division’s number to your phone, so you know its messages are real.",
+            "Add two or three more products, with good photos.",
+            "Check your phone numbers under <b>My business</b>.",
+        ]),
+        Spacer(1, 4 * mm),
+        Paragraph("8. Selling more", sh),
+        rows([
+            ("Be quick", "Phone buyers the same day. A fast answer turns into the next order."),
+            ("Share your stall", "Your stall page is on the site under <b>Our SMEs</b>. Send its link to customers on "
+                                 "WhatsApp or Facebook so they can order from you any time."),
+            ("Keep it true", "Right prices, right stock, real photos. If you run out, set it to 0 straight away."),
+            ("Ask the Division", "To feature your business on the home page, or for help with photos or a product."),
+        ], kw=34 * mm),
+    ]
+
+    page = 1
+    while flow:
+        p = Page(c)
+        if page == 1:
+            header(p, "Seller guide — selling on MaketPles ENB",
+                   "Keep this with your phone. For businesses on the site.", show_box=False)
+            top = p.y
+        else:
+            c.setFont("Helvetica-Bold", 10); c.setFillColor(INK)
+            c.drawString(M, p.h - M - 3 * mm, "Seller guide — selling on MaketPles ENB (continued)")
+            p.ribbon(p.h - M - 6.5 * mm)
+            top = p.h - M - 11 * mm
+        f = Frame(M, M + 9 * mm, CW, top - (M + 9 * mm), leftPadding=0, rightPadding=0, topPadding=0, bottomPadding=0)
+        before = len(flow)
+        f.addFromList(flow, c)
+        if len(flow) == before:
+            raise RuntimeError("seller guide: a block is taller than a page")
+        p.footer("MaketPles ENB · Division of Commerce & Industry, East New Britain Provincial Administration")
+        c.drawRightString(M + CW, M, f"Side {page}")
+        c.showPage()
+        page += 1
+
+
 def doc(path, title):
     c = canvas.Canvas(path, pagesize=A4)
     c.setTitle(title); c.setAuthor("Division of Commerce & Industry, ENBPA"); c.setSubject("MaketPles ENB")
@@ -885,6 +1050,8 @@ def main():
 
     c = doc(os.path.join(OUT, "photo-guide.pdf"), "Photo guide — MaketPles ENB")
     photo_guide(c); c.save()
+    c = doc(os.path.join(OUT, "seller-guide.pdf"), "Seller guide — MaketPles ENB")
+    seller_guide(c); c.save()
     tracking_sheet(os.path.join(OUT, "llg-tracking-sheet.pdf"))
     instructions(os.path.join(OUT, "instructions.pdf"))
     print("Wrote", OUT)
